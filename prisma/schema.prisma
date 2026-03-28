@@ -1,0 +1,488 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+// ─────────────────────────────────────────
+// HOME PAGE
+// ─────────────────────────────────────────
+
+model Slider {
+  id         String   @id @default(cuid())
+  titleEn    String
+  titleAr    String
+  subtitleEn String?
+  subtitleAr String?
+  ctaLabelEn String?
+  ctaLabelAr String?
+  ctaUrl     String?
+  imageUrl   String
+  order      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ExperienceNumber {
+  id        String   @id @default(cuid())
+  labelEn   String
+  labelAr   String
+  value     Int
+  suffix    String?
+  icon      String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// ABOUT
+// ─────────────────────────────────────────
+
+model AboutContent {
+  id        String       @id @default(cuid())
+  section   AboutSection @unique
+  titleEn   String
+  titleAr   String
+  bodyEn    String       @db.Text
+  bodyAr    String       @db.Text
+  imageUrl  String?
+  updatedAt DateTime     @updatedAt
+}
+
+enum AboutSection {
+  OVERVIEW
+  VISION
+  MISSION
+  IMPACT
+}
+
+model CoreValue {
+  id            String  @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
+  icon          String?
+  order         Int     @default(0)
+  isActive      Boolean @default(true)
+}
+
+model BoardMember {
+  id          String     @id @default(cuid())
+  nameEn      String
+  nameAr      String
+  titleEn     String
+  titleAr     String
+  bioEn       String?    @db.Text
+  bioAr       String?    @db.Text
+  imageUrl    String?
+  linkedinUrl String?
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  memberType  MemberType @default(BOARD)
+}
+
+enum MemberType {
+  BOARD
+  TEAM
+}
+
+model SuccessMilestone {
+  id            String  @id @default(cuid())
+  year          Int
+  titleEn       String
+  titleAr       String
+  descriptionEn String? @db.Text
+  descriptionAr String? @db.Text
+  order         Int     @default(0)
+}
+
+// ─────────────────────────────────────────
+// PILLARS / PROGRAMS
+// ─────────────────────────────────────────
+
+model Pillar {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  titleEn       String
+  titleAr       String
+  descriptionEn String       @db.Text
+  descriptionAr String       @db.Text
+  iconUrl       String?
+  imageUrl      String?
+  order         Int          @default(0)
+  isActive      Boolean      @default(true)
+  subPillars    SubPillar[]
+  pillarInfos   PillarInfo[]
+  programs      Program[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model SubPillar {
+  id       String @id @default(cuid())
+  pillarId String
+  pillar   Pillar @relation(fields: [pillarId], references: [id], onDelete: Cascade)
+  titleEn  String
+  titleAr  String
+  bodyEn   String @db.Text
+  bodyAr   String @db.Text
+  order    Int    @default(0)
+}
+
+model PillarInfo {
+  id       String @id @default(cuid())
+  pillarId String
+  pillar   Pillar @relation(fields: [pillarId], references: [id], onDelete: Cascade)
+  labelEn  String
+  labelAr  String
+  value    String
+  order    Int    @default(0)
+}
+
+// ─────────────────────────────────────────
+// PROGRAMS
+// ─────────────────────────────────────────
+
+model Program {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  titleEn       String
+  titleAr       String
+  summaryEn     String         @db.Text
+  summaryAr     String         @db.Text
+  bodyEn        String         @db.Text
+  bodyAr        String         @db.Text
+  coverImageUrl String?
+  status        ProgramStatus  @default(ACTIVE)
+  category      String?
+  pillarId      String?
+  pillar        Pillar?        @relation(fields: [pillarId], references: [id])
+  donorEn       String?
+  donorAr       String?
+  locationEn    String?
+  locationAr    String?
+  budget        String?
+  beneficiaries Int?
+  year          Int?
+  startDate     DateTime?
+  endDate       DateTime?
+  objectivesEn  String?        @db.Text
+  objectivesAr  String?        @db.Text
+  images        ProgramImage[]
+  teamMembers   ProgramTeamMember[]
+  partners      ProgramPartner[]
+  stats         ProgramStat[]
+  videos        ProgramVideo[]
+  isActive      Boolean        @default(true)
+  isFeatured    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ProgramImage {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  imageUrl  String
+  caption   String?
+  order     Int     @default(0)
+}
+
+model ProgramTeamMember {
+  id          String  @id @default(cuid())
+  programId   String
+  program     Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  nameEn      String
+  nameAr      String
+  roleEn      String
+  roleAr      String
+  imageUrl    String?
+  linkedinUrl String?
+  order       Int     @default(0)
+}
+
+model ProgramPartner {
+  id         String  @id @default(cuid())
+  programId  String
+  program    Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  nameEn     String
+  nameAr     String
+  logoUrl    String?
+  websiteUrl String?
+  order      Int     @default(0)
+}
+
+model ProgramStat {
+  id        String  @id @default(cuid())
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  labelEn   String
+  labelAr   String
+  value     Int
+  suffix    String?
+  icon      String?
+  order     Int     @default(0)
+}
+
+model ProgramVideo {
+  id         String  @id @default(cuid())
+  programId  String
+  program    Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  titleEn    String?
+  titleAr    String?
+  youtubeUrl String
+  order      Int     @default(0)
+}
+
+enum ProgramStatus {
+  ACTIVE
+  COMPLETED
+  UPCOMING
+}
+
+// ─────────────────────────────────────────
+// MEDIA
+// ─────────────────────────────────────────
+
+model Event {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titleEn         String
+  titleAr         String
+  descriptionEn   String   @db.Text
+  descriptionAr   String   @db.Text
+  imageUrl        String?
+  location        String?
+  startDate       DateTime
+  endDate         DateTime?
+  registrationUrl String?
+  isActive        Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model GalleryImage {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  captionEn   String?
+  captionAr   String?
+  albumName   String?
+  albumNameAr String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  titleEn      String
+  titleAr      String
+  youtubeUrl   String
+  thumbnailUrl String?
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model Report {
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String?  @db.Text
+  descriptionAr String?  @db.Text
+  fileUrl       String
+  coverImageUrl String?
+  year          Int?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model Testimonial {
+  id       String  @id @default(cuid())
+  nameEn   String
+  nameAr   String
+  titleEn  String?
+  titleAr  String?
+  quoteEn  String  @db.Text
+  quoteAr  String  @db.Text
+  imageUrl String?
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+}
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  titleEn       String
+  titleAr       String
+  summaryEn     String    @db.Text
+  summaryAr     String    @db.Text
+  bodyEn        String    @db.Text
+  bodyAr        String    @db.Text
+  coverImageUrl String?
+  authorName    String?
+  category      String?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─────────────────────────────────────────
+// GET INVOLVED
+// ─────────────────────────────────────────
+
+model Career {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  titleEn       String
+  titleAr       String
+  descriptionEn String   @db.Text
+  descriptionAr String   @db.Text
+  locationEn    String?
+  locationAr    String?
+  type          JobType  @default(FULL_TIME)
+  deadline      DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  VOLUNTEER
+  INTERNSHIP
+}
+
+// ─────────────────────────────────────────
+// PARTNERS
+// ─────────────────────────────────────────
+
+model Partner {
+  id         String      @id @default(cuid())
+  nameEn     String
+  nameAr     String
+  logoUrl    String
+  websiteUrl String?
+  type       PartnerType @default(PARTNER)
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+}
+
+enum PartnerType {
+  PARTNER
+  CLIENT
+  DONOR
+  CRISIS_PARTNER
+}
+
+// ─────────────────────────────────────────
+// CONTACT / SITE CONFIG
+// ─────────────────────────────────────────
+
+model ContactInfo {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  valueEn   String
+  valueAr   String?
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// LEBANON CRISIS
+// ─────────────────────────────────────────
+
+model CrisisStat {
+  id      String  @id @default(cuid())
+  labelEn String
+  labelAr String
+  value   String
+  icon    String?
+  order   Int     @default(0)
+}
+
+model CrisisIntervention {
+  id            String @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String @db.Text
+  descriptionAr String @db.Text
+  icon          String?
+  order         Int    @default(0)
+}
+
+// ─────────────────────────────────────────
+// FORM SUBMISSIONS
+// ─────────────────────────────────────────
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model JoinUsSubmission {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String
+  phone        String?
+  nationality  String?
+  organization String?
+  role         String?
+  sector       String?
+  experience   String?  @db.Text
+  interestArea String?
+  motivation   String?  @db.Text
+  cvUrl        String?
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model ServiceRequest {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  organization String?
+  serviceType String?
+  description String   @db.Text
+  budget      String?
+  timeline    String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}

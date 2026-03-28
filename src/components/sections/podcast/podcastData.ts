@@ -1,0 +1,228 @@
+export interface PodcastSeason {
+  slug: string;
+  nameEn: string;
+  nameAr: string;
+}
+
+export interface PodcastEpisode {
+  id: string;
+  slug: string;
+  episodeNumber: number;
+  titleEn: string;
+  titleAr: string;
+  descriptionEn: string;
+  descriptionAr: string;
+  coverImageUrl: string;
+  audioUrl: string;
+  durationMin: number;
+  seasonSlug: string;
+  publishedAt: string;
+  guestNameEn?: string;
+  guestNameAr?: string;
+  guestRoleEn?: string;
+  guestRoleAr?: string;
+  isFeatured?: boolean;
+}
+
+export const podcastSeasons: PodcastSeason[] = [
+  { slug: "s1", nameEn: "Season 1 — Foundations", nameAr: "الموسم 1 — الأسس" },
+  { slug: "s2", nameEn: "Season 2 — Green Futures", nameAr: "الموسم 2 — مستقبل أخضر" },
+  { slug: "s3", nameEn: "Season 3 — Women Lead", nameAr: "الموسم 3 — النساء تقود" },
+];
+
+export const demoEpisodes: PodcastEpisode[] = [
+  // Season 3 — Women Lead
+  {
+    id: "1",
+    slug: "women-redefining-entrepreneurship-mena",
+    episodeNumber: 12,
+    titleEn: "Women Redefining Entrepreneurship in MENA",
+    titleAr: "نساء يعيدن تعريف ريادة الأعمال في المنطقة",
+    descriptionEn: "In this powerful episode, we sit down with three women entrepreneurs from Lebanon, Tunisia, and Morocco who are breaking barriers in traditionally male-dominated industries. They share their journeys through the NAWRA Green Ventures program, the challenges they overcame, and their vision for a more inclusive entrepreneurial ecosystem.\n\nKey topics:\n- Navigating cultural barriers as women entrepreneurs\n- How the NAWRA program provided a support system\n- Building sustainable businesses that empower other women\n- The role of mentorship in women's economic empowerment\n- Advice for aspiring women entrepreneurs in the region",
+    descriptionAr: "في هذه الحلقة المؤثرة، نجلس مع ثلاث رائدات أعمال من لبنان وتونس والمغرب يكسرن الحواجز في صناعات يهيمن عليها الرجال تقليدياً. يشاركن رحلاتهن عبر برنامج مشاريع نورة الخضراء والتحديات التي تغلبن عليها ورؤيتهن لنظام ريادي أكثر شمولاً.",
+    coverImageUrl: "/images/nawra-women-training.jpg",
+    audioUrl: "#",
+    durationMin: 42,
+    seasonSlug: "s3",
+    publishedAt: "2026-03-01",
+    guestNameEn: "Rima Al-Hajj, Nadia Touati, Fatima Idrissi",
+    guestNameAr: "ريما الحاج، نادية التواتي، فاطمة الإدريسي",
+    guestRoleEn: "NAWRA Green Ventures Entrepreneurs",
+    guestRoleAr: "رائدات أعمال مشاريع نورة الخضراء",
+    isFeatured: true,
+  },
+  {
+    id: "2",
+    slug: "from-houla-to-the-world-green-fashion",
+    episodeNumber: 11,
+    titleEn: "From Houla to the World: The Green Fashion Revolution",
+    titleAr: "من حولا إلى العالم: ثورة الأزياء الخضراء",
+    descriptionEn: "Nour Bazzi, manager of the Houla Women's Green Fashion Factory, shares how 50 women in South Lebanon are producing sustainable fashion that's now reaching international markets. We explore the factory's journey from concept to reality, its partnership with UNIFIL, and the transformative impact on the local community.",
+    descriptionAr: "نور بزي، مديرة مصنع حولا للأزياء الخضراء للنساء، تشارك كيف تنتج 50 امرأة في جنوب لبنان أزياء مستدامة تصل الآن إلى الأسواق الدولية.",
+    coverImageUrl: "/images/handcrafted-products.jpg",
+    audioUrl: "#",
+    durationMin: 35,
+    seasonSlug: "s3",
+    publishedAt: "2026-02-15",
+    guestNameEn: "Nour Bazzi",
+    guestNameAr: "نور بزي",
+    guestRoleEn: "Manager, Houla Green Fashion Factory",
+    guestRoleAr: "مديرة مصنع حولا للأزياء الخضراء",
+  },
+  {
+    id: "3",
+    slug: "financial-literacy-key-women-empowerment",
+    episodeNumber: 10,
+    titleEn: "Financial Literacy: The Key to Women's Empowerment",
+    titleAr: "محو الأمية المالية: مفتاح تمكين المرأة",
+    descriptionEn: "Why is financial literacy the number one gap holding women entrepreneurs back? We dive into data from our programs and speak with Dr. Nadia Salim about evidence-based approaches to women's economic participation in the MENA region.",
+    descriptionAr: "لماذا تعد محو الأمية المالية الفجوة الأولى التي تعيق رائدات الأعمال؟ نتعمق في بيانات برامجنا ونتحدث مع د. نادية سليم حول المقاربات المبنية على الأدلة.",
+    coverImageUrl: "/images/women-empowerment-art.jpg",
+    audioUrl: "#",
+    durationMin: 38,
+    seasonSlug: "s3",
+    publishedAt: "2026-02-01",
+    guestNameEn: "Dr. Nadia Salim",
+    guestNameAr: "د. نادية سليم",
+    guestRoleEn: "Research & Policy Lead, LEEE",
+    guestRoleAr: "رئيسة الأبحاث والسياسات، LEEE",
+  },
+
+  // Season 2 — Green Futures
+  {
+    id: "4",
+    slug: "agritech-revolution-rural-lebanon",
+    episodeNumber: 9,
+    titleEn: "The Agritech Revolution in Rural Lebanon",
+    titleAr: "ثورة التكنولوجيا الزراعية في ريف لبنان",
+    descriptionEn: "Smart irrigation, precision farming, and drone technology are reaching Lebanon's rural communities. We explore how agritech entrepreneurs trained through our programs are transforming traditional agriculture and building climate-resilient food systems.",
+    descriptionAr: "الري الذكي والزراعة الدقيقة وتكنولوجيا الطائرات بدون طيار تصل إلى المجتمعات الريفية في لبنان. نستكشف كيف يحوّل رواد الأعمال في التكنولوجيا الزراعية الزراعة التقليدية.",
+    coverImageUrl: "/images/field-visit-rural.jpg",
+    audioUrl: "#",
+    durationMin: 40,
+    seasonSlug: "s2",
+    publishedAt: "2025-12-15",
+    guestNameEn: "Omar Suleiman",
+    guestNameAr: "عمر سليمان",
+    guestRoleEn: "Agritech Entrepreneur, Bekaa Valley",
+    guestRoleAr: "رائد أعمال تكنولوجيا زراعية، سهل البقاع",
+  },
+  {
+    id: "5",
+    slug: "circular-economy-opportunities-lebanon",
+    episodeNumber: 8,
+    titleEn: "Circular Economy: The $100M Opportunity for Lebanon",
+    titleAr: "الاقتصاد الدائري: فرصة بقيمة 100 مليون دولار للبنان",
+    descriptionEn: "Lebanon generates 2.5 million tons of waste annually. We explore how green entrepreneurs are turning waste into wealth through recycling innovations, upcycling businesses, and circular economy models supported by LEEE's incubation programs.",
+    descriptionAr: "ينتج لبنان 2.5 مليون طن من النفايات سنوياً. نستكشف كيف يحوّل رواد الأعمال الخضراء النفايات إلى ثروة من خلال ابتكارات إعادة التدوير.",
+    coverImageUrl: "/images/nawra-program-graphic.jpg",
+    audioUrl: "#",
+    durationMin: 36,
+    seasonSlug: "s2",
+    publishedAt: "2025-11-28",
+  },
+  {
+    id: "6",
+    slug: "renewable-energy-entrepreneurs-mena",
+    episodeNumber: 7,
+    titleEn: "Solar Pioneers: Renewable Energy Entrepreneurs in MENA",
+    titleAr: "رواد الطاقة الشمسية: رواد أعمال الطاقة المتجددة في المنطقة",
+    descriptionEn: "With 300+ sunny days per year, Lebanon and the MENA region have enormous solar energy potential. We talk to entrepreneurs who are building solar businesses and overcoming the challenges of operating in post-crisis economies.",
+    descriptionAr: "مع أكثر من 300 يوم مشمس سنوياً، يمتلك لبنان والمنطقة إمكانات هائلة للطاقة الشمسية. نتحدث مع رواد أعمال يبنون أعمال الطاقة الشمسية.",
+    coverImageUrl: "/images/team-partners-meeting.jpg",
+    audioUrl: "#",
+    durationMin: 44,
+    seasonSlug: "s2",
+    publishedAt: "2025-11-10",
+  },
+  {
+    id: "7",
+    slug: "community-kitchens-healing-through-food",
+    episodeNumber: 6,
+    titleEn: "Community Kitchens: Healing Through Food",
+    titleAr: "المطابخ المجتمعية: التعافي من خلال الطعام",
+    descriptionEn: "Food brings people together. We visit the community kitchens in Chouf and Bekaa to hear how these spaces are building social cohesion between host communities and displaced families while providing meals, job training, and psychosocial support.",
+    descriptionAr: "الطعام يجمع الناس. نزور المطابخ المجتمعية في الشوف والبقاع لنسمع كيف تبني هذه الأماكن التماسك الاجتماعي بين المجتمعات المضيفة والعائلات النازحة.",
+    coverImageUrl: "/images/women-group-certificates.jpg",
+    audioUrl: "#",
+    durationMin: 33,
+    seasonSlug: "s2",
+    publishedAt: "2025-10-20",
+  },
+
+  // Season 1 — Foundations
+  {
+    id: "8",
+    slug: "what-is-leee-experience-origin-story",
+    episodeNumber: 5,
+    titleEn: "What is LEEE Experience? Our Origin Story",
+    titleAr: "ما هي LEEE Experience؟ قصة البداية",
+    descriptionEn: "In this foundational episode, LEEE Experience CEO Dr. Ali Mansour shares the organization's origin story — from a small initiative in North Lebanon to an NGO operating across 10 countries with 32+ active programs. Learn about our mission, our 5 pillars, and the vision driving our work.",
+    descriptionAr: "في هذه الحلقة التأسيسية، يشارك الرئيس التنفيذي لـ LEEE Experience د. علي منصور قصة بداية المنظمة — من مبادرة صغيرة في شمال لبنان إلى منظمة غير حكومية تعمل عبر 10 دول.",
+    coverImageUrl: "/images/international-professionals.jpg",
+    audioUrl: "#",
+    durationMin: 48,
+    seasonSlug: "s1",
+    publishedAt: "2025-09-01",
+    guestNameEn: "Dr. Ali Mansour",
+    guestNameAr: "د. علي منصور",
+    guestRoleEn: "CEO, LEEE Experience",
+    guestRoleAr: "الرئيس التنفيذي، LEEE Experience",
+  },
+  {
+    id: "9",
+    slug: "siyb-changing-lives-one-business",
+    episodeNumber: 4,
+    titleEn: "SIYB: Changing Lives One Business at a Time",
+    titleAr: "SIYB: تغيير الحياة عمل تلو الآخر",
+    descriptionEn: "The ILO-certified Start & Improve Your Business program is our flagship training initiative. We speak with graduates who share how the program transformed their business ideas into thriving enterprises, and explore what makes SIYB so effective.",
+    descriptionAr: "برنامج ابدأ وحسّن عملك المعتمد من منظمة العمل الدولية هو مبادرتنا التدريبية الرائدة. نتحدث مع خريجين يشاركون كيف حوّل البرنامج أفكارهم إلى مشاريع مزدهرة.",
+    coverImageUrl: "/images/group-training-workshop.jpg",
+    audioUrl: "#",
+    durationMin: 37,
+    seasonSlug: "s1",
+    publishedAt: "2025-08-15",
+  },
+  {
+    id: "10",
+    slug: "entrepreneurship-education-gap-mena",
+    episodeNumber: 3,
+    titleEn: "The Entrepreneurship Education Gap in MENA",
+    titleAr: "فجوة تعليم ريادة الأعمال في المنطقة",
+    descriptionEn: "Why do so many aspiring entrepreneurs in the MENA region struggle to launch? We examine the education gap, the disconnect between academic training and real-world business needs, and how programs like LEEE Academy are bridging the divide.",
+    descriptionAr: "لماذا يكافح الكثير من رواد الأعمال الطموحين في المنطقة للانطلاق؟ نفحص فجوة التعليم والانفصال بين التدريب الأكاديمي واحتياجات الأعمال الواقعية.",
+    coverImageUrl: "/images/training-presentation.jpg",
+    audioUrl: "#",
+    durationMin: 41,
+    seasonSlug: "s1",
+    publishedAt: "2025-08-01",
+  },
+  {
+    id: "11",
+    slug: "digital-divide-rural-entrepreneurs",
+    episodeNumber: 2,
+    titleEn: "Bridging the Digital Divide for Rural Entrepreneurs",
+    titleAr: "سد الفجوة الرقمية لرواد الأعمال في الريف",
+    descriptionEn: "Digital literacy is the new literacy. We explore how our Digital Media Hub is bringing tech skills to the most underserved rural communities in Lebanon, and why digital access is a game-changer for small businesses.",
+    descriptionAr: "المعرفة الرقمية هي المعرفة الجديدة. نستكشف كيف يجلب مركز الإعلام الرقمي لدينا المهارات التقنية إلى أكثر المجتمعات الريفية حرماناً في لبنان.",
+    coverImageUrl: "/images/mentoring-session.jpg",
+    audioUrl: "#",
+    durationMin: 34,
+    seasonSlug: "s1",
+    publishedAt: "2025-07-15",
+  },
+  {
+    id: "12",
+    slug: "impact-beyond-numbers-measuring-change",
+    episodeNumber: 1,
+    titleEn: "Impact Beyond Numbers: How We Measure Real Change",
+    titleAr: "الأثر وراء الأرقام: كيف نقيس التغيير الحقيقي",
+    descriptionEn: "38,790 beneficiaries. 2,365 startups incubated. $1M+ in seed funding. The numbers are impressive — but what do they really mean? We explore how LEEE measures impact beyond statistics, focusing on the human stories behind every number.",
+    descriptionAr: "38,790 مستفيد. 2,365 شركة ناشئة احتُضنت. أكثر من مليون دولار تمويل أولي. الأرقام مثيرة للإعجاب — لكن ماذا تعني حقاً؟ نستكشف كيف تقيس LEEE الأثر وراء الإحصائيات.",
+    coverImageUrl: "/images/outdoor-certificate-ceremony.jpg",
+    audioUrl: "#",
+    durationMin: 39,
+    seasonSlug: "s1",
+    publishedAt: "2025-07-01",
+  },
+];

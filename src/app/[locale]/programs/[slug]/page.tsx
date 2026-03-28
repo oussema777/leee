@@ -1,0 +1,105 @@
+import { notFound } from "next/navigation";
+import { ProgramPage } from "@/components/sections/programs/ProgramPage";
+import { getProgramBySlug, getRelatedPrograms } from "@/lib/data/programs";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale, slug } = await params;
+  const program = await getProgramBySlug(slug);
+  if (!program) return { title: "Program Not Found" };
+
+  return {
+    title: locale === "ar" ? program.titleAr : program.titleEn,
+    description: locale === "ar" ? program.summaryAr : program.summaryEn,
+  };
+}
+
+export default async function ProgramDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { slug } = await params;
+  const program = await getProgramBySlug(slug);
+
+  if (!program) {
+    notFound();
+  }
+
+  const relatedPrograms = await getRelatedPrograms(program.id, program.pillarId);
+
+  return (
+    <ProgramPage
+      program={{
+        titleEn: program.titleEn,
+        titleAr: program.titleAr,
+        bodyEn: program.bodyEn,
+        bodyAr: program.bodyAr,
+        objectivesEn: program.objectivesEn,
+        objectivesAr: program.objectivesAr,
+        summaryEn: program.summaryEn,
+        summaryAr: program.summaryAr,
+        coverImageUrl: program.coverImageUrl || "/images/new/community-table.jpg",
+        status: program.status,
+        year: program.year || new Date().getFullYear(),
+        donorEn: program.donorEn || "",
+        donorAr: program.donorAr || "",
+        locationEn: program.locationEn || "",
+        locationAr: program.locationAr || "",
+        budget: program.budget,
+        beneficiaries: program.beneficiaries,
+        pillar: program.pillar,
+        images: program.images.map((img) => ({
+          id: img.id,
+          imageUrl: img.imageUrl,
+          caption: img.caption ?? null,
+        })),
+        stats: program.stats.map((s) => ({
+          labelEn: s.labelEn,
+          labelAr: s.labelAr,
+          value: s.value,
+          suffix: s.suffix ?? undefined,
+          icon: s.icon ?? undefined,
+        })),
+        team: program.teamMembers.map((tm) => ({
+          nameEn: tm.nameEn,
+          nameAr: tm.nameAr,
+          roleEn: tm.roleEn,
+          roleAr: tm.roleAr,
+          imageUrl: tm.imageUrl ?? undefined,
+          linkedinUrl: tm.linkedinUrl ?? undefined,
+        })),
+        videos: program.videos.map((v) => ({
+          titleEn: v.titleEn ?? undefined,
+          titleAr: v.titleAr ?? undefined,
+          youtubeUrl: v.youtubeUrl,
+        })),
+        partners: program.partners.map((p) => ({
+          nameEn: p.nameEn,
+          nameAr: p.nameAr,
+          logoUrl: p.logoUrl ?? undefined,
+          websiteUrl: p.websiteUrl ?? undefined,
+        })),
+        relatedPrograms: relatedPrograms.map((rp) => ({
+          id: rp.id,
+          slug: rp.slug,
+          titleEn: rp.titleEn,
+          titleAr: rp.titleAr,
+          summaryEn: rp.summaryEn,
+          summaryAr: rp.summaryAr,
+          coverImageUrl: rp.coverImageUrl,
+          status: rp.status,
+          year: rp.year,
+          donorEn: rp.donorEn,
+          donorAr: rp.donorAr,
+          locationEn: rp.locationEn,
+          locationAr: rp.locationAr,
+          pillar: rp.pillar,
+        })),
+      }}
+    />
+  );
+}
