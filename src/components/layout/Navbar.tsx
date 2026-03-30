@@ -81,7 +81,7 @@ export function Navbar() {
 
   return (
     <header className={cn(
-      "z-50 bg-white border-b border-brand-blue/10",
+      "z-50 bg-accent-navy border-b border-white/10",
       isProgramDetail ? "relative" : "sticky top-0"
     )}>
       <Container>
@@ -93,7 +93,7 @@ export function Navbar() {
               alt="LEE Experience"
               width={120}
               height={40}
-              className="h-10 lg:h-12 w-auto"
+              className="h-10 lg:h-12 w-auto brightness-0 invert"
               priority
             />
           </Link>
@@ -114,8 +114,8 @@ export function Navbar() {
                   className={cn(
                     "flex items-center gap-1 px-4 py-2 text-[13px] font-medium transition-colors",
                     isActive(item.href)
-                      ? "text-brand-blue"
-                      : "text-text-primary hover:text-brand-blue"
+                      ? "text-brand-blue-light"
+                      : "text-white/80 hover:text-white"
                   )}
                 >
                   {item.label}
@@ -127,7 +127,7 @@ export function Navbar() {
                 {/* Dropdown */}
                 {item.children && openDropdown === item.href && (
                   <div className="absolute top-full start-0 pt-2 min-w-[220px]">
-                    <div className="bg-white shadow-xl border border-gray-100 py-2 overflow-hidden">
+                    <div className="bg-accent-slate shadow-xl border border-white/10 py-2 overflow-hidden">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
@@ -135,8 +135,8 @@ export function Navbar() {
                           className={cn(
                             "block px-5 py-2.5 text-[13px] transition-colors",
                             isActive(child.href)
-                              ? "text-brand-blue bg-brand-blue-light/50"
-                              : "text-text-primary hover:text-brand-blue hover:bg-gray-50"
+                              ? "text-brand-blue-light bg-white/10"
+                              : "text-white/70 hover:text-white hover:bg-white/5"
                           )}
                         >
                           {child.label}
@@ -154,7 +154,7 @@ export function Navbar() {
             {/* Ask Us Button */}
             <Link
               href="/contact"
-              className="px-5 py-2 text-[13px] font-semibold border-2 border-brand-blue text-brand-blue rounded-sm hover:bg-brand-blue hover:text-white transition-all"
+              className="px-5 py-2 text-[13px] font-semibold border-2 border-brand-blue-light text-brand-blue-light rounded-sm hover:bg-brand-blue-light hover:text-accent-navy transition-all"
             >
               {locale === "ar" ? "تواصل معنا" : "Ask Us"}
             </Link>
@@ -163,13 +163,13 @@ export function Navbar() {
             <Link
               href={pathname}
               locale={alternateLocale}
-              className="px-3 py-2 text-[13px] font-medium text-text-secondary hover:text-brand-blue transition-colors"
+              className="px-3 py-2 text-[13px] font-medium text-white/60 hover:text-white transition-colors"
             >
               {locale === "en" ? "ع" : "EN"}
             </Link>
 
             {/* Search */}
-            <button className="p-2 text-text-secondary hover:text-brand-blue transition-colors">
+            <button className="p-2 text-white/60 hover:text-white transition-colors">
               <Search className="w-4 h-4" />
             </button>
           </div>
@@ -177,7 +177,7 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-text-primary"
+            className="lg:hidden p-2 text-white"
           >
             {mobileOpen ? (
               <X className="w-6 h-6" />
@@ -189,7 +189,7 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {mobileOpen && (
-          <div className="lg:hidden pb-6 border-t border-gray-100">
+          <div className="lg:hidden pb-6 border-t border-white/10">
             <div className="pt-4 space-y-1">
               {navItems.map((item) => (
                 <div key={item.href}>
@@ -200,8 +200,8 @@ export function Navbar() {
                       className={cn(
                         "flex-1 px-3 py-2.5 text-sm font-medium",
                         isActive(item.href)
-                          ? "text-brand-blue"
-                          : "text-text-primary"
+                          ? "text-brand-blue-light"
+                          : "text-white/80"
                       )}
                     >
                       {item.label}
@@ -235,8 +235,8 @@ export function Navbar() {
                           className={cn(
                             "block px-3 py-2 text-sm",
                             isActive(child.href)
-                              ? "text-brand-blue"
-                              : "text-text-secondary"
+                              ? "text-brand-blue-light"
+                              : "text-white/60"
                           )}
                         >
                           {child.label}
@@ -248,18 +248,18 @@ export function Navbar() {
               ))}
 
               {/* Mobile Actions */}
-              <div className="pt-4 border-t border-gray-100 space-y-3 px-3">
+              <div className="pt-4 border-t border-white/10 space-y-3 px-3">
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="block w-full text-center px-5 py-2.5 text-sm font-semibold border-2 border-brand-blue text-brand-blue rounded-sm"
+                  className="block w-full text-center px-5 py-2.5 text-sm font-semibold border-2 border-brand-blue-light text-brand-blue-light rounded-sm"
                 >
                   {locale === "ar" ? "تواصل معنا" : "Ask Us"}
                 </Link>
                 <Link
                   href={pathname}
                   locale={alternateLocale}
-                  className="block text-center text-sm font-medium text-text-secondary"
+                  className="block text-center text-sm font-medium text-white/60"
                 >
                   {locale === "en" ? "العربية" : "English"}
                 </Link>

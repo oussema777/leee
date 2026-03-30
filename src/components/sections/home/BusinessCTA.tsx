@@ -18,7 +18,7 @@ export function BusinessCTA() {
   const t = useTranslations("home");
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-surface-primary">
       <Container>
         <SectionHeader title={t("businessTitle")} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

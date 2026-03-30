@@ -15,10 +15,13 @@
   --color-accent-ice: #F4F8FC;
   --color-accent-slate: #2A3F54;
 
-  /* Surface Colors */
-  --color-surface-primary: #ffffff;
-  --color-surface-secondary: #F8FAFC;
-  --color-surface-tertiary: #EEF2F7;
+  /* Surface Colors — blue-dominant palette */
+  --color-surface-primary: #E8F1FB;
+  --color-surface-secondary: #D4E5F7;
+  --color-surface-tertiary: #C0D6EE;
+
+  /* Card / content surfaces (white for contrast) */
+  --color-surface-card: #ffffff;
 
   /* Text Colors */
   --color-text-primary: #111827;

@@ -110,7 +110,7 @@ export function ProgramsSlider({ programs }: ProgramsSliderProps) {
   if (programs.length === 0) return null;
 
   return (
-    <section className="py-16 md:py-24 bg-white overflow-hidden">
+    <section className="py-16 md:py-24 bg-surface-primary overflow-hidden">
       <Container>
         {/* Header row */}
         <div className="flex items-end justify-between mb-10">

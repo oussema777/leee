@@ -71,7 +71,7 @@ export function ImpactDashboard() {
   }, {});
 
   return (
-    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-white relative overflow-hidden">
+    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
       {/* ═══ ABSTRACT SHAPES ═══ */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -end-20 w-[350px] h-[350px] bg-brand-blue/[0.03] animate-[morph-blob_14s_ease-in-out_infinite]" style={{ borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" }} />

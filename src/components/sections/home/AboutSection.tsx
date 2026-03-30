@@ -30,7 +30,7 @@ export function AboutSection() {
   const { ref, visible: isVisible } = useInView(0.1);
 
   return (
-    <section ref={ref} className="py-20 md:py-28 bg-white relative overflow-hidden">
+    <section ref={ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
       {/* ═══ ABSTRACT SHAPES ═══ */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 end-0 w-[600px] h-[600px] bg-brand-blue/[0.04] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4" />

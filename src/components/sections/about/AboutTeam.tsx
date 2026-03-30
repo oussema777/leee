@@ -38,7 +38,7 @@ export function AboutTeam() {
   const sectionAnim = useInView(0.08);
 
   return (
-    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-white relative overflow-hidden">
+    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
       {/* ═══ ABSTRACT SHAPES ═══ */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div

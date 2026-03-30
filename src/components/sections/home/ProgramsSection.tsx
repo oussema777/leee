@@ -183,7 +183,7 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                     "flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all duration-300 flex-shrink-0 border",
                     isActive
                       ? `${pillar.color} text-white border-transparent shadow-lg`
-                      : "bg-white text-text-secondary border-surface-tertiary hover:border-brand-blue/30 hover:text-text-primary hover:shadow-sm"
+                      : "bg-white/80 text-text-secondary border-surface-tertiary hover:border-brand-blue/30 hover:text-text-primary hover:shadow-sm"
                   )}
                 >
                   <Icon className="w-4 h-4" />

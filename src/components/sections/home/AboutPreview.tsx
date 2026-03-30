@@ -12,7 +12,7 @@ export function AboutPreview() {
   const locale = useLocale();
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-surface-primary">
       <Container>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <AnimatedSection>

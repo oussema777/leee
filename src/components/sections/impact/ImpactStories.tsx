@@ -66,7 +66,7 @@ export function ImpactStories() {
   const sectionAnim = useInView(0.08);
 
   return (
-    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-white relative overflow-hidden">
+    <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
       {/* ═══ ABSTRACT SHAPES ═══ */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-14 -start-14 w-[300px] h-[300px] bg-brand-blue/[0.03] animate-[morph-blob_14s_ease-in-out_infinite]" style={{ borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" }} />

@@ -22,7 +22,7 @@ export function ZowadaConditions() {
   const isAr = locale === "ar";
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-surface-primary">
       <Container>
         <SectionHeader
           title={

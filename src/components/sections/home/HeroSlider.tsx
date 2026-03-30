@@ -104,7 +104,7 @@ export function HeroSlider() {
   const slide = slides[current];
 
   return (
-    <section className="relative bg-white overflow-hidden min-h-[600px] md:min-h-[680px] lg:min-h-[720px]">
+    <section className="relative bg-gradient-to-br from-surface-primary via-brand-blue-light to-surface-secondary overflow-hidden min-h-[600px] md:min-h-[680px] lg:min-h-[720px]">
       {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.02]"
