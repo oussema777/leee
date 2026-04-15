@@ -1,12 +1,14 @@
-import { QuickAccessCards } from "@/components/sections/home/QuickAccessCards";
 import { HeroSlider } from "@/components/sections/home/HeroSlider";
-import { AttendEvents } from "@/components/sections/home/AttendEvents";
-import { ParallaxImpact } from "@/components/sections/home/ParallaxImpact";
-import { AboutSection } from "@/components/sections/home/AboutSection";
+import { VisionRibbon } from "@/components/sections/home/VisionRibbon";
+import { StatsCounter } from "@/components/sections/home/StatsCounter";
+import { WhoWeAreGrid } from "@/components/sections/home/WhoWeAreGrid";
 import { ProgramsSection } from "@/components/sections/home/ProgramsSection";
+import { CEOSection } from "@/components/sections/home/CEOSection";
+import { PartnersCarousel } from "@/components/sections/home/PartnersCarousel";
 import { JoinCommunity } from "@/components/sections/home/JoinCommunity";
-import { CTABanner } from "@/components/sections/home/CTABanner";
 import { LatestBeats } from "@/components/sections/home/LatestBeats";
+import { CTABanner } from "@/components/sections/home/CTABanner";
+import { SocialMediaBar } from "@/components/layout/SocialMediaBar";
 import { getFeaturedPrograms } from "@/lib/data/programs";
 
 export default async function HomePage() {
@@ -32,14 +34,16 @@ export default async function HomePage() {
   return (
     <>
       <HeroSlider />
-      <QuickAccessCards />
-      <AttendEvents />
-      <AboutSection />
-      <ParallaxImpact />
+      <VisionRibbon />
+      <StatsCounter />
+      <WhoWeAreGrid />
       <ProgramsSection programs={sliderPrograms} />
+      <CEOSection />
+      <PartnersCarousel />
       <JoinCommunity />
       <LatestBeats />
       <CTABanner />
+      <SocialMediaBar />
     </>
   );
 }
