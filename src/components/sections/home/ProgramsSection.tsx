@@ -16,7 +16,6 @@ import {
   Lightbulb,
   Wrench,
   GraduationCap,
-  BarChart3,
   Megaphone,
   BookOpen,
   Layers,
@@ -26,12 +25,11 @@ import Image from "next/image";
 
 const pillars = [
   { slug: "all", nameEn: "All Programs", nameAr: "جميع البرامج", color: "bg-brand-blue-deeper", textColor: "text-brand-blue-deeper", icon: Layers },
-  { slug: "incubators", nameEn: "Incubators", nameAr: "الحاضنات", color: "bg-brand-blue", textColor: "text-brand-blue", icon: Lightbulb },
-  { slug: "technical-assistance", nameEn: "Technical Assistance", nameAr: "المساعدة الفنية", color: "bg-emerald-500", textColor: "text-emerald-600", icon: Wrench },
-  { slug: "coaching", nameEn: "Coaching & Mentoring", nameAr: "التوجيه والإرشاد", color: "bg-amber-500", textColor: "text-amber-600", icon: GraduationCap },
-  { slug: "research", nameEn: "Research & Data", nameAr: "البحث والبيانات", color: "bg-pink-500", textColor: "text-pink-600", icon: BarChart3 },
-  { slug: "marketing", nameEn: "Marketing & Comm.", nameAr: "التسويق والتواصل", color: "bg-purple-500", textColor: "text-purple-600", icon: Megaphone },
-  { slug: "academy", nameEn: "LEE Academy", nameAr: "أكاديمية LEE", color: "bg-red-500", textColor: "text-red-600", icon: BookOpen },
+  { slug: "incubators", nameEn: "LEEE Incubators", nameAr: "حاضنات LEEE", color: "bg-brand-blue", textColor: "text-brand-blue", icon: Lightbulb },
+  { slug: "academy", nameEn: "LEEE Academy", nameAr: "أكاديمية LEEE", color: "bg-emerald-500", textColor: "text-emerald-600", icon: GraduationCap },
+  { slug: "business-clinic", nameEn: "LEEE Business Clinic", nameAr: "عيادة أعمال LEEE", color: "bg-amber-500", textColor: "text-amber-600", icon: Wrench },
+  { slug: "humanitarian-aid", nameEn: "LEEE Humanitarian Aid", nameAr: "مساعدات LEEE الإنسانية", color: "bg-rose-500", textColor: "text-rose-600", icon: BookOpen },
+  { slug: "digital-media-hub", nameEn: "LEEE Digital Media Hub", nameAr: "مركز LEEE للإعلام الرقمي", color: "bg-purple-500", textColor: "text-purple-600", icon: Megaphone },
 ];
 
 const statusConfig: Record<string, { label: string; labelAr: string; color: string }> = {
@@ -150,8 +148,8 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
           </SectionLabel>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary leading-[1.08] tracking-tight mb-5 max-w-2xl mx-auto">
             {isAr
-              ? "7 ركائز لإطلاق أفكارهم وتنمية مشاريعهم"
-              : "7 pillars to launch ideas, grow ventures and scale impact"}
+              ? "5 ركائز لإطلاق الأفكار وتنمية المشاريع وتوسيع التأثير"
+              : "5 pillars to launch ideas, grow ventures and scale impact"}
           </h2>
           <p className="text-text-secondary leading-relaxed text-[15px] max-w-xl mx-auto">
             {isAr

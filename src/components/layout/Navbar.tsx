@@ -36,12 +36,11 @@ export function Navbar() {
       href: "/programs",
       children: [
         { label: locale === "ar" ? "جميع البرامج" : "All Programs", href: "/programs" },
-        { label: t("pillarsIncubators"), href: "/programs?pillar=incubators" },
-        { label: t("pillarsTechnical"), href: "/programs?pillar=technical-assistance" },
-        { label: t("pillarsCoaching"), href: "/programs?pillar=coaching" },
-        { label: t("pillarsAcademy"), href: "/programs?pillar=academy" },
-        { label: t("pillarsDigitalHub"), href: "/programs?pillar=digital-media-hub" },
-        { label: locale === "ar" ? "المساعدات الإنسانية" : "Humanitarian Aid", href: "/programs?pillar=humanitarian-aid" },
+        { label: locale === "ar" ? "حاضنات LEEE" : "LEEE Incubators", href: "/programs?pillar=incubators" },
+        { label: locale === "ar" ? "أكاديمية LEEE" : "LEEE Academy", href: "/programs?pillar=academy" },
+        { label: locale === "ar" ? "عيادة أعمال LEEE" : "LEEE Business Clinic", href: "/programs?pillar=business-clinic" },
+        { label: locale === "ar" ? "مساعدات LEEE الإنسانية" : "LEEE Humanitarian Aid", href: "/programs?pillar=humanitarian-aid" },
+        { label: locale === "ar" ? "مركز LEEE للإعلام الرقمي" : "LEEE Digital Media Hub", href: "/programs?pillar=digital-media-hub" },
       ],
     },
     {

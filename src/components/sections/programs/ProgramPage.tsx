@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useLocale } from "next-intl";
 import { ProgramHero } from "./ProgramHero";
 import { ProgramNavbar } from "./ProgramNavbar";
 import { ProgramOverview } from "./ProgramOverview";
@@ -8,6 +10,7 @@ import { ProgramTeam } from "./ProgramTeam";
 import { ProgramGalleryVideos } from "./ProgramGalleryVideos";
 import { ProgramPartners } from "./ProgramPartners";
 import { RelatedPrograms } from "./RelatedPrograms";
+import { RegisterModal } from "./RegisterModal";
 
 interface ProgramData {
   titleEn: string;
@@ -52,6 +55,10 @@ const navSections = [
 ];
 
 export function ProgramPage({ program }: { program: ProgramData }) {
+  const locale = useLocale();
+  const isAr = locale === "ar";
+  const [showRegister, setShowRegister] = useState(false);
+
   // Filter nav sections based on available data
   const activeSections = navSections.filter((section) => {
     if (section.id === "impact" && program.stats.length === 0) return false;
@@ -114,11 +121,52 @@ export function ProgramPage({ program }: { program: ProgramData }) {
       {/* Partners */}
       <ProgramPartners partners={program.partners} />
 
+      {/* Funded By */}
+      {program.donorEn && (
+        <div id="funded-by" className="py-12 bg-surface-secondary">
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 text-center">
+            <p className="text-text-muted text-sm font-semibold uppercase tracking-wider mb-3">
+              {isAr ? "بتمويل من" : "Funded By"}
+            </p>
+            <p className="text-text-primary font-serif text-xl md:text-2xl">
+              {isAr ? program.donorAr || program.donorEn : program.donorEn}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Register CTA */}
+      {program.status !== "COMPLETED" && (
+        <div className="py-14 bg-brand-blue text-center">
+          <div className="max-w-2xl mx-auto px-5">
+            <h3 className="font-serif text-2xl md:text-3xl text-white mb-4">
+              {isAr ? "هل أنت مهتم بهذا البرنامج؟" : "Interested in this program?"}
+            </h3>
+            <p className="text-white/80 mb-6">
+              {isAr
+                ? "سجّل اهتمامك وسنتواصل معك بمزيد من التفاصيل."
+                : "Register your interest and we'll get in touch with more details."}
+            </p>
+            <button
+              onClick={() => setShowRegister(true)}
+              className="px-8 py-3 bg-white text-brand-blue font-bold rounded-full hover:bg-brand-gold hover:text-white transition-all duration-300 shadow-lg"
+            >
+              {isAr ? "سجّل الآن" : "Apply Now"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Related Programs */}
       {program.relatedPrograms.length > 0 && (
         <RelatedPrograms programs={program.relatedPrograms} />
       )}
 
+      <RegisterModal
+        isOpen={showRegister}
+        onClose={() => setShowRegister(false)}
+        programTitle={isAr ? program.titleAr : program.titleEn}
+      />
     </div>
   );
 }

@@ -4,7 +4,42 @@ import { useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { ProgramCard } from "./ProgramCard";
 import { ProgramFilters } from "./ProgramFilters";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, Sparkles } from "lucide-react";
+
+/* ── Theme detection ── */
+const themeKeywords: Record<string, { en: string; ar: string; keywords: string[] }> = {
+  women: {
+    en: "Women",
+    ar: "نساء",
+    keywords: ["women", "woman", "female", "gender", "نساء", "مرأة", "نسائي"],
+  },
+  youth: {
+    en: "Youth",
+    ar: "شباب",
+    keywords: ["youth", "young", "شباب", "شابات"],
+  },
+  green: {
+    en: "Green Economy",
+    ar: "اقتصاد أخضر",
+    keywords: ["green", "climate", "environment", "أخضر", "مناخ", "بيئة"],
+  },
+  msme: {
+    en: "MSMEs",
+    ar: "مشاريع صغيرة",
+    keywords: ["msme", "startup", "enterprise", "business", "مشاريع", "ريادة"],
+  },
+};
+
+function detectThemes(program: Program): string[] {
+  const text = `${program.titleEn} ${program.summaryEn} ${program.titleAr} ${program.summaryAr} ${program.category || ""}`.toLowerCase();
+  const themes: string[] = [];
+  for (const [key, config] of Object.entries(themeKeywords)) {
+    if (config.keywords.some((kw) => text.includes(kw))) {
+      themes.push(key);
+    }
+  }
+  return themes;
+}
 
 interface Program {
   id: string;
@@ -15,6 +50,7 @@ interface Program {
   summaryAr: string;
   coverImageUrl: string | null;
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
+  category: string | null;
   year: number | null;
   donorEn: string | null;
   donorAr: string | null;
@@ -39,11 +75,21 @@ export function ProgramsGrid({ programs }: ProgramsGridProps) {
   const currentStatus = searchParams.get("status") || "ALL";
   const currentYear = searchParams.get("year") || "";
   const currentPillar = searchParams.get("pillar") || "";
+  const currentTheme = searchParams.get("theme") || "";
+  const currentDonor = searchParams.get("donor") || "";
 
-  const filteredPrograms = programs.filter((program) => {
+  // Precompute themes for each program
+  const programsWithThemes = programs.map((p) => ({
+    ...p,
+    themes: detectThemes(p),
+  }));
+
+  const filteredPrograms = programsWithThemes.filter((program) => {
     if (currentPillar && program.pillar?.slug !== currentPillar) return false;
     if (currentStatus !== "ALL" && program.status !== currentStatus) return false;
     if (currentYear && program.year !== parseInt(currentYear)) return false;
+    if (currentTheme && !program.themes.includes(currentTheme)) return false;
+    if (currentDonor && program.donorEn !== currentDonor) return false;
     return true;
   });
 
@@ -53,9 +99,22 @@ export function ProgramsGrid({ programs }: ProgramsGridProps) {
   const statuses = [...new Set(programs.map((p) => p.status))];
   const pillarSlugs = [...new Set(programs.map((p) => p.pillar?.slug).filter(Boolean))] as string[];
 
+  // Extract unique donors
+  const donors = [...new Set(programs.map((p) => p.donorEn).filter(Boolean))] as string[];
+  donors.sort();
+
+  // Extract available themes
+  const allThemes = [...new Set(programsWithThemes.flatMap((p) => p.themes))];
+
   return (
     <>
-      <ProgramFilters years={years} statuses={statuses} pillarSlugs={pillarSlugs} />
+      <ProgramFilters
+        years={years}
+        statuses={statuses}
+        pillarSlugs={pillarSlugs}
+        donors={donors}
+        themes={allThemes}
+      />
 
       {/* Results count */}
       <div className="flex items-center gap-3 mb-8">
@@ -68,8 +127,27 @@ export function ProgramsGrid({ programs }: ProgramsGridProps) {
       {filteredPrograms.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPrograms.map((program) => (
-            <ProgramCard key={program.id} {...program} />
+            <ProgramCard key={program.id} {...program} themes={program.themes} />
           ))}
+
+          {/* Finafas Teaser Card */}
+          <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl overflow-hidden border-2 border-dashed border-amber-300/60 h-full flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
+              <Sparkles className="w-7 h-7 text-amber-600" />
+            </div>
+            <span className="inline-block px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full mb-4">
+              {isAr ? "قريباً" : "Coming Soon"}
+            </span>
+            <h3 className="font-serif text-xl text-text-primary mb-2">Finafas</h3>
+            <p className="text-text-secondary text-sm leading-relaxed mb-1">
+              {isAr
+                ? "إطلاق 2026 — تدريب هجين للتمكين المالي"
+                : "Launching 2026 — Hybrid coaching for financial empowerment"}
+            </p>
+            <p className="text-amber-600 text-xs font-semibold mt-3">
+              {isAr ? "ترقبوا المزيد" : "Stay tuned"}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="text-center py-20">

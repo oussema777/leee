@@ -4,12 +4,14 @@ import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Filter, ChevronDown } from "lucide-react";
+import { Filter, ChevronDown, X } from "lucide-react";
 
 interface ProgramFiltersProps {
   years: number[];
   statuses: string[];
   pillarSlugs: string[];
+  donors: string[];
+  themes: string[];
 }
 
 const statusLabels: Record<string, { en: string; ar: string }> = {
@@ -26,61 +28,50 @@ const statusColors: Record<string, string> = {
   UPCOMING: "bg-amber-500 text-white shadow-md shadow-amber-500/20",
 };
 
+const themeLabels: Record<string, { en: string; ar: string }> = {
+  women: { en: "Women", ar: "نساء" },
+  youth: { en: "Youth", ar: "شباب" },
+  green: { en: "Green Economy", ar: "اقتصاد أخضر" },
+  msme: { en: "MSMEs", ar: "مشاريع صغيرة" },
+};
+
 const pillarData: Record<
   string,
   { en: string; ar: string; descEn: string; descAr: string }
 > = {
   incubators: {
-    en: "Incubators",
-    ar: "الحاضنات",
+    en: "LEEE Incubators",
+    ar: "حاضنات LEEE",
     descEn: "Supporting startups and social enterprises through comprehensive incubation programs, seed funding, and market access.",
     descAr: "دعم الشركات الناشئة والمؤسسات الاجتماعية من خلال برامج حاضنات شاملة والتمويل الأولي والوصول إلى الأسواق.",
   },
-  "technical-assistance": {
-    en: "Technical Assistance",
-    ar: "المساعدة الفنية",
-    descEn: "Building organizational capacity through tailored training, technical support, and capacity building programs.",
-    descAr: "بناء القدرات المؤسسية من خلال التدريب المخصص والدعم الفني وبرامج بناء القدرات.",
-  },
-  coaching: {
-    en: "Coaching & Mentoring",
-    ar: "التوجيه والإرشاد",
+  "business-clinic": {
+    en: "LEEE Business Clinic",
+    ar: "عيادة أعمال LEEE",
     descEn: "Expert guidance, one-on-one mentorship, and business clinic sessions to develop skills and leadership.",
     descAr: "توجيه الخبراء والإرشاد الفردي وجلسات عيادة الأعمال لتطوير المهارات والقيادة.",
   },
-  research: {
-    en: "Research & Data",
-    ar: "البحث والبيانات",
-    descEn: "Evidence-based research and data analysis to drive informed decisions and policy making.",
-    descAr: "بحث قائم على الأدلة وتحليل البيانات لدفع القرارات المستنيرة وصنع السياسات.",
-  },
-  marketing: {
-    en: "Marketing & Comm.",
-    ar: "التسويق والتواصل",
-    descEn: "Strategic marketing and communication solutions for impactful outreach and brand building.",
-    descAr: "حلول تسويق وتواصل استراتيجية للوصول المؤثر وبناء العلامة التجارية.",
-  },
   academy: {
-    en: "LEE Academy",
-    ar: "أكاديمية LEE",
+    en: "LEEE Academy",
+    ar: "أكاديمية LEEE",
     descEn: "Comprehensive learning programs including ILO-certified training for professional and personal development.",
     descAr: "برامج تعلم شاملة بما في ذلك التدريب المعتمد من منظمة العمل الدولية.",
   },
-  "digital-media-hub": {
-    en: "Digital Media Hub",
-    ar: "مركز الوسائط الرقمية",
-    descEn: "Digital campaigns, content creation, and media solutions amplifying impact stories across the region.",
-    descAr: "حملات رقمية وإنشاء محتوى وحلول إعلامية تعزز قصص الأثر عبر المنطقة.",
-  },
   "humanitarian-aid": {
-    en: "Humanitarian Aid",
-    ar: "المساعدات الإنسانية",
+    en: "LEEE Humanitarian Aid",
+    ar: "مساعدات LEEE الإنسانية",
     descEn: "Emergency response, food security, and livelihood support for vulnerable communities and displaced families.",
     descAr: "الاستجابة الطارئة والأمن الغذائي ودعم سبل العيش للمجتمعات الضعيفة.",
   },
+  "digital-media-hub": {
+    en: "LEEE Digital Media Hub",
+    ar: "مركز LEEE للإعلام الرقمي",
+    descEn: "Supporting visibility, communication, and digital solutions for impact-driven initiatives.",
+    descAr: "دعم الظهور والتواصل والحلول الرقمية للمبادرات المؤثرة.",
+  },
 };
 
-export function ProgramFilters({ years, statuses, pillarSlugs }: ProgramFiltersProps) {
+export function ProgramFilters({ years, statuses, pillarSlugs, donors, themes }: ProgramFiltersProps) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -89,6 +80,8 @@ export function ProgramFilters({ years, statuses, pillarSlugs }: ProgramFiltersP
   const currentStatus = searchParams.get("status") || "ALL";
   const currentYear = searchParams.get("year") || "";
   const currentPillar = searchParams.get("pillar") || "";
+  const currentTheme = searchParams.get("theme") || "";
+  const currentDonor = searchParams.get("donor") || "";
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -101,14 +94,53 @@ export function ProgramFilters({ years, statuses, pillarSlugs }: ProgramFiltersP
       if (key === "pillar") {
         params.delete("status");
         params.delete("year");
+        params.delete("theme");
+        params.delete("donor");
       }
       router.push(`?${params.toString()}`, { scroll: false });
     },
     [router, searchParams]
   );
 
+  const clearAllFilters = useCallback(() => {
+    router.push("?", { scroll: false });
+  }, [router]);
+
   const allStatuses = ["ALL", ...statuses];
   const activePillar = currentPillar ? pillarData[currentPillar] : null;
+
+  // Determine if any filter is active
+  const hasActiveFilters =
+    currentStatus !== "ALL" ||
+    currentYear !== "" ||
+    currentPillar !== "" ||
+    currentTheme !== "" ||
+    currentDonor !== "";
+
+  // Build active filter chips
+  const activeChips: { label: string; key: string }[] = [];
+  if (currentPillar && pillarData[currentPillar]) {
+    activeChips.push({
+      label: isAr ? pillarData[currentPillar].ar : pillarData[currentPillar].en,
+      key: "pillar",
+    });
+  }
+  if (currentStatus !== "ALL") {
+    const sl = statusLabels[currentStatus];
+    activeChips.push({ label: isAr ? sl?.ar || currentStatus : sl?.en || currentStatus, key: "status" });
+  }
+  if (currentYear) {
+    activeChips.push({ label: currentYear, key: "year" });
+  }
+  if (currentTheme && themeLabels[currentTheme]) {
+    activeChips.push({
+      label: isAr ? themeLabels[currentTheme].ar : themeLabels[currentTheme].en,
+      key: "theme",
+    });
+  }
+  if (currentDonor) {
+    activeChips.push({ label: currentDonor, key: "donor" });
+  }
 
   return (
     <div className="mb-10 space-y-6">
@@ -156,55 +188,123 @@ export function ProgramFilters({ years, statuses, pillarSlugs }: ProgramFiltersP
         )}
       </div>
 
-      {/* Secondary filters: status pills + year dropdown */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {allStatuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams.toString());
-                if (status === "ALL") {
-                  params.delete("status");
-                } else {
-                  params.set("status", status);
-                }
-                router.push(`?${params.toString()}`, { scroll: false });
-              }}
-              className={cn(
-                "px-4 py-2 text-xs font-semibold rounded-full transition-all duration-300",
-                currentStatus === status
-                  ? statusColors[status]
-                  : "bg-surface-secondary text-text-muted hover:bg-surface-tertiary"
-              )}
-            >
-              {isAr ? statusLabels[status]?.ar : statusLabels[status]?.en}
-            </button>
-          ))}
+      {/* Secondary filters row: status pills + theme + donor + year */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Status pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {allStatuses.map((status) => (
+              <button
+                key={status}
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  if (status === "ALL") {
+                    params.delete("status");
+                  } else {
+                    params.set("status", status);
+                  }
+                  router.push(`?${params.toString()}`, { scroll: false });
+                }}
+                className={cn(
+                  "px-4 py-2 text-xs font-semibold rounded-full transition-all duration-300",
+                  currentStatus === status
+                    ? statusColors[status]
+                    : "bg-surface-secondary text-text-muted hover:bg-surface-tertiary"
+                )}
+              >
+                {isAr ? statusLabels[status]?.ar : statusLabels[status]?.en}
+              </button>
+            ))}
+          </div>
+
+          {/* Dropdowns row */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Theme dropdown */}
+            {themes.length > 0 && (
+              <div className="relative">
+                <select
+                  value={currentTheme}
+                  onChange={(e) => updateFilter("theme", e.target.value)}
+                  className="appearance-none bg-white border border-surface-tertiary rounded-full text-sm ps-4 pe-9 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                >
+                  <option value="">{isAr ? "جميع المواضيع" : "All Themes"}</option>
+                  {themes.map((theme) => (
+                    <option key={theme} value={theme}>
+                      {isAr ? themeLabels[theme]?.ar || theme : themeLabels[theme]?.en || theme}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+              </div>
+            )}
+
+            {/* Donor dropdown */}
+            {donors.length > 0 && (
+              <div className="relative">
+                <select
+                  value={currentDonor}
+                  onChange={(e) => updateFilter("donor", e.target.value)}
+                  className="appearance-none bg-white border border-surface-tertiary rounded-full text-sm ps-4 pe-9 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                >
+                  <option value="">{isAr ? "جميع الممولين" : "All Donors"}</option>
+                  {donors.map((donor) => (
+                    <option key={donor} value={donor}>{donor}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+              </div>
+            )}
+
+            {/* Year dropdown */}
+            {years.length > 0 && (
+              <div className="relative">
+                <Filter className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                <select
+                  value={currentYear}
+                  onChange={(e) => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    if (e.target.value) {
+                      params.set("year", e.target.value);
+                    } else {
+                      params.delete("year");
+                    }
+                    router.push(`?${params.toString()}`, { scroll: false });
+                  }}
+                  className="appearance-none bg-white border border-surface-tertiary rounded-full text-sm ps-9 pe-9 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+                >
+                  <option value="">{isAr ? "جميع السنوات" : "All Years"}</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+              </div>
+            )}
+          </div>
         </div>
 
-        {years.length > 0 && (
-          <div className="relative">
-            <Filter className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-            <select
-              value={currentYear}
-              onChange={(e) => {
-                const params = new URLSearchParams(searchParams.toString());
-                if (e.target.value) {
-                  params.set("year", e.target.value);
-                } else {
-                  params.delete("year");
-                }
-                router.push(`?${params.toString()}`, { scroll: false });
-              }}
-              className="appearance-none bg-white border border-surface-tertiary rounded-full text-sm ps-9 pe-9 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all"
+        {/* Active filter chips */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-text-muted font-medium">
+              {isAr ? "الفلاتر النشطة:" : "Active filters:"}
+            </span>
+            {activeChips.map((chip) => (
+              <button
+                key={chip.key}
+                onClick={() => updateFilter(chip.key, chip.key === "status" ? "ALL" : "")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-blue/10 text-brand-blue text-xs font-semibold rounded-full hover:bg-brand-blue/20 transition-colors"
+              >
+                <span>{chip.label}</span>
+                <X className="w-3 h-3" />
+              </button>
+            ))}
+            <button
+              onClick={clearAllFilters}
+              className="px-3 py-1.5 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
             >
-              <option value="">{isAr ? "جميع السنوات" : "All Years"}</option>
-              {years.map((year) => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+              {isAr ? "مسح الكل" : "Clear All"}
+            </button>
           </div>
         )}
       </div>
