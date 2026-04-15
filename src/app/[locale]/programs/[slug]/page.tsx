@@ -11,9 +11,29 @@ export async function generateMetadata({
   const program = await getProgramBySlug(slug);
   if (!program) return { title: "Program Not Found" };
 
+  const title = locale === "ar" ? program.titleAr : program.titleEn;
+  const summary = locale === "ar" ? program.summaryAr : program.summaryEn;
+  const pillarName = program.pillar
+    ? locale === "ar" ? program.pillar.titleAr : program.pillar.titleEn
+    : "";
+  const locationStr = locale === "ar"
+    ? program.locationAr || program.locationEn || ""
+    : program.locationEn || "";
+  const seoKeywords = "programs, projects, economic empowerment, livelihoods, MSMEs, cooperatives, market access, implementation, supported, delivered, strengthened";
+
   return {
-    title: locale === "ar" ? program.titleAr : program.titleEn,
-    description: locale === "ar" ? program.summaryAr : program.summaryEn,
+    title,
+    description: summary,
+    keywords: seoKeywords,
+    openGraph: {
+      title,
+      description: summary,
+      ...(program.coverImageUrl ? { images: [{ url: program.coverImageUrl }] } : {}),
+    },
+    other: {
+      ...(pillarName ? { "article:section": pillarName } : {}),
+      ...(locationStr ? { "geo.placename": locationStr } : {}),
+    },
   };
 }
 
