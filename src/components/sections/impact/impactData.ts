@@ -6,7 +6,32 @@ export interface ImpactStat {
   suffix?: string;
   prefix?: string;
   category: 'economic' | 'social' | 'environmental';
+  tab: 'for-profit' | 'non-profit';
   icon: string;
+}
+
+export interface CaseStudy {
+  id: string;
+  slug: string;
+  titleEn: string;
+  titleAr: string;
+  subtitleEn: string;
+  subtitleAr: string;
+  descriptionEn: string;
+  descriptionAr: string;
+  imageUrl: string;
+  stats: { labelEn: string; labelAr: string; value: string }[];
+  outcomes: { en: string; ar: string }[];
+}
+
+export interface MenaCountry {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  programs: number;
+  beneficiaries: string;
+  highlightEn: string;
+  highlightAr: string;
 }
 
 export interface LessonCard {
@@ -37,16 +62,80 @@ export interface JourneyMilestone {
 }
 
 export const impactStats: ImpactStat[] = [
-  { id: "e1", labelEn: "Startups Incubated", labelAr: "TODO_AR: شركات ناشئة محتضنة", value: 2365, suffix: "+", category: "economic", icon: "rocket" },
-  { id: "e2", labelEn: "MSMEs Accelerated", labelAr: "TODO_AR: مشاريع صغيرة مُسَرَّعة", value: 3421, suffix: "+", category: "economic", icon: "trending-up" },
-  { id: "e3", labelEn: "Seed Funding Mobilized", labelAr: "TODO_AR: تمويل أولي", value: 1.06, prefix: "$", suffix: "M+", category: "economic", icon: "coins" },
-  { id: "e4", labelEn: "Feasibility Studies", labelAr: "TODO_AR: دراسات جدوى", value: 5130, suffix: "+", category: "economic", icon: "file-text" },
-  { id: "s1", labelEn: "Lives Touched", labelAr: "TODO_AR: حياة تأثرت", value: 38790, suffix: "+", category: "social", icon: "users" },
-  { id: "s2", labelEn: "Directly Supported", labelAr: "TODO_AR: دعم مباشر", value: 8615, suffix: "+", category: "social", icon: "hand-helping" },
-  { id: "s3", labelEn: "Women Entrepreneurs", labelAr: "TODO_AR: رائدات أعمال", value: 80, suffix: "%", category: "social", icon: "user-check" },
-  { id: "s4", labelEn: "Countries", labelAr: "TODO_AR: دول", value: 10, category: "social", icon: "globe" },
-  { id: "v1", labelEn: "Green Ventures Thriving Post-Crisis", labelAr: "TODO_AR: مشاريع خضراء مزدهرة", value: 60, suffix: "%", category: "environmental", icon: "leaf" },
-  { id: "v2", labelEn: "Green Jobs Created", labelAr: "TODO_AR: وظائف خضراء", value: 1800, suffix: "+", category: "environmental", icon: "briefcase" },
+  // For-profit tab
+  { id: "fp1", labelEn: "Startups Incubated", labelAr: "شركات ناشئة محتضنة", value: 2365, suffix: "+", category: "economic", tab: "for-profit", icon: "rocket" },
+  { id: "fp2", labelEn: "MSMEs Accelerated", labelAr: "مشاريع صغيرة مُسَرَّعة", value: 3421, suffix: "+", category: "economic", tab: "for-profit", icon: "trending-up" },
+  { id: "fp3", labelEn: "Seed Funding Mobilized", labelAr: "تمويل أولي", value: 1.06, prefix: "$", suffix: "M+", category: "economic", tab: "for-profit", icon: "coins" },
+  { id: "fp4", labelEn: "Feasibility Studies", labelAr: "دراسات جدوى", value: 5130, suffix: "+", category: "economic", tab: "for-profit", icon: "file-text" },
+  { id: "fp5", labelEn: "Green Ventures Thriving", labelAr: "مشاريع خضراء مزدهرة", value: 60, suffix: "%", category: "environmental", tab: "for-profit", icon: "leaf" },
+  { id: "fp6", labelEn: "Green Jobs Created", labelAr: "وظائف خضراء", value: 1800, suffix: "+", category: "environmental", tab: "for-profit", icon: "briefcase" },
+  // Non-profit tab
+  { id: "np1", labelEn: "Lives Touched", labelAr: "حياة تأثرت", value: 38790, suffix: "+", category: "social", tab: "non-profit", icon: "users" },
+  { id: "np2", labelEn: "Meals Distributed", labelAr: "وجبات موزعة", value: 52000, suffix: "+", category: "social", tab: "non-profit", icon: "hand-helping" },
+  { id: "np3", labelEn: "PSS Sessions Delivered", labelAr: "جلسات دعم نفسي اجتماعي", value: 4200, suffix: "+", category: "social", tab: "non-profit", icon: "user-check" },
+  { id: "np4", labelEn: "CFW Workers Supported", labelAr: "عمال نقد مقابل عمل", value: 1850, suffix: "+", category: "social", tab: "non-profit", icon: "briefcase" },
+  { id: "np5", labelEn: "Women Reached", labelAr: "نساء تم الوصول إليهن", value: 80, suffix: "%", category: "social", tab: "non-profit", icon: "user-check" },
+  { id: "np6", labelEn: "Countries", labelAr: "دول", value: 10, category: "social", tab: "non-profit", icon: "globe" },
+];
+
+export const caseStudies: CaseStudy[] = [
+  {
+    id: "akroum-dairy",
+    slug: "akroum-dairy",
+    titleEn: "Akroum Dairy",
+    titleAr: "ألبان عكروم",
+    subtitleEn: "Social & Solidarity Economy Project",
+    subtitleAr: "مشروع الاقتصاد الاجتماعي والتضامني",
+    descriptionEn: "A community-driven dairy cooperative in northern Lebanon that transformed local livelihoods through sustainable agriculture and women-led production. With LEEE's incubation support, Akroum Dairy scaled from a small village initiative to a registered cooperative serving regional markets.",
+    descriptionAr: "تعاونية ألبان مجتمعية في شمال لبنان حوّلت سبل العيش المحلية من خلال الزراعة المستدامة والإنتاج بقيادة النساء. بدعم حاضنات LEEE، توسعت ألبان عكروم من مبادرة قرية صغيرة إلى تعاونية مسجلة تخدم الأسواق الإقليمية.",
+    imageUrl: "/images/new/greenhouse-visit.jpg",
+    stats: [
+      { labelEn: "Women Employed", labelAr: "نساء موظفات", value: "35+" },
+      { labelEn: "Monthly Revenue", labelAr: "إيرادات شهرية", value: "$12K" },
+      { labelEn: "Products Launched", labelAr: "منتجات أُطلقت", value: "8" },
+    ],
+    outcomes: [
+      { en: "Registered cooperative with 35+ women members", ar: "تعاونية مسجلة تضم أكثر من 35 عضوة" },
+      { en: "Consistent monthly revenue exceeding $12,000", ar: "إيرادات شهرية ثابتة تتجاوز 12,000 دولار" },
+      { en: "8 dairy products launched in local and regional markets", ar: "8 منتجات ألبان أُطلقت في الأسواق المحلية والإقليمية" },
+      { en: "Model replicated in 2 neighboring communities", ar: "نموذج مُكرر في مجتمعين مجاورين" },
+    ],
+  },
+  {
+    id: "mounet-setti",
+    slug: "mounet-setti",
+    titleEn: "Mounet Setti",
+    titleAr: "مونة ستي",
+    subtitleEn: "Women-Led Food Heritage Enterprise",
+    subtitleAr: "مشروع تراث غذائي بقيادة نسائية",
+    descriptionEn: "Preserving Lebanese culinary heritage through women-led artisanal food production. Mounet Setti connects rural women producers with urban and international markets, turning traditional preservation techniques into a sustainable livelihood model.",
+    descriptionAr: "الحفاظ على التراث الغذائي اللبناني من خلال إنتاج الأغذية الحرفية بقيادة النساء. تربط مونة ستي بين المنتِجات الريفيات والأسواق الحضرية والدولية، محوّلةً تقنيات الحفظ التقليدية إلى نموذج معيشة مستدام.",
+    imageUrl: "/images/new/community-table.jpg",
+    stats: [
+      { labelEn: "Women Producers", labelAr: "منتجات", value: "50+" },
+      { labelEn: "Product Lines", labelAr: "خطوط إنتاج", value: "15" },
+      { labelEn: "Markets Reached", labelAr: "أسواق", value: "4" },
+    ],
+    outcomes: [
+      { en: "50+ rural women earning steady income from traditional recipes", ar: "أكثر من 50 امرأة ريفية تحقق دخلاً ثابتاً من الوصفات التقليدية" },
+      { en: "15 artisanal product lines with branded packaging", ar: "15 خط إنتاج حرفي بتغليف ذي علامة تجارية" },
+      { en: "Expanded to 4 markets including export channels", ar: "توسع إلى 4 أسواق بما فيها قنوات التصدير" },
+      { en: "Featured in national media as a model social enterprise", ar: "ظهرت في الإعلام الوطني كنموذج مؤسسة اجتماعية" },
+    ],
+  },
+];
+
+export const menaCountries: MenaCountry[] = [
+  { id: "lb", nameEn: "Lebanon", nameAr: "لبنان", programs: 18, beneficiaries: "22,000+", highlightEn: "Headquarters — 18 programs across all pillars", highlightAr: "المقر الرئيسي — 18 برنامجاً عبر جميع الركائز" },
+  { id: "eg", nameEn: "Egypt", nameAr: "مصر", programs: 5, beneficiaries: "4,500+", highlightEn: "Cairo hub — incubation & academy programs", highlightAr: "مركز القاهرة — برامج حاضنات وأكاديمية" },
+  { id: "jo", nameEn: "Jordan", nameAr: "الأردن", programs: 3, beneficiaries: "2,800+", highlightEn: "Youth entrepreneurship & refugee support", highlightAr: "ريادة الشباب ودعم اللاجئين" },
+  { id: "iq", nameEn: "Iraq", nameAr: "العراق", programs: 2, beneficiaries: "1,500+", highlightEn: "Women-led MSME acceleration", highlightAr: "تسريع المشاريع الصغيرة بقيادة النساء" },
+  { id: "ps", nameEn: "Palestine", nameAr: "فلسطين", programs: 2, beneficiaries: "1,200+", highlightEn: "Humanitarian aid & livelihood support", highlightAr: "مساعدات إنسانية ودعم سبل العيش" },
+  { id: "tn", nameEn: "Tunisia", nameAr: "تونس", programs: 2, beneficiaries: "1,800+", highlightEn: "Green economy & social enterprise", highlightAr: "اقتصاد أخضر ومؤسسات اجتماعية" },
+  { id: "ma", nameEn: "Morocco", nameAr: "المغرب", programs: 1, beneficiaries: "900+", highlightEn: "Business clinic pilot program", highlightAr: "برنامج عيادة أعمال تجريبي" },
+  { id: "sd", nameEn: "Sudan", nameAr: "السودان", programs: 1, beneficiaries: "1,100+", highlightEn: "Emergency humanitarian response", highlightAr: "استجابة إنسانية طارئة" },
+  { id: "ly", nameEn: "Libya", nameAr: "ليبيا", programs: 1, beneficiaries: "700+", highlightEn: "Youth capacity building", highlightAr: "بناء قدرات الشباب" },
+  { id: "ke", nameEn: "Kenya", nameAr: "كينيا", programs: 1, beneficiaries: "1,200+", highlightEn: "Africa expansion — green business incubation", highlightAr: "التوسع الأفريقي — حاضنات الأعمال الخضراء" },
 ];
 
 export const journeyMilestones: JourneyMilestone[] = [

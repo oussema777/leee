@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ImpactDashboard } from "@/components/sections/impact/ImpactDashboard";
+import { CaseStudies } from "@/components/sections/impact/CaseStudies";
+import { MenaMap } from "@/components/sections/impact/MenaMap";
 import { ImpactJourney } from "@/components/sections/impact/ImpactJourney";
 import { ImpactStories } from "@/components/sections/impact/ImpactStories";
 import { ImpactLessons } from "@/components/sections/impact/ImpactLessons";
@@ -12,6 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t("impactTitle"),
     description: "Impact isn't a report. It's a ripple.",
+    keywords: "LEEE impact, economic empowerment, livelihoods, MSMEs, women innovators, green economy, MENA, humanitarian aid, case studies",
   };
 }
 
@@ -36,6 +39,8 @@ export default async function ImpactPage({
       />
 
       <ImpactDashboard />
+      <CaseStudies />
+      <MenaMap />
       <ImpactJourney />
       <ImpactStories />
       <ImpactLessons />
