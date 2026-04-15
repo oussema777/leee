@@ -8,7 +8,6 @@ import { PartnersCarousel } from "@/components/sections/home/PartnersCarousel";
 import { JoinCommunity } from "@/components/sections/home/JoinCommunity";
 import { LatestBeats } from "@/components/sections/home/LatestBeats";
 import { CTABanner } from "@/components/sections/home/CTABanner";
-import { SocialMediaBar } from "@/components/layout/SocialMediaBar";
 import { getFeaturedPrograms } from "@/lib/data/programs";
 
 export default async function HomePage() {
@@ -43,7 +42,6 @@ export default async function HomePage() {
       <JoinCommunity />
       <LatestBeats />
       <CTABanner />
-      <SocialMediaBar />
     </>
   );
 }

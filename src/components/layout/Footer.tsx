@@ -4,16 +4,8 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import Image from "next/image";
-import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
-  Phone,
-  Mail,
-  MapPin,
-} from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
+import { socialLinks } from "@/lib/socialLinks";
 
 export function Footer() {
   const t = useTranslations();
@@ -37,8 +29,8 @@ export function Footer() {
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-4">
               {locale === "ar"
-                ? "تجربة LEEE هي منظومة للتأثير الاجتماعي، تقدم بيئة حيوية لدعم المجتمعات والشباب ورواد الأعمال الاجتماعيين في لبنان."
-                : "The LEEE Experience is an ecosystem for social impact, providing a dynamic environment to support communities, youth and social entrepreneurs in Lebanon."}
+                ? "تجربة LEEE هي منظومة للتأثير الاجتماعي، تقدم بيئة حيوية لدعم المجتمعات والشباب ورواد الأعمال الاجتماعيين في لبنان ومصر."
+                : "The LEEE Experience is an ecosystem for social impact, providing a dynamic environment to support communities, youth and social entrepreneurs in Lebanon and Egypt."}
             </p>
           </div>
 
@@ -67,12 +59,14 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
                 <span className="text-white/60 text-sm">
-                  {locale === "ar" ? "بيروت، لبنان" : "Beirut, Lebanon"}
+                  {locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"}
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
-                <span className="text-white/60 text-sm">+961 3 002 430</span>
+                <a href="tel:+9613002430" className="text-white/60 text-sm hover:text-brand-blue-light transition-colors">
+                  +961 3 002 430
+                </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
@@ -86,10 +80,10 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Follow / Newsletter */}
+          {/* Column 4: Follow Us */}
           <div>
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-5">
-              {locale === "ar" ? "تابعنا" : "Follow The Spark"}
+              {locale === "ar" ? "تابعونا" : "Follow Us"}
             </h3>
             <p className="text-white/60 text-sm mb-4">
               {locale === "ar"
@@ -102,20 +96,28 @@ export function Footer() {
               <button className="px-5 py-2 text-xs font-semibold uppercase tracking-wider border-2 border-brand-blue-light text-brand-blue-light rounded-sm hover:bg-brand-blue-light hover:text-accent-navy transition-all">
                 {locale === "ar" ? "اشترك" : "Subscribe"}
               </button>
-
             </div>
 
-            {/* Social Icons */}
+            {/* Social Icons — from shared socialLinks */}
             <div className="flex gap-3">
-              <SocialIcon href="https://www.facebook.com/theleeexperience/" icon={<Facebook className="w-4 h-4" />} />
-              <SocialIcon href="https://twitter.com/lee_experience" icon={<Twitter className="w-4 h-4" />} />
-              <SocialIcon href="https://www.instagram.com/the_lee_experience/" icon={<Instagram className="w-4 h-4" />} />
-              <SocialIcon href="https://www.linkedin.com/company/the-lee-experience" icon={<Linkedin className="w-4 h-4" />} />
-              <SocialIcon href="https://www.youtube.com/" icon={<Youtube className="w-4 h-4" />} />
+              {socialLinks.map((social) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.name}
+                    className="w-8 h-8 bg-white/10 flex items-center justify-center text-white/60 hover:bg-brand-blue hover:text-white transition-all"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
-
       </Container>
 
       {/* Bottom bar */}
@@ -146,18 +148,5 @@ function FooterLink({
         {children}
       </Link>
     </li>
-  );
-}
-
-function SocialIcon({ href, icon }: { href: string; icon: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="w-8 h-8 bg-white/10 flex items-center justify-center text-white/60 hover:bg-brand-blue hover:text-white transition-all"
-    >
-      {icon}
-    </a>
   );
 }

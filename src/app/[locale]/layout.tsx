@@ -6,6 +6,7 @@ import { PageLoader } from "@/components/shared/PageLoader";
 import { NewsTicker } from "@/components/layout/NewsTicker";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 
 export default async function LocaleLayout({
   children,
@@ -40,6 +41,7 @@ export default async function LocaleLayout({
             <main className="flex-1">{children}</main>
             <Footer />
           </SmoothScroll>
+          <WhatsAppButton />
         </NextIntlClientProvider>
       </body>
     </html>

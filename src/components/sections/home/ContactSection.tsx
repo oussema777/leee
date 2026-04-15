@@ -45,6 +45,17 @@ export function ContactSection() {
   return (
     <section className="py-20 bg-surface-secondary">
       <Container>
+        {/* Welcoming phrase */}
+        <AnimatedSection>
+          <div className="text-center mb-6">
+            <p className="text-brand-blue font-semibold text-lg md:text-xl tracking-wide">
+              {locale === "ar"
+                ? "يسعدنا أن نسمع منك"
+                : "We would love to hear from you"}
+            </p>
+          </div>
+        </AnimatedSection>
+
         {/* Movement CTA */}
         <AnimatedSection>
           <div className="text-center mb-16">
@@ -100,7 +111,7 @@ export function ContactSection() {
               <ContactItem
                 icon={<MapPin className="w-5 h-5" />}
                 label={t("common.address")}
-                value="Beirut, Lebanon"
+                value={locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"}
               />
 
               <div className="mt-8 overflow-hidden h-64">
