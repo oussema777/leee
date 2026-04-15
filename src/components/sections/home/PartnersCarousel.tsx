@@ -38,6 +38,10 @@ export function PartnersCarousel() {
           subtitle={t("partnersSubtitle")}
         />
         <div className="relative overflow-hidden">
+          {/* Left fade */}
+          <div className="absolute inset-y-0 start-0 w-20 bg-gradient-to-r from-surface-primary to-transparent z-10 pointer-events-none" />
+          {/* Right fade */}
+          <div className="absolute inset-y-0 end-0 w-20 bg-gradient-to-l from-surface-primary to-transparent z-10 pointer-events-none" />
           <div className="flex animate-scroll gap-12 items-center">
             {[...demoPartners, ...demoPartners].map((partner, i) => (
               <div
