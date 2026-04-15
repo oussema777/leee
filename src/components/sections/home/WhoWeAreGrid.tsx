@@ -6,6 +6,7 @@ import { SectionLabel } from "./SectionLabel";
 import { cn } from "@/lib/utils";
 import { Building2, Lightbulb, Users, MapPin } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
+import { motion } from "framer-motion";
 
 const quadrants = {
   en: [
@@ -13,15 +14,21 @@ const quadrants = {
       icon: Building2,
       title: "Who We Are",
       description:
-        "A dual-structure ecosystem \u2014 a non-profit foundation and a for-profit incubator \u2014 united by a single mission to drive sustainable community impact across MENA & Africa.",
+        "A dual-structure ecosystem — a non-profit foundation and a for-profit incubator — united by a single mission to drive sustainable community impact across MENA & Africa.",
       color: "bg-brand-blue",
+      accent: "from-brand-blue/20 to-brand-blue/5",
+      borderAccent: "from-brand-blue to-blue-400",
+      ringColor: "border-brand-blue/20",
     },
     {
       icon: Lightbulb,
       title: "What We Do",
       description:
-        "We incubate startups, deliver technical assistance and capacity building, run academies, provide business clinics, and lead humanitarian aid programs \u2014 turning ideas into lasting change.",
+        "We incubate startups, deliver technical assistance and capacity building, run academies, provide business clinics, and lead humanitarian aid programs — turning ideas into lasting change.",
       color: "bg-emerald-500",
+      accent: "from-emerald-500/20 to-emerald-500/5",
+      borderAccent: "from-emerald-500 to-emerald-300",
+      ringColor: "border-emerald-500/20",
     },
     {
       icon: Users,
@@ -29,6 +36,9 @@ const quadrants = {
       description:
         "Women entrepreneurs, youth, MSMEs, cooperatives, NGOs, and vulnerable communities in post-conflict and developing regions seeking economic empowerment and decent work.",
       color: "bg-brand-gold",
+      accent: "from-brand-gold/20 to-brand-gold/5",
+      borderAccent: "from-brand-gold to-yellow-300",
+      ringColor: "border-brand-gold/20",
     },
     {
       icon: MapPin,
@@ -36,38 +46,83 @@ const quadrants = {
       description:
         "Active across 10 countries including Lebanon, Egypt, Jordan, Iraq, Tunisia, and expanding across the MENA region and Africa.",
       color: "bg-rose-500",
+      accent: "from-rose-500/20 to-rose-500/5",
+      borderAccent: "from-rose-500 to-rose-300",
+      ringColor: "border-rose-500/20",
     },
   ],
   ar: [
     {
       icon: Building2,
-      title: "\u0645\u0646 \u0646\u062d\u0646",
+      title: "من نحن",
       description:
-        "\u0645\u0646\u0638\u0648\u0645\u0629 \u0645\u0632\u062f\u0648\u062c\u0629 \u2014 \u0645\u0624\u0633\u0633\u0629 \u063a\u064a\u0631 \u0631\u0628\u062d\u064a\u0629 \u0648\u062d\u0627\u0636\u0646\u0629 \u0623\u0639\u0645\u0627\u0644 \u0631\u0628\u062d\u064a\u0629 \u2014 \u0645\u062a\u062d\u062f\u062a\u0627\u0646 \u0628\u0631\u0633\u0627\u0644\u0629 \u0648\u0627\u062d\u062f\u0629 \u0644\u062f\u0641\u0639 \u0627\u0644\u062a\u0623\u062b\u064a\u0631 \u0627\u0644\u0645\u062c\u062a\u0645\u0639\u064a \u0627\u0644\u0645\u0633\u062a\u062f\u0627\u0645 \u0639\u0628\u0631 \u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0634\u0631\u0642 \u0627\u0644\u0623\u0648\u0633\u0637 \u0648\u0634\u0645\u0627\u0644 \u0623\u0641\u0631\u064a\u0642\u064a\u0627.",
+        "منظومة مزدوجة — مؤسسة غير ربحية وحاضنة أعمال ربحية — متحدتان برسالة واحدة لدفع التأثير المجتمعي المستدام عبر منطقة الشرق الأوسط وشمال أفريقيا.",
       color: "bg-brand-blue",
+      accent: "from-brand-blue/20 to-brand-blue/5",
+      borderAccent: "from-brand-blue to-blue-400",
+      ringColor: "border-brand-blue/20",
     },
     {
       icon: Lightbulb,
-      title: "\u0645\u0627\u0630\u0627 \u0646\u0641\u0639\u0644",
+      title: "ماذا نفعل",
       description:
-        "\u0646\u062d\u062a\u0636\u0646 \u0627\u0644\u0634\u0631\u0643\u0627\u062a \u0627\u0644\u0646\u0627\u0634\u0626\u0629\u060c \u0648\u0646\u0642\u062f\u0645 \u0627\u0644\u0645\u0633\u0627\u0639\u062f\u0629 \u0627\u0644\u062a\u0642\u0646\u064a\u0629 \u0648\u0628\u0646\u0627\u0621 \u0627\u0644\u0642\u062f\u0631\u0627\u062a\u060c \u0648\u0646\u062f\u064a\u0631 \u0627\u0644\u0623\u0643\u0627\u062f\u064a\u0645\u064a\u0627\u062a\u060c \u0648\u0646\u0648\u0641\u0631 \u0639\u064a\u0627\u062f\u0627\u062a \u0627\u0644\u0623\u0639\u0645\u0627\u0644\u060c \u0648\u0646\u0642\u0648\u062f \u0628\u0631\u0627\u0645\u062c \u0627\u0644\u0645\u0633\u0627\u0639\u062f\u0627\u062a \u0627\u0644\u0625\u0646\u0633\u0627\u0646\u064a\u0629.",
+        "نحتضن الشركات الناشئة، ونقدم المساعدة التقنية وبناء القدرات، وندير الأكاديميات، ونوفر عيادات الأعمال، ونقود برامج المساعدات الإنسانية.",
       color: "bg-emerald-500",
+      accent: "from-emerald-500/20 to-emerald-500/5",
+      borderAccent: "from-emerald-500 to-emerald-300",
+      ringColor: "border-emerald-500/20",
     },
     {
       icon: Users,
-      title: "\u0645\u0646 \u0646\u062e\u062f\u0645",
+      title: "من نخدم",
       description:
-        "\u0631\u0627\u0626\u062f\u0627\u062a \u0627\u0644\u0623\u0639\u0645\u0627\u0644\u060c \u0627\u0644\u0634\u0628\u0627\u0628\u060c \u0627\u0644\u0645\u0634\u0627\u0631\u064a\u0639 \u0627\u0644\u0635\u063a\u064a\u0631\u0629 \u0648\u0627\u0644\u0645\u062a\u0648\u0633\u0637\u0629\u060c \u0627\u0644\u062a\u0639\u0627\u0648\u0646\u064a\u0627\u062a\u060c \u0627\u0644\u0645\u0646\u0638\u0645\u0627\u062a \u063a\u064a\u0631 \u0627\u0644\u062d\u0643\u0648\u0645\u064a\u0629\u060c \u0648\u0627\u0644\u0645\u062c\u062a\u0645\u0639\u0627\u062a \u0627\u0644\u0636\u0639\u064a\u0641\u0629 \u0627\u0644\u0633\u0627\u0639\u064a\u0629 \u0644\u0644\u062a\u0645\u0643\u064a\u0646 \u0627\u0644\u0627\u0642\u062a\u0635\u0627\u062f\u064a.",
+        "رائدات الأعمال، الشباب، المشاريع الصغيرة والمتوسطة، التعاونيات، المنظمات غير الحكومية، والمجتمعات الضعيفة الساعية للتمكين الاقتصادي.",
       color: "bg-brand-gold",
+      accent: "from-brand-gold/20 to-brand-gold/5",
+      borderAccent: "from-brand-gold to-yellow-300",
+      ringColor: "border-brand-gold/20",
     },
     {
       icon: MapPin,
-      title: "\u0623\u064a\u0646 \u0646\u0639\u0645\u0644",
+      title: "أين نعمل",
       description:
-        "\u0646\u0646\u0634\u0637 \u0641\u064a \u0623\u0643\u062b\u0631 \u0645\u0646 10 \u062f\u0648\u0644 \u0628\u0645\u0627 \u0641\u064a \u0630\u0644\u0643 \u0644\u0628\u0646\u0627\u0646 \u0648\u0645\u0635\u0631 \u0648\u0627\u0644\u0623\u0631\u062f\u0646 \u0648\u0627\u0644\u0639\u0631\u0627\u0642 \u0648\u062a\u0648\u0646\u0633\u060c \u0648\u0646\u062a\u0648\u0633\u0639 \u0639\u0628\u0631 \u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0634\u0631\u0642 \u0627\u0644\u0623\u0648\u0633\u0637 \u0648\u0634\u0645\u0627\u0644 \u0623\u0641\u0631\u064a\u0642\u064a\u0627 \u0648\u0623\u0641\u0631\u064a\u0642\u064a\u0627.",
+        "ننشط في أكثر من 10 دول بما في ذلك لبنان ومصر والأردن والعراق وتونس، ونتوسع عبر منطقة الشرق الأوسط وشمال أفريقيا وأفريقيا.",
       color: "bg-rose-500",
+      accent: "from-rose-500/20 to-rose-500/5",
+      borderAccent: "from-rose-500 to-rose-300",
+      ringColor: "border-rose-500/20",
     },
   ],
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.12,
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  }),
+};
+
+const headerVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const lineVariants = {
+  hidden: { scaleX: 0 },
+  visible: {
+    scaleX: 1,
+    transition: { duration: 0.5, delay: 0.3, ease: "easeOut" },
+  },
 };
 
 export function WhoWeAreGrid() {
@@ -78,72 +133,170 @@ export function WhoWeAreGrid() {
 
   return (
     <section className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
-      {/* Background shapes */}
+      {/* Dot grid pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.035]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, #5895D0 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      {/* Floating abstract shapes */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 -start-40 w-80 h-80 bg-brand-blue/[0.03] rounded-full blur-3xl" />
-        <div className="absolute bottom-20 -end-40 w-80 h-80 bg-brand-gold/[0.03] rounded-full blur-3xl" />
+        {/* Morphing blob top-left */}
+        <div
+          className="absolute -top-16 -start-20 w-72 h-72 rounded-full bg-brand-blue/[0.04] blur-2xl"
+          style={{ animation: "morph-blob 18s ease-in-out infinite" }}
+        />
+        {/* Gold ring mid-right */}
+        <div
+          className="absolute top-1/3 -end-10 w-40 h-40 rounded-full border-2 border-brand-gold/10"
+          style={{ animation: "float-slow 14s ease-in-out infinite" }}
+        />
+        {/* Small blue dot */}
+        <div
+          className="absolute top-24 end-1/4 w-3 h-3 rounded-full bg-brand-blue/20"
+          style={{ animation: "float-medium 8s ease-in-out infinite" }}
+        />
+        {/* Morphing blob bottom-right */}
+        <div
+          className="absolute -bottom-20 -end-32 w-80 h-80 rounded-full bg-brand-gold/[0.03] blur-3xl"
+          style={{ animation: "morph-blob 22s ease-in-out infinite reverse" }}
+        />
+        {/* Star / cross shape */}
+        <div
+          className="absolute bottom-32 start-16 w-5 h-5 opacity-15"
+          style={{ animation: "float-particle 10s ease-in-out infinite" }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-full h-[1.5px] bg-brand-blue rounded-full" />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-full w-[1.5px] bg-brand-blue rounded-full" />
+          </div>
+        </div>
       </div>
 
       <Container>
         <div ref={ref} className={cn(isAr && "text-right")}>
-          {/* Section header */}
-          <div
-            className={cn(
-              "text-center mb-14 transition-all duration-700",
-              visible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-6"
-            )}
+          {/* Section header with animated flanking lines */}
+          <motion.div
+            className="text-center mb-14"
+            variants={headerVariants}
+            initial="hidden"
+            animate={visible ? "visible" : "hidden"}
           >
             <SectionLabel color="blue">
-              {isAr ? "\u062d\u0648\u0644 \u062a\u062c\u0631\u0628\u0629 LEEE" : "About LEEE Experience"}
+              {isAr ? "حول تجربة LEEE" : "About LEEE Experience"}
             </SectionLabel>
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary leading-tight mt-4">
-              {isAr
-                ? "\u0646\u0638\u0631\u0629 \u0634\u0627\u0645\u0644\u0629 \u0639\u0644\u0649 \u0645\u0646\u0638\u0648\u0645\u062a\u0646\u0627"
-                : "A Snapshot of Our Ecosystem"}
-            </h2>
-          </div>
+
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <motion.span
+                className="w-8 h-[1.5px] bg-brand-blue origin-right"
+                variants={lineVariants}
+                initial="hidden"
+                animate={visible ? "visible" : "hidden"}
+              />
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary leading-tight">
+                {isAr
+                  ? "نظرة شاملة على منظومتنا"
+                  : "A Snapshot of Our Ecosystem"}
+              </h2>
+              <motion.span
+                className="w-8 h-[1.5px] bg-brand-blue origin-left"
+                variants={lineVariants}
+                initial="hidden"
+                animate={visible ? "visible" : "hidden"}
+              />
+            </div>
+          </motion.div>
 
           {/* 4-quadrant grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             {items.map((item, i) => {
               const Icon = item.icon;
               return (
-                <div
+                <motion.div
                   key={i}
-                  className={cn(
-                    "group relative bg-white rounded-2xl p-8 md:p-10 border border-surface-tertiary/50",
-                    "hover:shadow-xl hover:-translate-y-1 transition-all duration-500",
-                    visible
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-8"
-                  )}
-                  style={{
-                    transitionDelay: visible ? `${150 * i}ms` : "0ms",
-                  }}
+                  custom={i}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate={visible ? "visible" : "hidden"}
+                  className="group relative"
                 >
+                  {/* Gradient border wrapper */}
+                  <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-transparent via-transparent to-transparent group-hover:from-brand-blue/20 group-hover:via-transparent group-hover:to-brand-gold/20 transition-all duration-500 opacity-0 group-hover:opacity-100" />
+
                   <div
                     className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center mb-5",
-                      item.color
+                      "relative bg-white rounded-2xl p-8 md:p-10 border border-surface-tertiary/50",
+                      "transition-all duration-500",
+                      "hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-[6px]"
                     )}
                   >
-                    <Icon className="w-6 h-6 text-white" />
+                    {/* Colored accent line at top - appears on hover */}
+                    <div
+                      className={cn(
+                        "absolute top-0 start-8 end-8 h-[2.5px] rounded-full bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                        item.borderAccent
+                      )}
+                    />
+
+                    {/* Icon with pulsing ring */}
+                    <div className="relative w-14 h-14 mb-5">
+                      {/* Pulsing outer ring */}
+                      <div
+                        className={cn(
+                          "absolute -inset-2 rounded-xl border-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                          item.ringColor
+                        )}
+                        style={{
+                          animation: "float-medium 3s ease-in-out infinite",
+                        }}
+                      />
+                      <div
+                        className={cn(
+                          "w-14 h-14 rounded-xl flex items-center justify-center relative z-10",
+                          item.color
+                        )}
+                      >
+                        <Icon className="w-7 h-7 text-white" />
+                      </div>
+                    </div>
+
+                    <h3 className="font-serif text-xl md:text-2xl text-text-primary mb-3">
+                      {item.title}
+                    </h3>
+                    <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                      {item.description}
+                    </p>
+
+                    {/* Decorative subtle ring in corner */}
+                    <div
+                      className={cn(
+                        "absolute bottom-4 end-4 w-10 h-10 rounded-full border opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500",
+                        item.ringColor
+                      )}
+                    />
+                    {/* Tiny decorative dot */}
+                    <div
+                      className={cn(
+                        "absolute top-6 end-6 w-1.5 h-1.5 rounded-full opacity-[0.15]",
+                        item.color
+                      )}
+                    />
+
+                    {/* Background gradient corner accent */}
+                    <div
+                      className={cn(
+                        "absolute top-0 end-0 w-24 h-24 rounded-bl-[48px] bg-gradient-to-bl opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500",
+                        item.accent
+                      )}
+                    />
                   </div>
-                  <h3 className="font-serif text-xl md:text-2xl text-text-primary mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-                    {item.description}
-                  </p>
-                  <div
-                    className={cn(
-                      "absolute top-0 end-0 w-20 h-20 rounded-bl-[40px] opacity-[0.04]",
-                      item.color
-                    )}
-                  />
-                </div>
+                </motion.div>
               );
             })}
           </div>
