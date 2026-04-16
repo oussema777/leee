@@ -35,7 +35,7 @@ No backend changes. All data stays in the existing podcast data file.
 - `src/components/sections/podcast/PodcastGrid.tsx` — replace inline season tabs with `<PodcastFilters>`, wire all filters/search, render SDG badges + pillar tag on cards
 - `src/components/sections/podcast/PodcastEpisodePage.tsx` — render `<SdgBadge>` row + `<RelatedProjectCard>` below description
 - `src/components/sections/programs/ProgramCard.tsx` — switch to import from `src/lib/pillarColors.ts` instead of inline record
-- `messages/en.json` and `messages/ar.json` — add `podcast.filters.*`, `podcast.relatedProject.*`, `podcast.sdg.*` strings
+- `messages/en.json` and `messages/ar.json` — add `podcast.filters.*`, `podcast.relatedProject.*`, `podcast.impactAreas` strings (SDG titles themselves live in `sdgData.ts`, not in messages)
 
 ---
 
@@ -55,14 +55,16 @@ export interface PodcastEpisode {
 
 All four fields are optional so the data file remains valid even if a future episode is added with no metadata yet.
 
+**`countries` semantics:** Country tags represent the geographic focus of the episode's content (where the case studies, guests, or projects discussed are located). They are not the location of recording. An episode about a multi-country program lists every country meaningfully featured.
+
 ### `relatedPrograms.ts`
 
 ```ts
 export interface RelatedProgramSummary {
-  slug: string;
+  slug: string;            // matches the program slug in prisma/seed-programs.ts
   titleEn: string;
   titleAr: string;
-  pillarSlug: string;            // matches keys in pillarColors record
+  pillarSlug: string;      // UI key — matches keys in pillarColors record
   coverImageUrl: string;
 }
 
@@ -70,6 +72,10 @@ export const relatedPrograms: Record<string, RelatedProgramSummary> = { ... };
 ```
 
 Only contains entries for slugs actually referenced by podcast episodes. Avoids importing Prisma into client code and avoids per-episode network requests on the detail page.
+
+**Pillar slug convention:** `pillarSlug` uses the UI key set (`humanitarian-aid`, `incubators`, `academy`, `business-clinic`, `digital-media-hub`) — the same keys as `pillarColors`. Note that the Prisma seed uses `coaching` for the Business Clinic pillar; in this lookup file the implementer translates that to `business-clinic`.
+
+**Drift policy:** This is a hand-curated mirror of a small set of program metadata (≤12 entries). Title and cover-image drift is accepted because related-program changes are expected to be rare; whoever updates `podcastData.ts` for a new episode also updates `relatedPrograms.ts`. Drift is not a runtime concern — broken slugs simply omit the section.
 
 ### `sdgData.ts`
 
@@ -122,7 +128,7 @@ If a `relatedProgramSlug` cannot be matched (e.g., spelling drift, slug not in `
 
 Props:
 ```ts
-{ sdgNumber: number; size?: "sm" | "md"; showLabel?: boolean }
+{ sdgNumber: number; size?: "sm" | "md" }
 ```
 
 - Resolves `sdgData[sdgNumber]`. Returns `null` if unknown number.
@@ -149,26 +155,33 @@ Layout (matches `/programs` pattern):
 Active: [Season 3 ×] [Lebanon ×] [SDG 5 ×]   Clear all
 ```
 
-- Country dropdown options: read from `impactData.menaCountries` (single source of truth).
+- Country dropdown options: read **strictly** from `impactData.menaCountries` (single source of truth — same 10 countries as the impact map). If an episode is tagged with a country code outside this set, the filter dropdown won't list it (the episode is still included when no country filter is applied).
 - SDG dropdown options: auto-derived — only show SDG numbers that appear in at least one episode's `sdgTags`. Avoids empty filter results.
 - Guest dropdown: fixed two options (Entrepreneur, Expert).
 - Active filter chips render below the controls; each removes its own param. "Clear all" wipes everything except season=All.
 - Mobile (<sm breakpoint): controls stack vertically; dropdowns become full-width.
 
+**Filter matching semantics:**
+- Single-value params (season, guest): episode matches if its scalar field equals the param.
+- Array-field params (country, sdg): episode matches if the selected value is **included in** the episode's array (OR within an episode's array).
+- Across different filter dimensions: AND (all active filters must match).
+- Search: matches across `titleEn`, `titleAr`, `descriptionEn`, `descriptionAr`, `guestNameEn`, `guestNameAr`, `guestRoleEn`, `guestRoleAr` (case-insensitive `includes`). Guest fields are included so users can search by guest name.
+- "Season empty" (used by the featured-card rule below) means the `season` URL param is absent — i.e., the `[All]` pill is selected, which is the default state.
+
 ### `PodcastGrid.tsx`
 
 - Replace inline season tabs with `<PodcastFilters />`.
-- Combine all active filters into a single in-memory filter pass over `demoEpisodes`. Search matches across `titleEn`, `titleAr`, `descriptionEn`, `descriptionAr` (case-insensitive `includes`).
-- **Featured episode rule:** only render the featured card when **no filters are active** (i.e. `search` empty AND `season` empty AND `guest` empty AND `country` empty AND `sdg` empty). Once any filter is active, all matching episodes render uniformly in the list.
-- On each card (list view): existing thumbnail + title + meta, plus a row of small `<SdgBadge size="sm">` icons (max 3 visible, "+N" if more) and, if `relatedProgramSlug` resolves, a small pillar-color tag like `[• Akroum Dairy]` linking to `/programs/[slug]` (stop click propagation so it doesn't trigger the card link).
-- Empty state when zero matches: friendly message + "Clear all filters" button.
+- Combine all active filters into a single in-memory filter pass over `demoEpisodes`, using the matching semantics defined above.
+- **Featured episode rule:** only render the featured card when **no filters are active** (i.e. `search`, `season`, `guest`, `country`, and `sdg` URL params are all absent). Once any filter is active, all matching episodes render uniformly in the list.
+- On each card (list view): existing thumbnail + title + meta, plus a row of small `<SdgBadge size="sm">` icons (max 3 visible; if more SDGs exist, render a static `+N` text badge styled like the SDG badges — no interaction; users see all SDGs on the detail page) and, if `relatedProgramSlug` resolves, a small pillar-color tag like `[• Akroum Dairy]` linking to `/programs/[slug]` (use `stopPropagation` on click so it doesn't trigger the surrounding card link).
+- Empty state when zero matches: filter controls remain visible above the empty message so users can adjust filters without a page reload. Empty state shows the friendly message + "Clear all filters" button.
 
 ### `RelatedProjectCard.tsx`
 
 Props: `{ slug: string }`
 
 - Looks up `relatedPrograms[slug]`. Returns `null` if unknown.
-- Layout: cover image (left, 96×96), then a vertical pillar-colored accent bar (4px wide, full card height), then content (right): pillar tag chip in pillar color, program title, "Explore Project →" CTA link to `/programs/[slug]`.
+- Layout (logical CSS — mirrors automatically in RTL): cover image at the **start** (96×96), then a vertical pillar-colored accent bar (4px wide, full card height), then content at the **end**: pillar tag chip in pillar color, program title, "Explore Project →" CTA link to `/programs/[slug]`. Use `ms-`/`me-`/`start-`/`end-` utilities consistent with the rest of the codebase.
 - Section heading above the card: "Related Project" (EN) / "مشروع ذو صلة" (AR).
 - Placed in `PodcastEpisodePage.tsx` after the description, before the share/back footer.
 
@@ -181,9 +194,9 @@ Props: `{ slug: string }`
 
 ## SDG Asset Acquisition
 
-Official UN SDG icons are downloaded from the UN Sustainable Development Goals Communications Materials site (United Nations, public domain for non-commercial educational use, attribution preserved by their use here as topic tags). Files placed at `public/images/sdg/sdg-{n}.png` for n = 1..17.
+Official UN SDG icons are downloaded from the UN Sustainable Development Goals Communications Materials site. The implementer must review the UN's published guidelines for SDG logo and icon usage at the time of download and follow them (typically: do not alter the icons, do not imply UN endorsement). Files placed at `public/images/sdg/sdg-{n}.png` for n = 1..17.
 
-If the official PNGs are temporarily unavailable, fallback is to use the official SDG colors (hex codes published by the UN) on a solid colored square with the number — visually consistent until real assets are obtained. The component contract does not change.
+If the official PNGs are temporarily unavailable, fallback is to render a solid square in the official SDG color (hex codes from the UN, listed below) with the number centered — visually consistent until real assets are obtained. The component contract does not change.
 
 Official SDG colors used in `sdgData.ts`:
 

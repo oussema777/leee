@@ -201,7 +201,28 @@
     "pageSubtitle": "Listen to conversations with entrepreneurs, changemakers, and community leaders",
     "allEpisodes": "All Episodes",
     "episodes": "episodes",
-    "noEpisodes": "No episodes found in this season."
+    "noEpisodes": "No episodes found in this season.",
+    "impactAreas": "Impact Areas",
+    "relatedProject": {
+      "heading": "Related Project",
+      "cta": "Explore Project"
+    },
+    "filters": {
+      "search": "Search episodes...",
+      "season": "Season",
+      "allSeasons": "All Seasons",
+      "guestType": "Guest type",
+      "country": "Country",
+      "sdg": "SDG",
+      "any": "Any",
+      "active": "Active",
+      "clearAll": "Clear all",
+      "noResults": "No episodes match your filters.",
+      "guestTypes": {
+        "entrepreneur": "Entrepreneur / Founder",
+        "expert": "Expert / Researcher"
+      }
+    }
   },
   "gallery": {
     "pageTitle": "Photo Gallery",

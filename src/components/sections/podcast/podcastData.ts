@@ -22,6 +22,13 @@ export interface PodcastEpisode {
   guestRoleEn?: string;
   guestRoleAr?: string;
   isFeatured?: boolean;
+  guestType?: "entrepreneur" | "expert";
+  /** Country codes matching `impactData.menaCountries` (e.g. "lb", "eg"). Represents the geographic focus of the content. */
+  countries?: string[];
+  /** UN SDG numbers 1..17 */
+  sdgTags?: number[];
+  /** Program slug matching `prisma/seed-programs.ts`; rendered as a mini related-project card. */
+  relatedProgramSlug?: string;
 }
 
 export const podcastSeasons: PodcastSeason[] = [
@@ -50,6 +57,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     guestRoleEn: "NAWRA Green Ventures Entrepreneurs",
     guestRoleAr: "رائدات أعمال مشاريع نورة الخضراء",
     isFeatured: true,
+    guestType: "entrepreneur",
+    countries: ["lb", "tn", "ma"],
+    sdgTags: [5, 8, 10],
+    relatedProgramSlug: "nawra-green-ventures-acceleration",
   },
   {
     id: "2",
@@ -68,6 +79,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     guestNameAr: "نور بزي",
     guestRoleEn: "Manager, Houla Green Fashion Factory",
     guestRoleAr: "مديرة مصنع حولا للأزياء الخضراء",
+    guestType: "entrepreneur",
+    countries: ["lb"],
+    sdgTags: [5, 8, 12],
+    relatedProgramSlug: "houla-women-green-fashion-factory",
   },
   {
     id: "3",
@@ -86,6 +101,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     guestNameAr: "د. نادية سليم",
     guestRoleEn: "Research & Policy Lead, LEEE",
     guestRoleAr: "رئيسة الأبحاث والسياسات، LEEE",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [4, 5, 8],
+    relatedProgramSlug: "financial-education-women",
   },
 
   // Season 2 — Green Futures
@@ -106,6 +125,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     guestNameAr: "عمر سليمان",
     guestRoleEn: "Agritech Entrepreneur, Bekaa Valley",
     guestRoleAr: "رائد أعمال تكنولوجيا زراعية، سهل البقاع",
+    guestType: "entrepreneur",
+    countries: ["lb"],
+    sdgTags: [2, 9, 13],
+    relatedProgramSlug: "prospects-entrepreneurship-agriculture",
   },
   {
     id: "5",
@@ -120,6 +143,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 36,
     seasonSlug: "s2",
     publishedAt: "2025-11-28",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [8, 11, 12],
+    relatedProgramSlug: "nawra-green-ventures-acceleration",
   },
   {
     id: "6",
@@ -134,6 +161,9 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 44,
     seasonSlug: "s2",
     publishedAt: "2025-11-10",
+    guestType: "entrepreneur",
+    countries: ["lb"],
+    sdgTags: [7, 8, 13],
   },
   {
     id: "7",
@@ -148,6 +178,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 33,
     seasonSlug: "s2",
     publishedAt: "2025-10-20",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [1, 2, 5],
+    relatedProgramSlug: "community-kitchens-social-cohesion",
   },
 
   // Season 1 — Foundations
@@ -168,6 +202,9 @@ export const demoEpisodes: PodcastEpisode[] = [
     guestNameAr: "د. علي منصور",
     guestRoleEn: "CEO, LEEE Experience",
     guestRoleAr: "الرئيس التنفيذي، LEEE Experience",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [8, 17],
   },
   {
     id: "9",
@@ -182,6 +219,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 37,
     seasonSlug: "s1",
     publishedAt: "2025-08-15",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [4, 8],
+    relatedProgramSlug: "enable-siyb-training-2024",
   },
   {
     id: "10",
@@ -196,6 +237,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 41,
     seasonSlug: "s1",
     publishedAt: "2025-08-01",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [4, 8],
+    relatedProgramSlug: "empowering-women-entrepreneurs-mena",
   },
   {
     id: "11",
@@ -210,6 +255,10 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 34,
     seasonSlug: "s1",
     publishedAt: "2025-07-15",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [4, 9],
+    relatedProgramSlug: "digital-learning-women-sustainable-business",
   },
   {
     id: "12",
@@ -224,5 +273,8 @@ export const demoEpisodes: PodcastEpisode[] = [
     durationMin: 39,
     seasonSlug: "s1",
     publishedAt: "2025-07-01",
+    guestType: "expert",
+    countries: ["lb"],
+    sdgTags: [17],
   },
 ];

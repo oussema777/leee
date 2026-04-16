@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
@@ -17,9 +17,12 @@ import {
 } from "lucide-react";
 import { podcastSeasons, demoEpisodes } from "./podcastData";
 import type { PodcastEpisode } from "./podcastData";
+import { SdgBadge } from "./SdgBadge";
+import { RelatedProjectCard } from "./RelatedProjectCard";
 
 export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
   const locale = useLocale();
+  const t = useTranslations("podcast");
   const isAr = locale === "ar";
 
   const date = new Date(episode.publishedAt);
@@ -146,6 +149,20 @@ export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
               </div>
             )}
 
+            {/* Impact Areas (SDGs) */}
+            {episode.sdgTags && episode.sdgTags.length > 0 && (
+              <section className="mb-10">
+                <h2 className="text-lg font-bold text-text-primary mb-4">
+                  {t("impactAreas")}
+                </h2>
+                <div className="flex items-start gap-4 flex-wrap">
+                  {episode.sdgTags.map((n) => (
+                    <SdgBadge key={n} sdgNumber={n} size="md" />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Description */}
             <article className="mb-10">
               <h2 className="text-lg font-bold text-text-primary mb-4">
@@ -169,6 +186,11 @@ export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
                 );
               })}
             </article>
+
+            {/* Related Project */}
+            {episode.relatedProgramSlug && (
+              <RelatedProjectCard slug={episode.relatedProgramSlug} />
+            )}
 
             {/* Share + Back */}
             <div className="flex items-center justify-between border-t border-gray-100 pt-6">

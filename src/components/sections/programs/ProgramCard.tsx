@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { MapPin, Calendar, Building2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { pillarColors, defaultPillarAccent } from "@/lib/pillarColors";
 import { RegisterModal } from "./RegisterModal";
 
 interface ProgramCardProps {
@@ -43,59 +44,6 @@ const statusConfig: Record<string, { en: string; ar: string; color: string }> = 
   UPCOMING: { en: "Upcoming", ar: "قادم", color: "bg-amber-500 text-white" },
 };
 
-/* Pillar-based accent colors */
-const pillarAccents: Record<string, { bg: string; text: string; tagBg: string; iconColor: string; btnBg: string; btnHover: string }> = {
-  "humanitarian-aid": {
-    bg: "rgba(237, 110, 40, 0.85)",   // #ED6E28
-    text: "text-orange-600",
-    tagBg: "rgba(237, 110, 40, 0.85)",
-    iconColor: "text-orange-400",
-    btnBg: "bg-orange-500",
-    btnHover: "hover:bg-orange-600",
-  },
-  incubators: {
-    bg: "rgba(20, 125, 187, 0.85)",   // #147DBB
-    text: "text-sky-600",
-    tagBg: "rgba(20, 125, 187, 0.85)",
-    iconColor: "text-sky-400",
-    btnBg: "bg-sky-600",
-    btnHover: "hover:bg-sky-700",
-  },
-  academy: {
-    bg: "rgba(63, 172, 73, 0.85)",    // #3FAC49
-    text: "text-emerald-600",
-    tagBg: "rgba(63, 172, 73, 0.85)",
-    iconColor: "text-emerald-400",
-    btnBg: "bg-emerald-500",
-    btnHover: "hover:bg-emerald-600",
-  },
-  "business-clinic": {
-    bg: "rgba(27, 55, 101, 0.85)",    // #1B3765
-    text: "text-indigo-600",
-    tagBg: "rgba(27, 55, 101, 0.85)",
-    iconColor: "text-indigo-400",
-    btnBg: "bg-indigo-600",
-    btnHover: "hover:bg-indigo-700",
-  },
-  "digital-media-hub": {
-    bg: "rgba(222, 24, 129, 0.85)",   // #DE1881
-    text: "text-pink-600",
-    tagBg: "rgba(222, 24, 129, 0.85)",
-    iconColor: "text-pink-400",
-    btnBg: "bg-pink-500",
-    btnHover: "hover:bg-pink-600",
-  },
-};
-
-const defaultAccent = {
-  bg: "rgba(20, 125, 187, 0.8)",
-  text: "text-brand-blue",
-  tagBg: "rgba(20, 125, 187, 0.8)",
-  iconColor: "text-brand-blue/50",
-  btnBg: "bg-brand-blue",
-  btnHover: "hover:bg-brand-blue-dark",
-};
-
 export function ProgramCard({
   slug,
   titleEn,
@@ -116,7 +64,7 @@ export function ProgramCard({
   const isAr = locale === "ar";
   const [showRegister, setShowRegister] = useState(false);
   const title = isAr ? titleAr : titleEn;
-  const accent = (pillar?.slug && pillarAccents[pillar.slug]) || defaultAccent;
+  const accent = (pillar?.slug && pillarColors[pillar.slug]) || defaultPillarAccent;
 
   return (
     <>

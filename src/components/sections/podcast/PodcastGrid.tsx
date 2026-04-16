@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback } from "react";
-import { useLocale } from "next-intl";
+import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter as useI18nRouter } from "@/i18n/navigation";
 import { Play, Clock, Mic, Headphones, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { podcastSeasons, demoEpisodes } from "./podcastData";
 import type { PodcastEpisode } from "./podcastData";
+import { PodcastFilters } from "./PodcastFilters";
+import { SdgBadge } from "./SdgBadge";
+import { relatedPrograms } from "./relatedPrograms";
+import { pillarColors, defaultPillarAccent } from "@/lib/pillarColors";
 
 function FeaturedEpisode({ ep, isAr }: { ep: PodcastEpisode; isAr: boolean }) {
   const date = new Date(ep.publishedAt);
@@ -71,6 +74,18 @@ function FeaturedEpisode({ ep, isAr }: { ep: PodcastEpisode; isAr: boolean }) {
                 <Clock className="w-3 h-3" />
                 {ep.durationMin} {isAr ? "دقيقة" : "min"}
               </span>
+              {ep.sdgTags && ep.sdgTags.length > 0 && (
+                <span className="flex items-center gap-1">
+                  {ep.sdgTags.slice(0, 3).map((n) => (
+                    <SdgBadge key={n} sdgNumber={n} size="sm" />
+                  ))}
+                  {ep.sdgTags.length > 3 && (
+                    <span className="inline-flex items-center justify-center w-7 h-7 bg-white/20 text-white text-[11px] font-bold rounded">
+                      +{ep.sdgTags.length - 3}
+                    </span>
+                  )}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center text-sm font-semibold text-white group-hover:gap-2.5 gap-1.5 transition-all">
@@ -86,62 +101,59 @@ function FeaturedEpisode({ ep, isAr }: { ep: PodcastEpisode; isAr: boolean }) {
 
 export function PodcastGrid() {
   const locale = useLocale();
+  const t = useTranslations("podcast.filters");
   const isAr = locale === "ar";
   const router = useRouter();
+  const i18nRouter = useI18nRouter();
   const searchParams = useSearchParams();
 
+  const currentSearch = searchParams.get("search") || "";
   const currentSeason = searchParams.get("season") || "";
+  const currentGuest = searchParams.get("guest") || "";
+  const currentCountry = searchParams.get("country") || "";
+  const currentSdgParam = searchParams.get("sdg") || "";
+  const currentSdg = currentSdgParam ? Number(currentSdgParam) : null;
 
-  const filteredEpisodes = currentSeason
-    ? demoEpisodes.filter((e) => e.seasonSlug === currentSeason)
-    : demoEpisodes;
+  const hasActiveFilters =
+    currentSearch !== "" ||
+    currentSeason !== "" ||
+    currentGuest !== "" ||
+    currentCountry !== "" ||
+    currentSdgParam !== "";
 
-  const featured = !currentSeason ? filteredEpisodes.find((e) => e.isFeatured) : null;
-  const rest = featured ? filteredEpisodes.filter((e) => e.id !== featured.id) : filteredEpisodes;
-
-  const updateSeason = useCallback(
-    (slug: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (slug) {
-        params.set("season", slug);
-      } else {
-        params.delete("season");
+  const filteredEpisodes = useMemo(() => {
+    const searchLower = currentSearch.trim().toLowerCase();
+    return demoEpisodes.filter((ep) => {
+      if (currentSeason && ep.seasonSlug !== currentSeason) return false;
+      if (currentGuest && ep.guestType !== currentGuest) return false;
+      if (currentCountry && !ep.countries?.includes(currentCountry)) return false;
+      if (currentSdg !== null && !ep.sdgTags?.includes(currentSdg)) return false;
+      if (searchLower) {
+        const haystack = [
+          ep.titleEn,
+          ep.titleAr,
+          ep.descriptionEn,
+          ep.descriptionAr,
+          ep.guestNameEn,
+          ep.guestNameAr,
+          ep.guestRoleEn,
+          ep.guestRoleAr,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(searchLower)) return false;
       }
-      router.push(`?${params.toString()}`, { scroll: false });
-    },
-    [router, searchParams]
-  );
+      return true;
+    });
+  }, [currentSearch, currentSeason, currentGuest, currentCountry, currentSdg]);
+
+  const featured = !hasActiveFilters ? filteredEpisodes.find((e) => e.isFeatured) : null;
+  const rest = featured ? filteredEpisodes.filter((e) => e.id !== featured.id) : filteredEpisodes;
 
   return (
     <>
-      {/* Season Tabs */}
-      <div className="flex items-center gap-1 flex-wrap mb-8 overflow-x-auto pb-2">
-        <button
-          onClick={() => updateSeason("")}
-          className={cn(
-            "px-5 py-2.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap",
-            !currentSeason
-              ? "border-brand-blue text-brand-blue bg-brand-blue-light/50"
-              : "border-transparent text-text-secondary hover:text-brand-blue hover:border-brand-blue/30"
-          )}
-        >
-          {isAr ? "جميع الحلقات" : "All Episodes"}
-        </button>
-        {podcastSeasons.map((season) => (
-          <button
-            key={season.slug}
-            onClick={() => updateSeason(season.slug)}
-            className={cn(
-              "px-5 py-2.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap",
-              currentSeason === season.slug
-                ? "border-brand-blue text-brand-blue bg-brand-blue-light/50"
-                : "border-transparent text-text-secondary hover:text-brand-blue hover:border-brand-blue/30"
-            )}
-          >
-            {isAr ? season.nameAr : season.nameEn}
-          </button>
-        ))}
-      </div>
+      <PodcastFilters />
 
       {filteredEpisodes.length > 0 ? (
         <>
@@ -161,6 +173,12 @@ export function PodcastGrid() {
                 year: "numeric",
               });
               const season = podcastSeasons.find((s) => s.slug === ep.seasonSlug);
+              const relatedProgram = ep.relatedProgramSlug
+                ? relatedPrograms[ep.relatedProgramSlug]
+                : null;
+              const relatedAccent = relatedProgram
+                ? pillarColors[relatedProgram.pillarSlug] || defaultPillarAccent
+                : null;
 
               return (
                 <Link
@@ -199,13 +217,52 @@ export function PodcastGrid() {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-3 text-xs text-text-muted">
+                    <div className="flex items-center gap-3 text-xs text-text-muted mb-2">
                       <span>{dateStr}</span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {ep.durationMin} {isAr ? "د" : "min"}
                       </span>
                     </div>
+
+                    {/* SDG badges + related program tag */}
+                    {(ep.sdgTags?.length || relatedProgram) && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {ep.sdgTags?.slice(0, 3).map((n) => (
+                          <SdgBadge key={n} sdgNumber={n} size="sm" />
+                        ))}
+                        {ep.sdgTags && ep.sdgTags.length > 3 && (
+                          <span className="inline-flex items-center justify-center w-7 h-7 bg-gray-200 text-text-muted text-[11px] font-bold rounded">
+                            +{ep.sdgTags.length - 3}
+                          </span>
+                        )}
+                        {relatedProgram && relatedAccent && (
+                          <span
+                            role="link"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              i18nRouter.push(`/programs/${relatedProgram.slug}`);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                i18nRouter.push(`/programs/${relatedProgram.slug}`);
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white px-2.5 py-1 rounded-full hover:opacity-90 cursor-pointer transition-opacity line-clamp-1"
+                            style={{ backgroundColor: relatedAccent.tagBg }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                            <span className="truncate max-w-[140px]">
+                              {isAr ? relatedProgram.titleAr : relatedProgram.titleEn}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Link>
               );
@@ -215,11 +272,13 @@ export function PodcastGrid() {
       ) : (
         <div className="text-center py-16">
           <Headphones className="w-16 h-16 mx-auto text-text-muted mb-4" />
-          <p className="text-text-secondary text-lg">
-            {isAr
-              ? "لم يتم العثور على حلقات في هذا الموسم."
-              : "No episodes found in this season."}
-          </p>
+          <p className="text-text-secondary text-lg mb-4">{t("noResults")}</p>
+          <button
+            onClick={() => router.push("?", { scroll: false })}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-blue rounded-full hover:bg-brand-blue-dark transition-colors"
+          >
+            {t("clearAll")}
+          </button>
         </div>
       )}
     </>
