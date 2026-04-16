@@ -54,8 +54,11 @@ This single query implements both **7.1** (show the careers list at all) and **7
 **Layout:** Vertical stacked list of cards (job listings read better stacked than gridded). Each card is a standalone container with:
 
 - Title (bilingual, `text-xl font-semibold`).
-- Job-type chip (`FULL_TIME` → "Full-time", `PART_TIME` → "Part-time", `CONTRACT` → "Contract", `VOLUNTEER` → "Volunteer"). Chip uses brand-blue tinted background.
-- Meta row: `<MapPin className="w-4 h-4" /> {location}` + `<CalendarClock className="w-4 h-4" /> Apply by: {formatted deadline}` (deadline row omitted when `deadline === null`). **Do not use emoji** icons (`📍` / `🗓️`) — some Arabic renderers drop them. Use lucide-react `MapPin` and `CalendarClock`, which match the icon conventions used elsewhere on the site.
+- Job-type chip covering all 5 `JobType` enum values: `FULL_TIME` → "Full-time", `PART_TIME` → "Part-time", `CONTRACT` → "Contract", `VOLUNTEER` → "Volunteer", `INTERNSHIP` → "Internship". Chip uses brand-blue tinted background.
+- Meta row fields:
+  - **Location** — read `locale === "ar" ? career.locationAr : career.locationEn`. If the selected-locale field is null or empty, **omit** the location item entirely (do not render an icon or dash).
+  - **Deadline** — formatted date; omit the whole deadline item when `career.deadline === null`.
+  - Render using lucide-react `MapPin` and `CalendarClock` (`<MapPin className="w-4 h-4" />` + value). **Do not use emoji** icons (`📍` / `🗓️`) — some Arabic renderers drop them.
 - Description, `line-clamp-3`, in `text-text-secondary`.
 - **Apply Now** button at the end — primary brand-blue, opens the modal with `{ slug, titleEn, titleAr }` as props.
 
@@ -197,7 +200,7 @@ New keys under `careers.*` in `messages/en.json` and `messages/ar.json`:
 ```
 careers.pageTitle
 careers.pageSubtitle
-careers.jobType.{fullTime, partTime, contract, volunteer}
+careers.jobType.{fullTime, partTime, contract, volunteer, internship}
 careers.location               // label for location meta, e.g. "Location"
 careers.applyBy
 careers.applyNow
@@ -392,9 +395,9 @@ blog.pageOf           // e.g. "of {total}"
 - `src/app/api/public/careers/apply/route.ts`
 - `src/app/admin/(dashboard)/careers/applications/page.tsx`
 - `prisma/migrations/<timestamp>_add_career_application/migration.sql`
-- `public/reports/annual-report-2025.pdf`
-- `public/reports/impact-study-women-entrepreneurs.pdf`
-- `public/reports/program-evaluation-nawra.pdf`
+- `public/reports/annual-report-2025.pdf` (assigned to `reportsData.ts` id `"1"`)
+- `public/reports/nawra-green-ventures-impact.pdf` (assigned to id `"4"`)
+- `public/reports/enable-programme-mid-term.pdf` (assigned to id `"9"`)
 
 **Modified:**
 - `prisma/schema.prisma` — add `CareerApplication` model + reverse relation on `Career`
