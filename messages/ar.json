@@ -163,7 +163,7 @@
   },
   "blog": {
     "pageTitle": "المدونة",
-    "pageSubtitle": "رؤى وقصص وتحديثات من فريق LEEE Experience",
+    "pageSubtitle": "رؤى وأدلة ودروس تعليمية وقصص من فريق LEEE Experience.",
     "allPosts": "الكل",
     "articles": "مقالات",
     "readArticle": "اقرأ المقال",
@@ -172,7 +172,14 @@
     "noPosts": "لم يتم العثور على مقالات في هذه الفئة.",
     "featured": "مقال مميز",
     "share": "مشاركة",
-    "minRead": "دقائق للقراءة"
+    "minRead": "دقائق للقراءة",
+    "searchPlaceholder": "ابحث في المقالات…",
+    "noResults": "لا توجد مقالات تطابق بحثك.",
+    "clearFilters": "مسح الفلاتر",
+    "previousPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية",
+    "pageLabel": "الصفحة {page}",
+    "pageOf": "من {total}"
   },
   "testimonials": {
     "pageTitle": "الشهادات",
@@ -241,6 +248,38 @@
     "step1": "المعلومات الشخصية",
     "step2": "الخلفية المهنية",
     "step3": "مجال الاهتمام"
+  },
+  "careers": {
+    "pageTitle": "الوظائف",
+    "pageSubtitle": "انضم إلى مهمتنا. ساعد في بناء اقتصادات مرنة وشاملة عبر الشرق الأوسط وشمال أفريقيا.",
+    "jobType": {
+      "fullTime": "دوام كامل",
+      "partTime": "دوام جزئي",
+      "contract": "عقد",
+      "volunteer": "تطوعي",
+      "internship": "تدريب"
+    },
+    "location": "الموقع",
+    "applyBy": "آخر موعد",
+    "applyNow": "قدّم الآن",
+    "noPositions": "لا توجد وظائف شاغرة حالياً. يرجى التحقق لاحقاً!",
+    "noPositionsCta": "أو انضم إلى مجموعة الخبراء لدينا",
+    "apply": {
+      "title": "التقديم على: {position}",
+      "fullName": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف (اختياري)",
+      "resumeUrl": "رابط السيرة الذاتية (اختياري)",
+      "resumeUrlHelper": "رابط سيرتك الذاتية — Google Drive أو Dropbox أو LinkedIn PDF",
+      "coverLetter": "رسالة التقديم",
+      "submit": "إرسال الطلب",
+      "submitting": "جارٍ الإرسال…",
+      "success": "تم إرسال طلبك! سنتواصل معك قريباً.",
+      "errorValidation": "يرجى مراجعة الحقول أعلاه والمحاولة مرة أخرى.",
+      "errorNotFound": "هذه الوظيفة لم تعد متاحة.",
+      "errorClosed": "انتهت فترة التقديم لهذه الوظيفة.",
+      "errorGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    }
   },
   "crisis": {
     "pageTitle": "استجابة أزمة لبنان",

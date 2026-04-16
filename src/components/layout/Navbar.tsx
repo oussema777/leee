@@ -51,6 +51,7 @@ export function Navbar() {
         { label: locale === "ar" ? "الشركاء" : "Partners", href: "/get-involved/partner" },
         { label: locale === "ar" ? "الخبراء" : "Experts", href: "/get-involved/expert" },
         { label: locale === "ar" ? "المناصرة" : "Advocates", href: "/get-involved/advocate" },
+        { label: locale === "ar" ? "الوظائف" : "Careers", href: "/get-involved/careers" },
       ],
     },
     {

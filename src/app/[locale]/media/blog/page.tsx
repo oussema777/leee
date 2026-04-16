@@ -7,9 +7,13 @@ import { BlogGrid } from "@/components/sections/blog/BlogGrid";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "blog" });
+  const description =
+    locale === "ar"
+      ? "أدلة إرشادية وتدريبات تعليمية ورؤى وقصص حول بناء الأعمال المرنة، والاقتصاد الأخضر، والمبتكرات من النساء في منطقة الشرق الأوسط وشمال أفريقيا."
+      : "How-to guides, training tutorials, insights, and stories on building resilient businesses, the green economy, and women innovators across MENA.";
   return {
     title: t("pageTitle"),
-    description: t("pageSubtitle"),
+    description,
   };
 }
 

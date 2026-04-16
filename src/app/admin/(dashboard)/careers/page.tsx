@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import AdminPageHeader from "../../components/AdminPageHeader";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import AdminDataTable, { type Column } from "../../components/AdminDataTable";
 import { ActiveBadge } from "../../components/StatusBadge";
 import StatusBadge from "../../components/StatusBadge";
@@ -66,7 +67,24 @@ export default function CareersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Careers" actionLabel="Add Position" actionHref="/admin/careers/new" />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">Careers</h1>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/careers/applications"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            View Applications →
+          </Link>
+          <Link
+            href="/admin/careers/new"
+            className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            <Plus size={18} />
+            Add Position
+          </Link>
+        </div>
+      </div>
       <AdminDataTable columns={columns} data={data} totalPages={totalPages} currentPage={page} total={total}
         search={search} onSearch={(s) => { setSearch(s); setPage(1); }} onPageChange={setPage}
         onEdit={(item) => router.push(`/admin/careers/${item.id}/edit`)} onDelete={setDeleteTarget} loading={loading}

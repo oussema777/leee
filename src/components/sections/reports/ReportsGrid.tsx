@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FileText, Download, Calendar, FileX2 } from "lucide-react";
+import { FileText, Download, Calendar, FileX2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { reportCategories, demoReports } from "./reportsData";
 
@@ -132,15 +132,28 @@ export function ReportsGrid() {
                 </p>
 
                 {/* Download Button */}
-                <a
-                  href={report.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 text-sm font-medium text-white bg-brand-blue hover:bg-brand-blue-dark transition-colors px-4 py-2.5 w-full"
-                >
-                  <Download className="w-4 h-4" />
-                  {isAr ? "تحميل التقرير" : "Download Report"}
-                </a>
+                {report.fileUrl && report.fileUrl !== "#" ? (
+                  <a
+                    href={report.fileUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 text-sm font-medium text-white bg-brand-blue hover:bg-brand-blue-dark transition-colors px-4 py-2.5 w-full"
+                  >
+                    <Download className="w-4 h-4" />
+                    {isAr ? "تحميل التقرير" : "Download Report"}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    className="inline-flex items-center justify-center gap-2 text-sm font-medium text-text-muted bg-gray-100 px-4 py-2.5 w-full cursor-not-allowed"
+                  >
+                    <Clock className="w-4 h-4" />
+                    {isAr ? "قريباً" : "Coming Soon"}
+                  </button>
+                )}
               </div>
             </div>
           ))}

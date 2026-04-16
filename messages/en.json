@@ -163,7 +163,7 @@
   },
   "blog": {
     "pageTitle": "Blog",
-    "pageSubtitle": "Insights, stories, and updates from the LEEE Experience team",
+    "pageSubtitle": "Insights, guides, tutorials, and stories from the LEEE Experience team.",
     "allPosts": "All",
     "articles": "articles",
     "readArticle": "Read Article",
@@ -172,7 +172,14 @@
     "noPosts": "No articles found in this category.",
     "featured": "Featured",
     "share": "Share",
-    "minRead": "min read"
+    "minRead": "min read",
+    "searchPlaceholder": "Search articles…",
+    "noResults": "No articles match your search.",
+    "clearFilters": "Clear filters",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageLabel": "Page {page}",
+    "pageOf": "of {total}"
   },
   "testimonials": {
     "pageTitle": "Testimonials",
@@ -241,6 +248,38 @@
     "step1": "Personal Information",
     "step2": "Professional Background",
     "step3": "Area of Interest"
+  },
+  "careers": {
+    "pageTitle": "Careers",
+    "pageSubtitle": "Join our mission. Help build resilient, inclusive economies across MENA & Africa.",
+    "jobType": {
+      "fullTime": "Full-time",
+      "partTime": "Part-time",
+      "contract": "Contract",
+      "volunteer": "Volunteer",
+      "internship": "Internship"
+    },
+    "location": "Location",
+    "applyBy": "Apply by",
+    "applyNow": "Apply Now",
+    "noPositions": "No open positions at the moment. Please check back soon!",
+    "noPositionsCta": "Or join our expert pool",
+    "apply": {
+      "title": "Apply: {position}",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "resumeUrl": "CV / Resume link (optional)",
+      "resumeUrlHelper": "Link to your CV — Google Drive, Dropbox, or LinkedIn PDF",
+      "coverLetter": "Cover Letter",
+      "submit": "Submit Application",
+      "submitting": "Submitting…",
+      "success": "Application submitted! We'll be in touch.",
+      "errorValidation": "Please check the fields above and try again.",
+      "errorNotFound": "This position is no longer available.",
+      "errorClosed": "This position has closed.",
+      "errorGeneric": "Something went wrong. Please try again."
+    }
   },
   "crisis": {
     "pageTitle": "Lebanon Crisis Response",
