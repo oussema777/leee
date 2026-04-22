@@ -18,7 +18,26 @@
       "Bash(find:*)",
       "Bash(npm root:*)",
       "Bash(\"$APPDATA/npm/uipro-cli\":*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(powershell:*)",
+      "Bash(dd:*)",
+      "Bash(python3:*)",
+      "Bash(PYTHONIOENCODING=utf-8 \"/c/Users/Marketing Manager/AppData/Local/Programs/Python/Python310/python.exe\":*)",
+      "Bash(rm:*)",
+      "Bash(curl:*)",
+      "Bash(cp:*)",
+      "Bash(wc:*)",
+      "WebSearch",
+      "WebFetch(domain:www.amcharts.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:freesvg.org)",
+      "WebFetch(domain:upload.wikimedia.org)",
+      "Bash(npm info:*)",
+      "Bash(npm ls:*)",
+      "Bash(sed:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(git:*)",
+      "Bash(tasklist:*)"
     ]
   }
 }
