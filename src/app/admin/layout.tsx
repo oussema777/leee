@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "LEEE Admin Dashboard",
-  description: "Admin dashboard for LEEE Experience platform",
+  title: "LEE Admin Dashboard",
+  description: "Admin dashboard for LEE Experience platform",
 };
 
 export default function AdminRootLayout({

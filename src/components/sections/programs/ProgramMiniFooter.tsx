@@ -22,7 +22,7 @@ export function ProgramMiniFooter() {
           </Link>
 
           <div className="text-gray-500 text-sm">
-            <p className="font-semibold text-gray-400 mb-1">The LEEE Experience</p>
+            <p className="font-semibold text-gray-400 mb-1">The LEE Experience</p>
             <p>
               {isAr
                 ? "معاً نحو عالم يناسبنا جميعاً"

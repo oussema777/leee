@@ -145,8 +145,8 @@ export const timelineData: TimelineItem[] = [
     year: 2025,
     titleEn: "Five Years Forward",
     titleAr: "خمس سنوات للأمام",
-    descriptionEn: "32 strategic projects implemented. 38,790+ lives touched. Operating in 10 countries with 9 branches. A movement, not just an organization.",
-    descriptionAr: "32 مشروعاً استراتيجياً. أكثر من 38,790 حياة تأثرت. نعمل في 10 دول بـ 9 فروع.",
+    descriptionEn: "32 strategic projects implemented. 38,790+ lives touched. Operating in 10 countries. A movement, not just an organization.",
+    descriptionAr: "32 مشروعاً استراتيجياً. أكثر من 38,790 حياة تأثرت. نعمل في 10 دول.",
     imageUrl: "/images/new/award-winner.jpg",
   },
 ];

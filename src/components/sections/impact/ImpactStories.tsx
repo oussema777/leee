@@ -10,7 +10,7 @@ import { ArrowRight } from "lucide-react";
 
 const previewStories = [
   {
-    nameEn: "Rima's Journey with NAWRA",
+    nameEn: "Rima's Journey with NAWARA",
     nameAr: "رحلة ريما مع نورة",
     quoteEn: "From a single mother sewing at home to employing 12 women in sustainable fashion.",
     quoteAr: "من أم عزباء تخيط في المنزل إلى توظيف 12 امرأة في الأزياء المستدامة.",

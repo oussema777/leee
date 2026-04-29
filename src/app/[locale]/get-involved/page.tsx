@@ -11,8 +11,8 @@ export async function generateMetadata({
   return {
     title:
       locale === "ar"
-        ? "شارك معنا — تجربة LEEE"
-        : "Get Involved — The LEEE Experience",
+        ? "شارك معنا — تجربة LEE"
+        : "Get Involved — The LEE Experience",
     description:
       locale === "ar"
         ? "التغيير ليس رياضة مشاهدة. اعثر على دورك في الحركة."

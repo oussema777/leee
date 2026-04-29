@@ -27,8 +27,8 @@ export const demoReports: ReportItem[] = [
   // Annual Reports
   {
     id: "1",
-    titleEn: "LEEE Experience Annual Report 2025",
-    titleAr: "التقرير السنوي لـ LEEE Experience 2025",
+    titleEn: "LEE Experience Annual Report 2025",
+    titleAr: "التقرير السنوي لـ LEE Experience 2025",
     descriptionEn: "A comprehensive overview of our programs, impact, and financial performance in 2025 across 10 countries.",
     descriptionAr: "نظرة شاملة على برامجنا وأثرنا وأدائنا المالي في عام 2025 عبر 10 دول.",
     coverImageUrl: "/images/international-professionals.jpg",
@@ -38,8 +38,8 @@ export const demoReports: ReportItem[] = [
   },
   {
     id: "2",
-    titleEn: "LEEE Experience Annual Report 2024",
-    titleAr: "التقرير السنوي لـ LEEE Experience 2024",
+    titleEn: "LEE Experience Annual Report 2024",
+    titleAr: "التقرير السنوي لـ LEE Experience 2024",
     descriptionEn: "Highlights from our 2024 operations including 32+ active programs and 38,790 beneficiaries reached.",
     descriptionAr: "أبرز إنجازات عملياتنا في 2024 بما في ذلك أكثر من 32 برنامجاً نشطاً و38,790 مستفيداً.",
     coverImageUrl: "/images/team-partners-meeting.jpg",
@@ -49,8 +49,8 @@ export const demoReports: ReportItem[] = [
   },
   {
     id: "3",
-    titleEn: "LEEE Experience Annual Report 2023",
-    titleAr: "التقرير السنوي لـ LEEE Experience 2023",
+    titleEn: "LEE Experience Annual Report 2023",
+    titleAr: "التقرير السنوي لـ LEE Experience 2023",
     descriptionEn: "Review of our growth trajectory in 2023, expanding from 5 to 9 branches across Lebanon and the MENA region.",
     descriptionAr: "مراجعة مسار نمونا في 2023، التوسع من 5 إلى 9 فروع عبر لبنان ومنطقة الشرق الأوسط.",
     coverImageUrl: "/images/outdoor-certificate-ceremony.jpg",
@@ -62,9 +62,9 @@ export const demoReports: ReportItem[] = [
   // Impact Studies
   {
     id: "4",
-    titleEn: "NAWRA Green Ventures — Impact Assessment Report",
+    titleEn: "NAWARA Green Ventures — Impact Assessment Report",
     titleAr: "مشاريع نورة الخضراء — تقرير تقييم الأثر",
-    descriptionEn: "Evaluation of the NAWRA program's impact on women-led green startups across Lebanon, Tunisia, and Morocco.",
+    descriptionEn: "Evaluation of the NAWARA program's impact on women-led green startups across Lebanon, Tunisia, and Morocco.",
     descriptionAr: "تقييم أثر برنامج نورة على الشركات الناشئة الخضراء بقيادة نساء في لبنان وتونس والمغرب.",
     coverImageUrl: "/images/nawra-women-training.jpg",
     fileUrl: "/reports/nawra-green-ventures-impact.pdf",
@@ -110,7 +110,7 @@ export const demoReports: ReportItem[] = [
     id: "8",
     titleEn: "Women's Economic Empowerment — Policy Brief",
     titleAr: "التمكين الاقتصادي للمرأة — موجز سياسات",
-    descriptionEn: "Policy recommendations for strengthening women's economic participation based on insights from NAWRA and SIYB programs.",
+    descriptionEn: "Policy recommendations for strengthening women's economic participation based on insights from NAWARA and SIYB programs.",
     descriptionAr: "توصيات سياسية لتعزيز المشاركة الاقتصادية للمرأة بناءً على رؤى من برنامجي نورة وSIYB.",
     coverImageUrl: "/images/women-empowerment-art.jpg",
     fileUrl: "#",

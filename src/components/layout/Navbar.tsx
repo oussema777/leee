@@ -36,11 +36,11 @@ export function Navbar() {
       href: "/programs",
       children: [
         { label: locale === "ar" ? "جميع البرامج" : "All Programs", href: "/programs" },
-        { label: locale === "ar" ? "حاضنات LEEE" : "LEEE Incubators", href: "/programs?pillar=incubators" },
-        { label: locale === "ar" ? "أكاديمية LEEE" : "LEEE Academy", href: "/programs?pillar=academy" },
-        { label: locale === "ar" ? "عيادة أعمال LEEE" : "LEEE Business Clinic", href: "/programs?pillar=business-clinic" },
-        { label: locale === "ar" ? "مساعدات LEEE الإنسانية" : "LEEE Humanitarian Aid", href: "/programs?pillar=humanitarian-aid" },
-        { label: locale === "ar" ? "مركز LEEE للإعلام الرقمي" : "LEEE Digital Media Hub", href: "/programs?pillar=digital-media-hub" },
+        { label: locale === "ar" ? "حاضنات LEE" : "LEE Incubators", href: "/programs?pillar=incubators" },
+        { label: locale === "ar" ? "أكاديمية LEE" : "LEE Academy", href: "/programs?pillar=academy" },
+        { label: locale === "ar" ? "عيادة أعمال LEE" : "LEE Business Clinic", href: "/programs?pillar=business-clinic" },
+        { label: locale === "ar" ? "مساعدات LEE الإنسانية" : "LEE Humanitarian Aid", href: "/programs?pillar=humanitarian-aid" },
+        { label: locale === "ar" ? "مركز LEE للإعلام الرقمي" : "LEE Digital Media Hub", href: "/programs?pillar=digital-media-hub" },
       ],
     },
     {
@@ -48,7 +48,7 @@ export function Navbar() {
       href: "/get-involved",
       children: [
         { label: locale === "ar" ? "رواد الأعمال" : "Entrepreneurs", href: "/get-involved/entrepreneur" },
-        { label: locale === "ar" ? "الشركاء" : "Partners", href: "/get-involved/partner" },
+        { label: locale === "ar" ? "موثوق من قبل" : "Trusted By", href: "/get-involved/partner" },
         { label: locale === "ar" ? "الخبراء" : "Experts", href: "/get-involved/expert" },
         { label: locale === "ar" ? "المناصرة" : "Advocates", href: "/get-involved/advocate" },
         { label: locale === "ar" ? "الوظائف" : "Careers", href: "/get-involved/careers" },

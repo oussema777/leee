@@ -1,15 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { Linkedin } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface TeamMember {
   nameEn: string;
   nameAr: string;
   roleEn: string;
   roleAr: string;
+  category?: string;
   imageUrl?: string | null;
   linkedinUrl?: string | null;
 }
@@ -18,11 +21,34 @@ interface ProgramTeamProps {
   members: TeamMember[];
 }
 
+const tabs = [
+  { key: "team", labelEn: "Team", labelAr: "الفريق" },
+  { key: "expert", labelEn: "Experts", labelAr: "الخبراء" },
+  { key: "coach", labelEn: "Coaches", labelAr: "المدربون" },
+] as const;
+
 export function ProgramTeam({ members }: ProgramTeamProps) {
   const locale = useLocale();
   const isAr = locale === "ar";
 
   if (members.length === 0) return null;
+
+  // Group members by category
+  const grouped: Record<string, TeamMember[]> = {};
+  for (const m of members) {
+    const cat = m.category || "team";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(m);
+  }
+
+  // Only show tabs that have members
+  const activeTabs = tabs.filter((t) => grouped[t.key]?.length > 0);
+
+  // If only one category exists, no need for tabs
+  const showTabs = activeTabs.length > 1;
+
+  const [activeTab, setActiveTab] = useState(activeTabs[0]?.key || "team");
+  const displayMembers = showTabs ? (grouped[activeTab] || []) : members;
 
   return (
     <section id="team" className="scroll-mt-16 py-20 md:py-28 bg-surface-secondary relative overflow-hidden">
@@ -50,9 +76,38 @@ export function ProgramTeam({ members }: ProgramTeamProps) {
           </h2>
         </div>
 
+        {/* Tabs */}
+        {showTabs && (
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex bg-white rounded-full p-1 border border-surface-tertiary shadow-sm">
+              {activeTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300",
+                    activeTab === tab.key
+                      ? "bg-brand-blue text-white shadow-md"
+                      : "text-text-muted hover:text-text-primary"
+                  )}
+                >
+                  {isAr ? tab.labelAr : tab.labelEn}
+                  <span className={cn(
+                    "ms-1.5 text-xs font-bold",
+                    activeTab === tab.key ? "text-white/70" : "text-text-muted/50"
+                  )}>
+                    {grouped[tab.key]?.length || 0}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Members grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
-          {members.map((member, index) => (
-            <div key={index} className="group">
+          {displayMembers.map((member, index) => (
+            <div key={`${activeTab}-${index}`} className="group">
               <div className="bg-white rounded-2xl overflow-hidden border border-surface-tertiary hover:shadow-lg hover:-translate-y-1 transition-all duration-400 text-center">
                 {/* Photo */}
                 <div className="relative w-full aspect-square bg-surface-tertiary overflow-hidden">

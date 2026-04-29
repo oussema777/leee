@@ -19,7 +19,6 @@ interface ProgramOverviewProps {
   donorAr?: string | null;
   locationEn?: string | null;
   locationAr?: string | null;
-  budget?: string | null;
   year?: number | null;
   beneficiaries?: number | null;
   galleryImages?: { id: string; imageUrl: string; caption?: string | null }[];
@@ -62,7 +61,6 @@ export function ProgramOverview({
   donorAr,
   locationEn,
   locationAr,
-  budget,
   year,
   beneficiaries,
   galleryImages,
@@ -96,7 +94,6 @@ export function ProgramOverview({
         donorAr={donorAr}
         locationEn={locationEn}
         locationAr={locationAr}
-        budget={budget}
         year={year}
         beneficiaries={beneficiaries}
       />

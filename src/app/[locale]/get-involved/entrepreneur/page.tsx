@@ -13,8 +13,8 @@ export async function generateMetadata({
   return {
     title:
       locale === "ar"
-        ? "لرواد الأعمال — تجربة LEEE"
-        : "For Entrepreneurs — The LEEE Experience",
+        ? "لرواد الأعمال — تجربة LEE"
+        : "For Entrepreneurs — The LEE Experience",
     description:
       locale === "ar"
         ? "لديك فكرة مشروع أخضر؟ سنساعدك على التحقق منها وبنائها وتمويلها."

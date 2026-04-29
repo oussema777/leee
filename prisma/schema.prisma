@@ -222,6 +222,7 @@ model ProgramTeamMember {
   nameAr      String
   roleEn      String
   roleAr      String
+  category    String  @default("team") // "team" | "expert" | "coach"
   imageUrl    String?
   linkedinUrl String?
   order       Int     @default(0)
@@ -501,4 +502,15 @@ model ServiceRequest {
   timeline    String?
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// NEWSLETTER
+// ─────────────────────────────────────────
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  locale    String   @default("en")
+  createdAt DateTime @default(now())
 }

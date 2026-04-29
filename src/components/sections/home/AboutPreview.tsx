@@ -19,7 +19,7 @@ export function AboutPreview() {
             <div className="relative">
               <Image
                 src="/images/outdoor-certificate-ceremony.jpg"
-                alt="About LEEE Experience"
+                alt="About LEE Experience"
                 width={800}
                 height={600}
                 className="shadow-xl w-full"
@@ -36,8 +36,8 @@ export function AboutPreview() {
               </span>
               <h2 className="text-3xl md:text-4xl font-bold text-text-primary mt-2 mb-6">
                 {locale === "ar"
-                  ? "الفرق الذي تصنعه LEEE"
-                  : "The LEEE Difference"}
+                  ? "الفرق الذي تصنعه LEE"
+                  : "The LEE Difference"}
               </h2>
               <p className="text-text-secondary leading-relaxed mb-4">
                 {locale === "ar"

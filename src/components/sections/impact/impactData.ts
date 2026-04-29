@@ -65,7 +65,7 @@ export const impactStats: ImpactStat[] = [
   // For-profit tab
   { id: "fp1", labelEn: "Startups Incubated", labelAr: "شركات ناشئة محتضنة", value: 2365, suffix: "+", category: "economic", tab: "for-profit", icon: "rocket" },
   { id: "fp2", labelEn: "MSMEs Accelerated", labelAr: "مشاريع صغيرة مُسَرَّعة", value: 3421, suffix: "+", category: "economic", tab: "for-profit", icon: "trending-up" },
-  { id: "fp3", labelEn: "Seed Funding Mobilized", labelAr: "تمويل أولي", value: 1.06, prefix: "$", suffix: "M+", category: "economic", tab: "for-profit", icon: "coins" },
+  { id: "fp3", labelEn: "Portfolio Total", labelAr: "إجمالي المحفظة", value: 3, prefix: "$", suffix: "M+", category: "economic", tab: "for-profit", icon: "coins" },
   { id: "fp4", labelEn: "Feasibility Studies", labelAr: "دراسات جدوى", value: 5130, suffix: "+", category: "economic", tab: "for-profit", icon: "file-text" },
   { id: "fp5", labelEn: "Green Ventures Thriving", labelAr: "مشاريع خضراء مزدهرة", value: 60, suffix: "%", category: "environmental", tab: "for-profit", icon: "leaf" },
   { id: "fp6", labelEn: "Green Jobs Created", labelAr: "وظائف خضراء", value: 1800, suffix: "+", category: "environmental", tab: "for-profit", icon: "briefcase" },
@@ -86,8 +86,8 @@ export const caseStudies: CaseStudy[] = [
     titleAr: "ألبان عكروم",
     subtitleEn: "Social & Solidarity Economy Project",
     subtitleAr: "مشروع الاقتصاد الاجتماعي والتضامني",
-    descriptionEn: "A community-driven dairy cooperative in northern Lebanon that transformed local livelihoods through sustainable agriculture and women-led production. With LEEE's incubation support, Akroum Dairy scaled from a small village initiative to a registered cooperative serving regional markets.",
-    descriptionAr: "تعاونية ألبان مجتمعية في شمال لبنان حوّلت سبل العيش المحلية من خلال الزراعة المستدامة والإنتاج بقيادة النساء. بدعم حاضنات LEEE، توسعت ألبان عكروم من مبادرة قرية صغيرة إلى تعاونية مسجلة تخدم الأسواق الإقليمية.",
+    descriptionEn: "A community-driven dairy cooperative in northern Lebanon that transformed local livelihoods through sustainable agriculture and women-led production. With LEE's incubation support, Akroum Dairy scaled from a small village initiative to a registered cooperative serving regional markets.",
+    descriptionAr: "تعاونية ألبان مجتمعية في شمال لبنان حوّلت سبل العيش المحلية من خلال الزراعة المستدامة والإنتاج بقيادة النساء. بدعم حاضنات LEE، توسعت ألبان عكروم من مبادرة قرية صغيرة إلى تعاونية مسجلة تخدم الأسواق الإقليمية.",
     imageUrl: "/images/new/greenhouse-visit.jpg",
     stats: [
       { labelEn: "Women Employed", labelAr: "نساء موظفات", value: "35+" },
@@ -143,7 +143,7 @@ export const journeyMilestones: JourneyMilestone[] = [
   { year: 2021, metricValue: "5", labelEn: "Programs running", labelAr: "TODO_AR: برامج قيد التنفيذ" },
   { year: 2022, metricValue: "10", labelEn: "Countries reached", labelAr: "TODO_AR: دول تم الوصول إليها" },
   { year: 2023, metricValue: "20K+", labelEn: "Beneficiaries crossed", labelAr: "TODO_AR: مستفيد تم تجاوزهم" },
-  { year: 2024, metricValue: "$1.06M", labelEn: "Seed funding mobilized", labelAr: "TODO_AR: تمويل أولي" },
+  { year: 2024, metricValue: "$3M+", labelEn: "Portfolio total", labelAr: "إجمالي المحفظة" },
   { year: 2025, metricValue: "38,790+", labelEn: "Lives touched", labelAr: "TODO_AR: حياة تأثرت" },
 ];
 

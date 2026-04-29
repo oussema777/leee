@@ -9,7 +9,7 @@ import { Users, Rocket, Globe, Coins, Leaf, Heart, GraduationCap, FolderOpen } f
 const demoStats = [
   { id: "1", labelEn: "Lives Touched", labelAr: "حياة تأثرت", value: 38790, suffix: "+", prefix: "", icon: Users, bgColor: "#5A5A59" },
   { id: "2", labelEn: "Startups Incubated", labelAr: "شركات ناشئة احتُضنت", value: 2365, suffix: "+", prefix: "", icon: Rocket, bgColor: "#F8B51F" },
-  { id: "3", labelEn: "Seed Funding", labelAr: "تمويل أولي", value: 1.06, suffix: "M+", prefix: "$", icon: Coins, bgColor: "#3FAC49" },
+  { id: "3", labelEn: "Funds Mobilized", labelAr: "أموال مُعبأة", value: 3, suffix: "M+", prefix: "$", icon: Coins, bgColor: "#3FAC49" },
   { id: "4", labelEn: "Countries", labelAr: "دول", value: 10, suffix: "", prefix: "", icon: Globe, bgColor: "#147DBB" },
   { id: "5", labelEn: "Green Ventures", labelAr: "مشاريع خضراء", value: 60, suffix: "%", prefix: "", icon: Leaf, bgColor: "#ED6E28" },
   { id: "6", labelEn: "Women Reached", labelAr: "نساء مستفيدات", value: 65, suffix: "%", prefix: "", icon: Heart, bgColor: "#1B3765" },

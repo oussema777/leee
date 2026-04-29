@@ -34,11 +34,11 @@ export function ProgramPartners({ partners }: ProgramPartnersProps) {
         <div className="text-center mb-14">
           <span className="inline-flex items-center gap-3 text-brand-blue text-[11px] font-bold uppercase tracking-[0.3em] mb-4">
             <span className="w-6 h-[1.5px] bg-brand-blue" />
-            {isAr ? "شركاؤنا" : "Partners & Donors"}
+            {isAr ? "موثوق من قبل" : "Trusted By"}
             <span className="w-6 h-[1.5px] bg-brand-blue" />
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary tracking-tight">
-            {isAr ? "شركاؤنا ومانحونا" : "Our Partners & Donors"}
+            {isAr ? "موثوق من قبل" : "Trusted By"}
           </h2>
         </div>
 

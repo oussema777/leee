@@ -83,11 +83,11 @@ export function AboutPartners() {
         >
           <span className="inline-flex items-center gap-3 text-brand-blue text-[11px] font-bold uppercase tracking-[0.3em] mb-4">
             <span className="w-6 h-[1.5px] bg-brand-blue" />
-            {isAr ? "شركاؤنا" : "Our Partners"}
+            {isAr ? "موثوق من قبل" : "Trusted By"}
             <span className="w-6 h-[1.5px] bg-brand-blue" />
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary tracking-tight mb-4">
-            {isAr ? "شبكة الشراكات" : "Partner Network"}
+            {isAr ? "موثوق من قبل" : "Trusted By"}
           </h2>
           <p className="text-text-secondary text-[15px] max-w-2xl mx-auto leading-relaxed">
             {isAr

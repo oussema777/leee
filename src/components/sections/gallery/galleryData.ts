@@ -14,7 +14,7 @@ export interface GalleryImage {
 
 export const albums: Album[] = [
   { slug: "summits", nameEn: "Summits & Conferences", nameAr: "القمم والمؤتمرات" },
-  { slug: "nawra", nameEn: "NAWRA Program", nameAr: "برنامج نورة" },
+  { slug: "nawra", nameEn: "NAWARA Program", nameAr: "برنامج نورة" },
   { slug: "trainings", nameEn: "Trainings & Workshops", nameAr: "التدريبات وورش العمل" },
   { slug: "community", nameEn: "Community Impact", nameAr: "الأثر المجتمعي" },
   { slug: "ceremonies", nameEn: "Ceremonies & Graduations", nameAr: "الحفلات والتخريجات" },
@@ -32,8 +32,8 @@ export const galleryImages: GalleryImage[] = [
   {
     id: "2",
     imageUrl: "/images/team-partners-meeting.jpg",
-    captionEn: "Strategic partners meeting with LEEE team",
-    captionAr: "اجتماع الشركاء الاستراتيجيين مع فريق LEEE",
+    captionEn: "Strategic partners meeting with LEE team",
+    captionAr: "اجتماع الشركاء الاستراتيجيين مع فريق LEE",
     albumSlug: "summits",
   },
   {
@@ -44,32 +44,32 @@ export const galleryImages: GalleryImage[] = [
     albumSlug: "summits",
   },
 
-  // NAWRA Program
+  // NAWARA Program
   {
     id: "4",
     imageUrl: "/images/nawra-women-training.jpg",
-    captionEn: "NAWRA women entrepreneurs during green business training",
+    captionEn: "NAWARA women entrepreneurs during green business training",
     captionAr: "رائدات أعمال نورة خلال تدريب الأعمال الخضراء",
     albumSlug: "nawra",
   },
   {
     id: "5",
     imageUrl: "/images/nawra-dream-to-jury.jpg",
-    captionEn: "NAWRA pitch competition — startups presenting to jury panel",
+    captionEn: "NAWARA pitch competition — startups presenting to jury panel",
     captionAr: "مسابقة عروض نورة — الشركات الناشئة تقدم أمام لجنة التحكيم",
     albumSlug: "nawra",
   },
   {
     id: "6",
     imageUrl: "/images/women-empowerment-art.jpg",
-    captionEn: "Women empowerment art exhibition at NAWRA event",
+    captionEn: "Women empowerment art exhibition at NAWARA event",
     captionAr: "معرض فني لتمكين المرأة في فعالية نورة",
     albumSlug: "nawra",
   },
   {
     id: "7",
     imageUrl: "/images/nawra-program-graphic.jpg",
-    captionEn: "NAWRA Green Ventures program launch across 3 countries",
+    captionEn: "NAWARA Green Ventures program launch across 3 countries",
     captionAr: "إطلاق برنامج مشاريع نورة الخضراء عبر 3 دول",
     albumSlug: "nawra",
   },
@@ -138,8 +138,8 @@ export const galleryImages: GalleryImage[] = [
   {
     id: "16",
     imageUrl: "/images/journey-banner.jpg",
-    captionEn: "LEEE Experience journey milestones banner",
-    captionAr: "لافتة معالم رحلة LEEE Experience",
+    captionEn: "LEE Experience journey milestones banner",
+    captionAr: "لافتة معالم رحلة LEE Experience",
     albumSlug: "ceremonies",
   },
   {

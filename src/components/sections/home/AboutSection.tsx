@@ -58,7 +58,7 @@ export function AboutSection() {
             )}
           >
             <SectionLabel color="blue" className="mb-6 block">
-              {isAr ? "حول تجربة LEEE" : "About LEEE Experience"}
+              {isAr ? "حول تجربة LEE" : "About LEE Experience"}
             </SectionLabel>
 
             <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl text-text-primary leading-[1.08] tracking-tight mb-6">
@@ -68,8 +68,8 @@ export function AboutSection() {
             </h2>
             <p className="text-text-secondary leading-relaxed mb-8 text-[15px]">
               {isAr
-                ? "ندعم منذ أكثر من عقد رواد الأعمال الاجتماعيين والمجتمعات المحلية اللبنانية والشباب. انضم إلينا لبناء وتوسيع أثرك بدعم كامل من تجربة LEEE."
-                : "We have been supporting innovative and driven Lebanese social entrepreneurs, communities and youth for over a decade now. Join us to build and scale your impact with the full support of The LEEE Experience."}
+                ? "ندعم منذ أكثر من عقد رواد الأعمال الاجتماعيين والمجتمعات المحلية اللبنانية والشباب. انضم إلينا لبناء وتوسيع أثرك بدعم كامل من تجربة LEE."
+                : "We have been supporting innovative and driven Lebanese social entrepreneurs, communities and youth for over a decade now. Join us to build and scale your impact with the full support of The LEE Experience."}
             </p>
 
             <div className={cn(

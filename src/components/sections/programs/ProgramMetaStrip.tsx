@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
-import { Activity, Layers, Building2, MapPin, DollarSign, Calendar, Users } from "lucide-react";
+import { Activity, Layers, Building2, MapPin, Calendar, Users } from "lucide-react";
 
 interface ProgramMetaStripProps {
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
@@ -11,7 +11,7 @@ interface ProgramMetaStripProps {
   donorAr?: string | null;
   locationEn?: string | null;
   locationAr?: string | null;
-  budget?: string | null;
+
   year?: number | null;
   beneficiaries?: number | null;
 }
@@ -29,7 +29,6 @@ export function ProgramMetaStrip({
   donorAr,
   locationEn,
   locationAr,
-  budget,
   year,
   beneficiaries,
 }: ProgramMetaStripProps) {
@@ -65,13 +64,7 @@ export function ProgramMetaStrip({
       value: isAr ? locationAr || locationEn : locationEn,
       show: !!(locationEn || locationAr),
     },
-    {
-      icon: <DollarSign className="w-4 h-4" />,
-      label: isAr ? "الميزانية" : "Budget",
-      value: budget,
-      show: !!budget,
-    },
-    {
+{
       icon: <Calendar className="w-4 h-4" />,
       label: isAr ? "السنة" : "Year",
       value: year,

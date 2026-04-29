@@ -37,7 +37,12 @@
       "Bash(sed:*)",
       "Bash(powershell.exe:*)",
       "Bash(git:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(do echo:*)",
+      "Bash(taskkill:*)",
+      "Bash(done)",
+      "Bash(find src:*)",
+      "Bash(read f:*)"
     ]
   }
 }

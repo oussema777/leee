@@ -86,7 +86,7 @@ export default function Sidebar() {
             <div className="w-8 h-8 bg-brand-blue rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">L</span>
             </div>
-            <span className="text-white font-semibold text-lg">LEEE</span>
+            <span className="text-white font-semibold text-lg">LEE</span>
           </Link>
         )}
         <button

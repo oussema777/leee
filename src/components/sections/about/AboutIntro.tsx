@@ -11,7 +11,6 @@ const highlights = [
   { icon: Globe, valueEn: "10", labelEn: "Countries", labelAr: "دول", valueAr: "١٠", color: "bg-brand-blue/10 text-brand-blue" },
   { icon: Users, valueEn: "38,790+", labelEn: "Lives Touched", labelAr: "حياة تأثرت", valueAr: "+٣٨,٧٩٠", color: "bg-emerald-50 text-emerald-500" },
   { icon: FolderKanban, valueEn: "32", labelEn: "Projects", labelAr: "مشروعاً", valueAr: "٣٢", color: "bg-amber-50 text-amber-500" },
-  { icon: MapPin, valueEn: "9", labelEn: "Branches", labelAr: "فروع", valueAr: "٩", color: "bg-pink-50 text-pink-500" },
 ];
 
 function useInView(threshold = 0.15) {
@@ -83,7 +82,7 @@ export function AboutIntro() {
           >
             <span className="inline-flex items-center gap-3 text-brand-blue text-[11px] font-bold uppercase tracking-[0.3em] mb-5">
               <span className="w-8 h-[2px] bg-brand-blue rounded-full" />
-              {isAr ? "من نحن" : "About LEEE Experience"}
+              {isAr ? "من نحن" : "About LEE Experience"}
             </span>
 
             <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary leading-[1.08] tracking-tight mb-6">
@@ -95,7 +94,7 @@ export function AboutIntro() {
             <div className="space-y-4 text-text-secondary text-[15px] leading-relaxed">
               <p>
                 {isAr
-                  ? "منذ عام 2020، تقف تجربة LEEE عند تقاطع القيادة وريادة الأعمال وتنمية التوظيف، لإعادة تعريف معنى بناء اقتصادات عادلة وخضراء وشاملة في الأسواق الناشئة."
+                  ? "منذ عام 2020، تقف تجربة LEE عند تقاطع القيادة وريادة الأعمال وتنمية التوظيف، لإعادة تعريف معنى بناء اقتصادات عادلة وخضراء وشاملة في الأسواق الناشئة."
                   : "Since 2020, The LEE Experience has stood at the intersection of Leadership, Entrepreneurship, and Employment Development, redefining what it means to build equitable, green, and inclusive economies in post-crisis and emerging markets across the MENA region and Africa."}
               </p>
               <p>

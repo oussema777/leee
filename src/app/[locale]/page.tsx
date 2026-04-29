@@ -7,6 +7,7 @@ import { CEOSection } from "@/components/sections/home/CEOSection";
 import { PartnersCarousel } from "@/components/sections/home/PartnersCarousel";
 import { JoinCommunity } from "@/components/sections/home/JoinCommunity";
 import { LatestBeats } from "@/components/sections/home/LatestBeats";
+import { NewsletterSection } from "@/components/sections/home/NewsletterSection";
 import { CTABanner } from "@/components/sections/home/CTABanner";
 import { getFeaturedPrograms } from "@/lib/data/programs";
 
@@ -41,6 +42,7 @@ export default async function HomePage() {
       <PartnersCarousel />
       <JoinCommunity />
       <LatestBeats />
+      <NewsletterSection />
       <CTABanner />
     </>
   );

@@ -49,8 +49,8 @@ export const pathways: PathwayCard[] = [
     icon: "handshake",
     promptEn: "I fund impact",
     promptAr: "أموّل الأثر",
-    titleEn: "For Partners & Donors",
-    titleAr: "للشركاء والمانحين",
+    titleEn: "Trusted By",
+    titleAr: "موثوق من قبل",
     descriptionEn:
       "Co-create green, gender-responsive programs. Invest in women-led climate innovation.",
     descriptionAr: "شارك في إنشاء برامج خضراء ومستجيبة للنوع الاجتماعي. استثمر في الابتكار المناخي بقيادة النساء.",

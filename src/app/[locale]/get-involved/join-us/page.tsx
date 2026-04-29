@@ -9,8 +9,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t("joinUsTitle"),
     description: locale === "ar"
-      ? "انضم إلى تجربة LEEE وكن جزءاً من مجتمعنا المتنامي"
-      : "Join The LEEE Experience and become part of our growing community",
+      ? "انضم إلى تجربة LEE وكن جزءاً من مجتمعنا المتنامي"
+      : "Join The LEE Experience and become part of our growing community",
   };
 }
 
@@ -46,8 +46,8 @@ export default async function JoinUsPage({
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
                 {locale === "ar"
-                  ? "كن جزءاً من تجربة LEEE"
-                  : "Become Part of The LEEE Experience"}
+                  ? "كن جزءاً من تجربة LEE"
+                  : "Become Part of The LEE Experience"}
               </h2>
               <p className="text-text-secondary max-w-xl mx-auto leading-relaxed">
                 {locale === "ar"

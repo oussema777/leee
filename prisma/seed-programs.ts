@@ -483,11 +483,11 @@ async function main() {
     // === CROSS-CUTTING ===
     {
       slug: "nawra-green-ventures-acceleration",
-      titleEn: "NAWRA — Green Ventures Acceleration Program",
+      titleEn: "NAWARA — Green Ventures Acceleration Program",
       titleAr: "نورة — برنامج تسريع المشاريع الخضراء",
       summaryEn: "Accelerating green and climate-smart startups led by women across MENA, with focus on agritech, renewable energy, circular economy, and market research.",
       summaryAr: "تسريع الشركات الناشئة الخضراء والذكية مناخياً بقيادة النساء عبر منطقة الشرق الأوسط وشمال أفريقيا، مع التركيز على التكنولوجيا الزراعية والطاقة المتجددة والاقتصاد الدائري وأبحاث السوق.",
-      bodyEn: `<p>NAWRA is a flagship green ventures acceleration program that supports women-led startups in the green economy across Lebanon, Tunisia, and Morocco. The program focuses on agritech, renewable energy, circular economy, and sustainable production.</p>
+      bodyEn: `<p>NAWARA is a flagship green ventures acceleration program that supports women-led startups in the green economy across Lebanon, Tunisia, and Morocco. The program focuses on agritech, renewable energy, circular economy, and sustainable production.</p>
 <h3>Program Components</h3>
 <ul>
 <li><strong>Acceleration:</strong> 12-month acceleration journey with mentorship, training, and market access support.</li>
@@ -528,7 +528,7 @@ async function main() {
         { nameEn: "Kvinna till Kvinna", nameAr: "Kvinna till Kvinna", order: 2 },
       ],
       videos: [
-        { titleEn: "NAWRA Program Overview", titleAr: "نظرة عامة على برنامج نورة", youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", order: 0 },
+        { titleEn: "NAWARA Program Overview", titleAr: "نظرة عامة على برنامج نورة", youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", order: 0 },
       ],
     },
     {

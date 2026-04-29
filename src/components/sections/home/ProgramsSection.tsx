@@ -25,11 +25,11 @@ import Image from "next/image";
 
 const pillars = [
   { slug: "all", nameEn: "All Programs", nameAr: "جميع البرامج", color: "bg-brand-blue-deeper", textColor: "text-brand-blue-deeper", icon: Layers },
-  { slug: "incubators", nameEn: "LEEE Incubators", nameAr: "حاضنات LEEE", color: "bg-brand-blue", textColor: "text-brand-blue", icon: Lightbulb },
-  { slug: "academy", nameEn: "LEEE Academy", nameAr: "أكاديمية LEEE", color: "bg-emerald-500", textColor: "text-emerald-600", icon: GraduationCap },
-  { slug: "business-clinic", nameEn: "LEEE Business Clinic", nameAr: "عيادة أعمال LEEE", color: "bg-amber-500", textColor: "text-amber-600", icon: Wrench },
-  { slug: "humanitarian-aid", nameEn: "LEEE Humanitarian Aid", nameAr: "مساعدات LEEE الإنسانية", color: "bg-rose-500", textColor: "text-rose-600", icon: BookOpen },
-  { slug: "digital-media-hub", nameEn: "LEEE Digital Media Hub", nameAr: "مركز LEEE للإعلام الرقمي", color: "bg-purple-500", textColor: "text-purple-600", icon: Megaphone },
+  { slug: "incubators", nameEn: "LEE Incubators", nameAr: "حاضنات LEE", color: "bg-brand-blue", textColor: "text-brand-blue", icon: Lightbulb },
+  { slug: "academy", nameEn: "LEE Academy", nameAr: "أكاديمية LEE", color: "bg-emerald-500", textColor: "text-emerald-600", icon: GraduationCap },
+  { slug: "business-clinic", nameEn: "LEE Business Clinic", nameAr: "عيادة أعمال LEE", color: "bg-amber-500", textColor: "text-amber-600", icon: Wrench },
+  { slug: "humanitarian-aid", nameEn: "LEE Humanitarian Aid", nameAr: "مساعدات LEE الإنسانية", color: "bg-rose-500", textColor: "text-rose-600", icon: BookOpen },
+  { slug: "digital-media-hub", nameEn: "LEE Digital Media Hub", nameAr: "مركز LEE للإعلام الرقمي", color: "bg-purple-500", textColor: "text-purple-600", icon: Megaphone },
 ];
 
 const statusConfig: Record<string, { label: string; labelAr: string; color: string }> = {

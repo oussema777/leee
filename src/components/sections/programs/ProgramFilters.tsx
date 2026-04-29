@@ -40,32 +40,32 @@ const pillarData: Record<
   { en: string; ar: string; descEn: string; descAr: string }
 > = {
   incubators: {
-    en: "LEEE Incubators",
-    ar: "حاضنات LEEE",
+    en: "LEE Incubators",
+    ar: "حاضنات LEE",
     descEn: "Supporting startups and social enterprises through comprehensive incubation programs, seed funding, and market access.",
     descAr: "دعم الشركات الناشئة والمؤسسات الاجتماعية من خلال برامج حاضنات شاملة والتمويل الأولي والوصول إلى الأسواق.",
   },
   "business-clinic": {
-    en: "LEEE Business Clinic",
-    ar: "عيادة أعمال LEEE",
+    en: "LEE Business Clinic",
+    ar: "عيادة أعمال LEE",
     descEn: "Expert guidance, one-on-one mentorship, and business clinic sessions to develop skills and leadership.",
     descAr: "توجيه الخبراء والإرشاد الفردي وجلسات عيادة الأعمال لتطوير المهارات والقيادة.",
   },
   academy: {
-    en: "LEEE Academy",
-    ar: "أكاديمية LEEE",
+    en: "LEE Academy",
+    ar: "أكاديمية LEE",
     descEn: "Comprehensive learning programs including ILO-certified training for professional and personal development.",
     descAr: "برامج تعلم شاملة بما في ذلك التدريب المعتمد من منظمة العمل الدولية.",
   },
   "humanitarian-aid": {
-    en: "LEEE Humanitarian Aid",
-    ar: "مساعدات LEEE الإنسانية",
+    en: "LEE Humanitarian Aid",
+    ar: "مساعدات LEE الإنسانية",
     descEn: "Emergency response, food security, and livelihood support for vulnerable communities and displaced families.",
     descAr: "الاستجابة الطارئة والأمن الغذائي ودعم سبل العيش للمجتمعات الضعيفة.",
   },
   "digital-media-hub": {
-    en: "LEEE Digital Media Hub",
-    ar: "مركز LEEE للإعلام الرقمي",
+    en: "LEE Digital Media Hub",
+    ar: "مركز LEE للإعلام الرقمي",
     descEn: "Supporting visibility, communication, and digital solutions for impact-driven initiatives.",
     descAr: "دعم الظهور والتواصل والحلول الرقمية للمبادرات المؤثرة.",
   },

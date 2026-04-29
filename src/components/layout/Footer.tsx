@@ -1,16 +1,19 @@
 "use client";
 
+import React from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import Image from "next/image";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, CheckCircle } from "lucide-react";
 import { socialLinks } from "@/lib/socialLinks";
 
 export function Footer() {
   const t = useTranslations();
   const locale = useLocale();
   const currentYear = new Date().getFullYear();
+  const [footerEmail, setFooterEmail] = React.useState("");
+  const [footerStatus, setFooterStatus] = React.useState<"idle" | "loading" | "success" | "already" | "error">("idle");
 
   return (
     <footer className="bg-accent-navy border-t border-white/10">
@@ -29,8 +32,8 @@ export function Footer() {
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-4">
               {locale === "ar"
-                ? "تجربة LEEE هي منظومة للتأثير الاجتماعي، تقدم بيئة حيوية لدعم المجتمعات والشباب ورواد الأعمال الاجتماعيين في لبنان ومصر."
-                : "The LEEE Experience is an ecosystem for social impact, providing a dynamic environment to support communities, youth and social entrepreneurs in Lebanon and Egypt."}
+                ? "تجربة LEE هي منظومة للتأثير الاجتماعي، تقدم بيئة حيوية لدعم المجتمعات والشباب ورواد الأعمال الاجتماعيين في لبنان ومصر."
+                : "The LEE Experience is an ecosystem for social impact, providing a dynamic environment to support communities, youth and social entrepreneurs in Lebanon and Egypt."}
             </p>
           </div>
 
@@ -88,14 +91,65 @@ export function Footer() {
             <p className="text-white/60 text-sm mb-4">
               {locale === "ar"
                 ? "النشرة الإخبارية هي نشرة أسبوعية تبقيك على اطلاع ببرامجنا وشركائنا ومجتمعاتنا."
-                : "The LEEE Spark is a weekly roundup that keeps you connected to our programs, partners and communities."}
+                : "The LEE Spark is a weekly roundup that keeps you connected to our programs, partners and communities."}
             </p>
 
             {/* Newsletter Subscribe */}
             <div className="mb-6">
-              <button className="px-5 py-2 text-xs font-semibold uppercase tracking-wider border-2 border-brand-blue-light text-brand-blue-light rounded-sm hover:bg-brand-blue-light hover:text-accent-navy transition-all">
-                {locale === "ar" ? "اشترك" : "Subscribe"}
-              </button>
+              {footerStatus === "success" || footerStatus === "already" ? (
+                <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>
+                    {footerStatus === "success"
+                      ? (locale === "ar" ? "تم الاشتراك بنجاح!" : "You're subscribed!")
+                      : (locale === "ar" ? "أنت مشترك بالفعل!" : "Already subscribed!")}
+                  </span>
+                </div>
+              ) : (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!footerEmail.trim() || footerStatus === "loading") return;
+                    setFooterStatus("loading");
+                    try {
+                      const res = await fetch("/api/public/newsletter", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: footerEmail.trim(), locale }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) { setFooterStatus("error"); return; }
+                      setFooterStatus(data.alreadySubscribed ? "already" : "success");
+                      if (!data.alreadySubscribed) setFooterEmail("");
+                    } catch { setFooterStatus("error"); }
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="email"
+                    value={footerEmail}
+                    onChange={(e) => { setFooterEmail(e.target.value); if (footerStatus === "error") setFooterStatus("idle"); }}
+                    placeholder={locale === "ar" ? "بريدك الإلكتروني" : "Your email"}
+                    required
+                    dir={locale === "ar" ? "rtl" : "ltr"}
+                    className="flex-1 px-3 py-2 text-xs bg-white/10 border border-white/20 text-white placeholder:text-white/40 rounded-sm focus:outline-none focus:border-brand-blue-light transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={footerStatus === "loading"}
+                    className="px-4 py-2 text-xs font-semibold uppercase tracking-wider border-2 border-brand-blue-light text-brand-blue-light rounded-sm hover:bg-brand-blue-light hover:text-accent-navy transition-all disabled:opacity-60"
+                  >
+                    {footerStatus === "loading"
+                      ? (locale === "ar" ? "..." : "...")
+                      : (locale === "ar" ? "اشترك" : "Subscribe")}
+                  </button>
+                </form>
+              )}
+              {footerStatus === "error" && (
+                <p className="text-red-400 text-xs mt-2">
+                  {locale === "ar" ? "حدث خطأ. حاول مرة أخرى." : "Something went wrong. Try again."}
+                </p>
+              )}
             </div>
 
             {/* Social Icons — from shared socialLinks */}
@@ -124,7 +178,7 @@ export function Footer() {
       <div className="border-t border-white/10 bg-accent-slate">
         <Container className="py-4">
           <p className="text-white/50 text-xs text-center">
-            &copy; {currentYear} The LEEE Experience. {locale === "ar" ? "جميع الحقوق محفوظة." : "All rights reserved."}
+            &copy; {currentYear} The LEE Experience. {locale === "ar" ? "جميع الحقوق محفوظة." : "All rights reserved."}
           </p>
         </Container>
       </div>

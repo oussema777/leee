@@ -253,7 +253,7 @@ export function TestimonialsGrid() {
                 : "Every story here is a testament to the power of community, resilience, and hope. We don't just build businesses — we build futures."}
             </p>
             <p className="text-sm text-text-muted mt-4 font-medium">
-              — LEEE Experience
+              — LEE Experience
             </p>
           </div>
         </>

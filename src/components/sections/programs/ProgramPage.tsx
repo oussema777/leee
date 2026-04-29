@@ -9,7 +9,6 @@ import { ProgramImpact } from "./ProgramImpact";
 import { ProgramTeam } from "./ProgramTeam";
 import { ProgramGalleryVideos } from "./ProgramGalleryVideos";
 import { ProgramPartners } from "./ProgramPartners";
-import { RelatedPrograms } from "./RelatedPrograms";
 import { RegisterModal } from "./RegisterModal";
 
 interface ProgramData {
@@ -28,22 +27,13 @@ interface ProgramData {
   donorAr: string;
   locationEn: string;
   locationAr: string;
-  budget: string | null;
   beneficiaries: number | null;
   pillar: { titleEn: string; titleAr: string } | null;
   images: { id: string; imageUrl: string; caption: string | null }[];
   stats: { labelEn: string; labelAr: string; value: number; suffix?: string; icon?: string }[];
-  team: { nameEn: string; nameAr: string; roleEn: string; roleAr: string; imageUrl?: string; linkedinUrl?: string }[];
+  team: { nameEn: string; nameAr: string; roleEn: string; roleAr: string; category?: string; imageUrl?: string; linkedinUrl?: string }[];
   videos: { titleEn?: string | null; titleAr?: string | null; youtubeUrl: string }[];
   partners: { nameEn: string; nameAr: string; logoUrl?: string; websiteUrl?: string }[];
-  relatedPrograms: {
-    id: string; slug: string; titleEn: string; titleAr: string;
-    summaryEn: string; summaryAr: string; coverImageUrl: string | null;
-    status: "ACTIVE" | "COMPLETED" | "UPCOMING"; year: number | null;
-    donorEn: string | null; donorAr: string | null;
-    locationEn: string | null; locationAr: string | null;
-    pillar: { titleEn: string; titleAr: string } | null;
-  }[];
 }
 
 const navSections = [
@@ -51,7 +41,7 @@ const navSections = [
   { id: "impact", labelEn: "Impact", labelAr: "الأثر" },
   { id: "team", labelEn: "Team", labelAr: "الفريق" },
   { id: "gallery", labelEn: "Gallery & Videos", labelAr: "المعرض والفيديو" },
-  { id: "partners", labelEn: "Partners", labelAr: "الشركاء" },
+  { id: "partners", labelEn: "Trusted By", labelAr: "موثوق من قبل" },
 ];
 
 export function ProgramPage({ program }: { program: ProgramData }) {
@@ -100,7 +90,6 @@ export function ProgramPage({ program }: { program: ProgramData }) {
         donorAr={program.donorAr}
         locationEn={program.locationEn}
         locationAr={program.locationAr}
-        budget={program.budget}
         year={program.year}
         beneficiaries={program.beneficiaries}
         galleryImages={program.images}
@@ -155,11 +144,6 @@ export function ProgramPage({ program }: { program: ProgramData }) {
             </button>
           </div>
         </div>
-      )}
-
-      {/* Related Programs */}
-      {program.relatedPrograms.length > 0 && (
-        <RelatedPrograms programs={program.relatedPrograms} />
       )}
 
       <RegisterModal

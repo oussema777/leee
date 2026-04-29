@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-    keywords: "LEEE programs, projects, economic empowerment, livelihoods, MSMEs, cooperatives, market access, implementation, women empowerment, youth development, green economy",
+    keywords: "LEE programs, projects, economic empowerment, livelihoods, MSMEs, cooperatives, market access, implementation, women empowerment, youth development, green economy",
   };
 }
 

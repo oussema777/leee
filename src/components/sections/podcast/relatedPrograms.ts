@@ -25,7 +25,7 @@ export interface RelatedProgramSummary {
 export const relatedPrograms: Record<string, RelatedProgramSummary> = {
   "nawra-green-ventures-acceleration": {
     slug: "nawra-green-ventures-acceleration",
-    titleEn: "NAWRA — Green Ventures Acceleration Program",
+    titleEn: "NAWARA — Green Ventures Acceleration Program",
     titleAr: "نورة — برنامج تسريع المشاريع الخضراء",
     pillarSlug: "incubators",
     coverImageUrl: "/images/nawra-dream-to-jury.jpg",

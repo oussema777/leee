@@ -9,15 +9,15 @@ const newsItems = [
     textAr: "إطلاق برنامج جديد: التمكين الاقتصادي للمرأة في شمال لبنان — التقديم مفتوح!",
   },
   {
-    textEn: "LEEE Experience expands operations to 10 countries across MENA region",
-    textAr: "تجربة LEEE توسع عملياتها إلى 10 دول عبر منطقة الشرق الأوسط وشمال أفريقيا",
+    textEn: "LEE Experience expands operations to 10 countries across MENA region",
+    textAr: "تجربة LEE توسع عملياتها إلى 10 دول عبر منطقة الشرق الأوسط وشمال أفريقيا",
   },
   {
     textEn: "38,790+ beneficiaries supported — Join us in making a difference!",
     textAr: "أكثر من 38,790 مستفيد — انضم إلينا لإحداث فرق!",
   },
   {
-    textEn: "Nawra Program: Empowering GBV survivors through entrepreneurship and skills training",
+    textEn: "Nawara Program: Empowering GBV survivors through entrepreneurship and skills training",
     textAr: "برنامج نوّأة: تمكين الناجيات من العنف القائم على النوع الاجتماعي من خلال ريادة الأعمال",
   },
   {

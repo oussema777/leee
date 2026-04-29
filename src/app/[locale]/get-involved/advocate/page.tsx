@@ -12,8 +12,8 @@ export async function generateMetadata({
   return {
     title:
       locale === "ar"
-        ? "للمناصرين — تجربة LEEE"
-        : "For Advocates — The LEEE Experience",
+        ? "للمناصرين — تجربة LEE"
+        : "For Advocates — The LEE Experience",
     description:
       locale === "ar"
         ? "ضخّم قصص نجاحنا وادعم الابتكار الأخضر بقيادة النساء في شبكتك."
@@ -145,7 +145,7 @@ export default async function AdvocatePage({
                 : '"Every story told inspires another woman to build."'}
             </blockquote>
             <p className="text-text-secondary">
-              {isAr ? "— فريق تجربة LEEE" : "— The LEEE Experience Team"}
+              {isAr ? "— فريق تجربة LEE" : "— The LEE Experience Team"}
             </p>
           </div>
         </Container>

@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         data: {
           ...programData,
           images: images?.length ? { create: images.map((i: any) => ({ imageUrl: i.imageUrl, caption: i.caption, order: i.order || 0 })) } : undefined,
-          teamMembers: teamMembers?.length ? { create: teamMembers.map((t: any) => ({ nameEn: t.nameEn, nameAr: t.nameAr, roleEn: t.roleEn, roleAr: t.roleAr, imageUrl: t.imageUrl, linkedinUrl: t.linkedinUrl, order: t.order || 0 })) } : undefined,
+          teamMembers: teamMembers?.length ? { create: teamMembers.map((t: any) => ({ nameEn: t.nameEn, nameAr: t.nameAr, roleEn: t.roleEn, roleAr: t.roleAr, category: t.category || "team", imageUrl: t.imageUrl, linkedinUrl: t.linkedinUrl, order: t.order || 0 })) } : undefined,
           partners: partners?.length ? { create: partners.map((p: any) => ({ nameEn: p.nameEn, nameAr: p.nameAr, logoUrl: p.logoUrl, websiteUrl: p.websiteUrl, order: p.order || 0 })) } : undefined,
           stats: stats?.length ? { create: stats.map((s: any) => ({ labelEn: s.labelEn, labelAr: s.labelAr, value: s.value, suffix: s.suffix, icon: s.icon, order: s.order || 0 })) } : undefined,
           videos: videos?.length ? { create: videos.map((v: any) => ({ titleEn: v.titleEn, titleAr: v.titleAr, youtubeUrl: v.youtubeUrl, order: v.order || 0 })) } : undefined,

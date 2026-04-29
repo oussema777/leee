@@ -234,7 +234,7 @@ export function MenaMap() {
             <div className="absolute bottom-4 start-4 flex items-center gap-4 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 border border-surface-tertiary/50 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm bg-[#93c5fd] border border-[#60a5fa]" />
-                <span className="text-[10px] text-text-muted font-medium">{isAr ? "تواجد LEEE" : "LEEE Presence"}</span>
+                <span className="text-[10px] text-text-muted font-medium">{isAr ? "تواجد LEE" : "LEE Presence"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm bg-[#147DBB] border border-[#0c5a9e]" />

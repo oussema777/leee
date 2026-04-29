@@ -8,8 +8,8 @@ export function WhatsAppButton() {
   const locale = useLocale();
   const isAr = locale === "ar";
   const message = isAr
-    ? "مرحباً، أريد معرفة المزيد عن تجربة LEEE"
-    : "Hello, I'd like to learn more about LEEE Experience";
+    ? "مرحباً، أريد معرفة المزيد عن تجربة LEE"
+    : "Hello, I'd like to learn more about LEE Experience";
 
   const label = isAr ? "تحدث معنا" : "Chat with us";
   const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;

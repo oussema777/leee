@@ -198,13 +198,13 @@ export function HeroSlider() {
             {/* Decorative ring behind bottom-right image */}
             <div className="absolute -bottom-5 -end-5 w-[160px] h-[160px] rounded-full border border-brand-gold/[0.08] transition-transform duration-700 hover:scale-110 z-0" />
 
-            {/* Main image */}
+            {/* Main image — Co-Founder speaking at GITS Summit */}
             <div className="group absolute top-0 start-0 w-[55%] h-[58%] rounded-2xl overflow-hidden shadow-2xl z-10 transition-all duration-500 hover:shadow-brand-blue/20 hover:translate-y-[-4px]">
               <Image
-                src="/images/new/lee-vest.jpg"
-                alt="LEEE Experience"
+                src="/images/projects/gits-1.jpg"
+                alt="Leadership at GITS Summit"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 priority
               />
               {/* Corner accent top-left */}
@@ -213,13 +213,13 @@ export function HeroSlider() {
               <div className="absolute bottom-0 end-0 w-8 h-8 border-b-2 border-e-2 border-white/30 rounded-br-2xl pointer-events-none" />
             </div>
 
-            {/* Second image */}
+            {/* Second image — Woman entrepreneur pitching on stage */}
             <div className="group absolute bottom-0 end-0 w-[50%] h-[48%] rounded-2xl overflow-hidden shadow-xl border-4 border-white z-10 transition-all duration-500 hover:shadow-brand-gold/20 hover:translate-y-[-4px]">
               <Image
-                src="/images/new/award-winner.jpg"
-                alt="Impact"
+                src="/images/projects/prospects-1.jpg"
+                alt="Entrepreneur pitching on stage"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />
               {/* Corner accent top-left */}
               <div className="absolute top-0 start-0 w-8 h-8 border-t-2 border-s-2 border-white/30 rounded-tl-2xl pointer-events-none" />
@@ -227,13 +227,13 @@ export function HeroSlider() {
               <div className="absolute bottom-0 end-0 w-8 h-8 border-b-2 border-e-2 border-white/30 rounded-br-2xl pointer-events-none" />
             </div>
 
-            {/* Third image */}
+            {/* Third image — Pitch competition winner */}
             <div className="group absolute top-[15%] end-[5%] w-[35%] h-[35%] rounded-2xl overflow-hidden shadow-lg border-4 border-white z-10 transition-all duration-500 hover:shadow-emerald-400/15 hover:translate-y-[-4px]">
               <Image
-                src="/images/new/coaching-session.jpg"
-                alt="Programs"
+                src="/images/new/pitch-winner.jpg"
+                alt="Pitch Competition Winner"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />
               {/* Corner accent top-right */}
               <div className="absolute top-0 end-0 w-8 h-8 border-t-2 border-e-2 border-white/30 rounded-tr-2xl pointer-events-none" />

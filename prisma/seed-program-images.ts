@@ -305,8 +305,8 @@ async function main() {
         console.log(`  ADDED ${newImages.length} images to: ${label}`);
         imagesAdded += newImages.length;
 
-        // Update cover image if program uses a placeholder
-        if (!existing.coverImageUrl || existing.coverImageUrl.includes("community-table") || existing.coverImageUrl.includes("placeholder")) {
+        // Update cover image if program uses a placeholder (not a real /images/projects/ photo)
+        if (!existing.coverImageUrl || !existing.coverImageUrl.includes("/images/projects/")) {
           await prisma.program.update({
             where: { id: existing.id },
             data: { coverImageUrl: mapping.images[0] },

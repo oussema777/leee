@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProgramPage } from "@/components/sections/programs/ProgramPage";
-import { getProgramBySlug, getRelatedPrograms } from "@/lib/data/programs";
+import { getProgramBySlug } from "@/lib/data/programs";
 
 export async function generateMetadata({
   params,
@@ -49,8 +49,6 @@ export default async function ProgramDetailPage({
     notFound();
   }
 
-  const relatedPrograms = await getRelatedPrograms(program.id, program.pillarId);
-
   return (
     <ProgramPage
       program={{
@@ -69,7 +67,6 @@ export default async function ProgramDetailPage({
         donorAr: program.donorAr || "",
         locationEn: program.locationEn || "",
         locationAr: program.locationAr || "",
-        budget: program.budget,
         beneficiaries: program.beneficiaries,
         pillar: program.pillar,
         images: program.images.map((img) => ({
@@ -89,6 +86,7 @@ export default async function ProgramDetailPage({
           nameAr: tm.nameAr,
           roleEn: tm.roleEn,
           roleAr: tm.roleAr,
+          category: tm.category ?? "team",
           imageUrl: tm.imageUrl ?? undefined,
           linkedinUrl: tm.linkedinUrl ?? undefined,
         })),
@@ -102,22 +100,6 @@ export default async function ProgramDetailPage({
           nameAr: p.nameAr,
           logoUrl: p.logoUrl ?? undefined,
           websiteUrl: p.websiteUrl ?? undefined,
-        })),
-        relatedPrograms: relatedPrograms.map((rp) => ({
-          id: rp.id,
-          slug: rp.slug,
-          titleEn: rp.titleEn,
-          titleAr: rp.titleAr,
-          summaryEn: rp.summaryEn,
-          summaryAr: rp.summaryAr,
-          coverImageUrl: rp.coverImageUrl,
-          status: rp.status,
-          year: rp.year,
-          donorEn: rp.donorEn,
-          donorAr: rp.donorAr,
-          locationEn: rp.locationEn,
-          locationAr: rp.locationAr,
-          pillar: rp.pillar,
         })),
       }}
     />

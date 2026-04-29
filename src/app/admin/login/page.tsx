@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-blue rounded-2xl mb-4">
             <span className="text-white font-bold text-2xl">L</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">LEEE Admin</h1>
+          <h1 className="text-2xl font-bold text-white">LEE Admin</h1>
           <p className="text-gray-400 mt-1">Sign in to manage your platform</p>
         </div>
 
@@ -132,7 +132,7 @@ export default function AdminLoginPage() {
 
         {/* Footer */}
         <p className="text-center text-gray-500 text-sm mt-6">
-          LEEE Experience Platform &copy; {new Date().getFullYear()}
+          LEE Experience Platform &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

@@ -3,11 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | The LEEE Experience",
-    default: "The LEEE Experience",
+    template: "%s | The LEE Experience",
+    default: "The LEE Experience",
   },
   description:
-    "The LEEE Experience - Empowering communities through social impact, capacity building, and sustainable development in Lebanon and the MENA region.",
+    "The LEE Experience - Empowering communities through social impact, capacity building, and sustainable development in Lebanon and the MENA region.",
 };
 
 export default function RootLayout({

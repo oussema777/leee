@@ -104,7 +104,7 @@ export function AboutQuoteBanner() {
           <div className="mt-8 flex items-center justify-center gap-3">
             <div className="w-10 h-[2px] bg-brand-blue rounded-full" />
             <span className="text-white/50 text-sm font-medium tracking-wider uppercase">
-              {isAr ? "تجربة LEEE" : "The LEEE Experience"}
+              {isAr ? "تجربة LEE" : "The LEE Experience"}
             </span>
             <div className="w-10 h-[2px] bg-brand-blue rounded-full" />
           </div>

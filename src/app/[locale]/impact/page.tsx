@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t("impactTitle"),
     description: "Impact isn't a report. It's a ripple.",
-    keywords: "LEEE impact, economic empowerment, livelihoods, MSMEs, women innovators, green economy, MENA, humanitarian aid, case studies",
+    keywords: "LEE impact, economic empowerment, livelihoods, MSMEs, women innovators, green economy, MENA, humanitarian aid, case studies",
   };
 }
 

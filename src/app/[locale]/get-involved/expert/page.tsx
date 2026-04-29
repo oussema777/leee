@@ -12,8 +12,8 @@ export async function generateMetadata({
   return {
     title:
       locale === "ar"
-        ? "للخبراء والمرشدين — تجربة LEEE"
-        : "For Experts & Mentors — The LEEE Experience",
+        ? "للخبراء والمرشدين — تجربة LEE"
+        : "For Experts & Mentors — The LEE Experience",
     description:
       locale === "ar"
         ? "انضم إلى فريق المدربين والمرشدين. شارك مهاراتك وغيّر مساراً."
@@ -152,8 +152,8 @@ export default async function ExpertPage({
               },
               {
                 icon: "📜",
-                titleEn: "LEEE certification",
-                titleAr: "شهادة LEEE",
+                titleEn: "LEE certification",
+                titleAr: "شهادة LEE",
               },
               {
                 icon: "⏳",

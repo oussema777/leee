@@ -235,7 +235,7 @@ export function WhoWeAreGrid() {
             animate={visible ? "visible" : "hidden"}
           >
             <SectionLabel color="blue">
-              {isAr ? "حول تجربة LEEE" : "About LEEE Experience"}
+              {isAr ? "حول تجربة LEE" : "About LEE Experience"}
             </SectionLabel>
 
             <div className="flex items-center justify-center gap-4 mt-4">
