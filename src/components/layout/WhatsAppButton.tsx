@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 
-const WHATSAPP_NUMBER = "9613002430"; // placeholder — update when client confirms
+const WHATSAPP_NUMBER = "96103600747";
 
 export function WhatsAppButton() {
   const locale = useLocale();
