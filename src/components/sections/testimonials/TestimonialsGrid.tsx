@@ -9,6 +9,19 @@ import { testimonialCategories, demoTestimonials } from "./testimonialsData";
 import type { TestimonialItem } from "./testimonialsData";
 
 function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: boolean }) {
+  // If it's an original designed card, show the image as-is
+  if (item.isOriginalCard) {
+    return (
+      <div className="relative mb-14 overflow-hidden rounded-xl shadow-lg">
+        <img
+          src={item.imageUrl}
+          alt={isAr ? item.nameAr : item.nameEn}
+          className="w-full h-auto"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative mb-14 overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[400px]">
@@ -141,6 +154,22 @@ export function TestimonialsGrid() {
               {rest.map((item, index) => {
                 const styleIdx = index % 3;
                 const isDark = styleIdx === 2;
+
+                // Original designed card — render as full image
+                if (item.isOriginalCard) {
+                  return (
+                    <div
+                      key={item.id}
+                      className="group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
+                    >
+                      <img
+                        src={item.imageUrl}
+                        alt={isAr ? item.nameAr : item.nameEn}
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  );
+                }
 
                 return (
                   <div
