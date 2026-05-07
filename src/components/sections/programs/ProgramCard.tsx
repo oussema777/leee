@@ -73,13 +73,24 @@ export function ProgramCard({
           {/* Image */}
           <Link href={`/programs/${slug}`}>
             <div className="relative h-52 overflow-hidden">
-              <Image
-                src={coverImageUrl || "/images/new/community-table.jpg"}
-                alt={title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              />
+              {coverImageUrl ? (
+                <Image
+                  src={coverImageUrl}
+                  alt={title}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: accent.tagBg + "20" }}>
+                      <Building2 className="w-6 h-6" style={{ color: accent.tagBg }} />
+                    </div>
+                    <span className="text-xs text-text-muted font-medium">{isAr ? pillar?.titleAr : pillar?.titleEn}</span>
+                  </div>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-accent-navy/30 to-transparent" />
 
               {/* Status badge */}

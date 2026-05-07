@@ -257,14 +257,20 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                               : "opacity-0 translate-y-8"
                           )} style={{ transitionDelay: `${350 + pi * 100}ms` }}>
                             <div className="relative h-52 overflow-hidden">
-                              <Image
-                                src={program.coverImageUrl || "/images/new/community-table.jpg"}
-                                alt={isAr ? program.titleAr : program.titleEn}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                draggable={false}
-                              />
+                              {program.coverImageUrl ? (
+                                <Image
+                                  src={program.coverImageUrl}
+                                  alt={isAr ? program.titleAr : program.titleEn}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                  draggable={false}
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                  <span className="text-xs text-text-muted font-medium">{isAr ? program.pillar?.titleAr : program.pillar?.titleEn}</span>
+                                </div>
+                              )}
                               <div className="absolute top-3 start-3">
                                 <span
                                   className={cn(

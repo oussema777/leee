@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { trackRecordProjects } from "./track-record-data";
 
 const prisma = new PrismaClient();
 
@@ -27,568 +28,122 @@ async function main() {
     console.log(`  Pillar: ${p.titleEn} (${pillar.id})`);
   }
 
-  // ── 2. Create Programs ─────────────────────────────────────────
-  const programs = [
-    // === INCUBATORS ===
-    {
-      slug: "prospects-entrepreneurship-agriculture",
-      titleEn: "Promoting Entrepreneurship in Agriculture & Agro-food (Prospects Program)",
-      titleAr: "تعزيز ريادة الأعمال في الزراعة والصناعات الغذائية (برنامج آفاق)",
-      summaryEn: "Comprehensive incubation program supporting startups in agriculture and agro-food sectors through training, grant distribution, coaching, and M&E across Lebanon.",
-      summaryAr: "برنامج حاضنة شامل يدعم الشركات الناشئة في قطاعي الزراعة والصناعات الغذائية من خلال التدريب وتوزيع المنح والإرشاد والمتابعة والتقييم في لبنان.",
-      bodyEn: "<p>The Prospects Program provides comprehensive incubation support for entrepreneurs in the agriculture and agro-food sectors across Lebanon. Through a combination of technical training, seed funding, business coaching, and continuous monitoring and evaluation, the program aims to build sustainable livelihoods and strengthen food security.</p><h3>Key Components</h3><ul><li><strong>Technical Training:</strong> Specialized training in modern agricultural practices, food processing, quality control, and food safety standards.</li><li><strong>Grant Distribution:</strong> Seed grants to qualifying startups for equipment, raw materials, and initial operations.</li><li><strong>Business Coaching:</strong> One-on-one mentorship from experienced agri-business professionals.</li><li><strong>M&E:</strong> Continuous monitoring and evaluation to ensure program effectiveness and participant progress.</li></ul>",
-      bodyAr: "<p>يوفر برنامج آفاق دعماً شاملاً للحاضنات لرواد الأعمال في قطاعي الزراعة والصناعات الغذائية في جميع أنحاء لبنان. من خلال مزيج من التدريب التقني والتمويل الأولي والإرشاد التجاري والمتابعة والتقييم المستمر.</p>",
-      coverImageUrl: "/images/field-visit-rural.jpg",
-      status: "COMPLETED" as const,
-      year: 2020,
-      donorEn: "Netherlands Embassy & ILO",
-      donorAr: "سفارة هولندا ومنظمة العمل الدولية",
-      locationEn: "Lebanon",
-      locationAr: "لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$250,000",
-      beneficiaries: 350,
-      stats: [
-        { labelEn: "Entrepreneurs Trained", labelAr: "رائد أعمال تم تدريبه", value: 350, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Grants Distributed", labelAr: "منحة موزعة", value: 120, suffix: "", icon: "gift", order: 1 },
-        { labelEn: "Coaching Sessions", labelAr: "جلسة إرشاد", value: 500, suffix: "+", icon: "target", order: 2 },
-      ],
-    },
-    {
-      slug: "unifil-women-social-enterprises",
-      titleEn: "Creating Job Opportunities Through Women-led Social Enterprises",
-      titleAr: "خلق فرص عمل من خلال المؤسسات الاجتماعية بقيادة النساء",
-      summaryEn: "Economic empowerment of women through social enterprise development, training, grant distribution, and coaching in South Lebanon.",
-      summaryAr: "التمكين الاقتصادي للمرأة من خلال تطوير المشاريع الاجتماعية والتدريب وتوزيع المنح والإرشاد في جنوب لبنان.",
-      bodyEn: "<p>This program focuses on economic empowerment of women in South Lebanon through the development of women-led social enterprises. In partnership with UNIFIL, the program delivers comprehensive training, business development support, and seed funding to help women establish and grow sustainable businesses.</p>",
-      bodyAr: "<p>يركز هذا البرنامج على التمكين الاقتصادي للمرأة في جنوب لبنان من خلال تطوير المؤسسات الاجتماعية بقيادة النساء.</p>",
-      coverImageUrl: "/images/nawra-women-training.jpg",
-      status: "COMPLETED" as const,
-      year: 2021,
-      donorEn: "UNIFIL",
-      donorAr: "اليونيفيل",
-      locationEn: "South Lebanon",
-      locationAr: "جنوب لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$180,000",
-      beneficiaries: 200,
-      stats: [
-        { labelEn: "Women Trained", labelAr: "امرأة تم تدريبها", value: 200, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Social Enterprises", labelAr: "مؤسسة اجتماعية", value: 45, suffix: "", icon: "briefcase", order: 1 },
-      ],
-    },
-    {
-      slug: "unifil-coop-south-strengthening",
-      titleEn: "Strengthening Business Performance of Cooperatives in the South",
-      titleAr: "تعزيز الأداء التجاري للتعاونيات في الجنوب",
-      summaryEn: "Building capacity and business performance of cooperatives in South Lebanon through management training, grant distribution, and ongoing coaching.",
-      summaryAr: "بناء قدرات وتحسين الأداء التجاري للتعاونيات في جنوب لبنان من خلال التدريب الإداري وتوزيع المنح والإرشاد المستمر.",
-      bodyEn: "<p>This program supports cooperatives in South Lebanon by strengthening their business performance through management training, financial literacy programs, grant distribution, and ongoing business coaching. The initiative aims to create sustainable economic growth in underserved communities.</p>",
-      bodyAr: "<p>يدعم هذا البرنامج التعاونيات في جنوب لبنان من خلال تعزيز أدائها التجاري عبر التدريب الإداري وبرامج محو الأمية المالية وتوزيع المنح والإرشاد التجاري المستمر.</p>",
-      coverImageUrl: "/images/outdoor-certificate-ceremony.jpg",
-      status: "COMPLETED" as const,
-      year: 2022,
-      donorEn: "UNIFIL",
-      donorAr: "اليونيفيل",
-      locationEn: "South Lebanon",
-      locationAr: "جنوب لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$150,000",
-      beneficiaries: 180,
-      stats: [
-        { labelEn: "Cooperatives Supported", labelAr: "تعاونية مدعومة", value: 30, suffix: "", icon: "building", order: 0 },
-        { labelEn: "Members Trained", labelAr: "عضو تم تدريبه", value: 180, suffix: "+", icon: "users", order: 1 },
-      ],
-    },
-    {
-      slug: "psdp-gender-sensitive-business-support",
-      titleEn: "Gender-Sensitive Business Support for MSMEs & Entrepreneurs (PSDP)",
-      titleAr: "دعم الأعمال المراعي للنوع الاجتماعي للمنشآت الصغيرة ورواد الأعمال (PSDP)",
-      summaryEn: "Providing gender-sensitive business development services, training, grant distribution, and coaching for MSMEs and entrepreneurs across Lebanon.",
-      summaryAr: "تقديم خدمات تطوير أعمال مراعية للنوع الاجتماعي والتدريب وتوزيع المنح والإرشاد للمنشآت الصغيرة ورواد الأعمال في لبنان.",
-      bodyEn: "<p>The PSDP program provides gender-sensitive business development services to MSMEs and entrepreneurs across Lebanon. Working with the Canada Embassy and ILO, it delivers comprehensive training, grant distribution, and coaching to promote inclusive economic growth.</p>",
-      bodyAr: "<p>يقدم برنامج PSDP خدمات تطوير أعمال مراعية للنوع الاجتماعي للمنشآت الصغيرة ورواد الأعمال في جميع أنحاء لبنان.</p>",
-      coverImageUrl: "/images/group-training-workshop.jpg",
-      status: "COMPLETED" as const,
-      year: 2022,
-      donorEn: "Canada Embassy & ILO",
-      donorAr: "سفارة كندا ومنظمة العمل الدولية",
-      locationEn: "Lebanon",
-      locationAr: "لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$300,000",
-      beneficiaries: 400,
-      stats: [
-        { labelEn: "MSMEs Supported", labelAr: "منشأة مدعومة", value: 400, suffix: "+", icon: "briefcase", order: 0 },
-        { labelEn: "Grants Disbursed", labelAr: "منحة مصروفة", value: 150, suffix: "", icon: "dollar", order: 1 },
-      ],
-    },
-    {
-      slug: "unifil-women-aquaculture",
-      titleEn: "Promoting Women in Aquaculture",
-      titleAr: "تعزيز دور المرأة في تربية الأحياء المائية",
-      summaryEn: "Post-harvesting training, food safety certification, and financial support for women in aquaculture in South Lebanon.",
-      summaryAr: "تدريب على ما بعد الحصاد وشهادات سلامة الغذاء والدعم المالي للنساء في تربية الأحياء المائية في جنوب لبنان.",
-      bodyEn: "<p>This specialized program promotes women's involvement in the aquaculture sector in South Lebanon. It provides post-harvesting training, food safety certification, and financial support to help women develop sustainable aquaculture businesses.</p>",
-      bodyAr: "<p>يعزز هذا البرنامج المتخصص مشاركة المرأة في قطاع تربية الأحياء المائية في جنوب لبنان.</p>",
-      coverImageUrl: "/images/handcrafted-products.jpg",
-      status: "COMPLETED" as const,
-      year: 2022,
-      donorEn: "UNIFIL",
-      donorAr: "اليونيفيل",
-      locationEn: "South Lebanon",
-      locationAr: "جنوب لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$120,000",
-      beneficiaries: 80,
-      stats: [
-        { labelEn: "Women Trained", labelAr: "امرأة تم تدريبها", value: 80, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Certifications", labelAr: "شهادة", value: 60, suffix: "", icon: "award", order: 1 },
-      ],
-    },
-    {
-      slug: "srp2-economic-empowerment-sgbv",
-      titleEn: "Economic Empowerment for Survivors of Gender-Based Violence (SRP2)",
-      titleAr: "التمكين الاقتصادي للناجيات من العنف القائم على النوع الاجتماعي (SRP2)",
-      summaryEn: "Supporting GBV survivors through economic empowerment, vocational training, and grant distribution in Beirut, Mount Lebanon, and Bekaa.",
-      summaryAr: "دعم الناجيات من العنف القائم على النوع الاجتماعي من خلال التمكين الاقتصادي والتدريب المهني وتوزيع المنح في بيروت وجبل لبنان والبقاع.",
-      bodyEn: "<p>The SRP2 program supports survivors of gender-based violence through comprehensive economic empowerment initiatives. Working with IRC and the World Bank, the program provides vocational training, business development services, and grant distribution across Beirut, Mount Lebanon, and Bekaa.</p>",
-      bodyAr: "<p>يدعم برنامج SRP2 الناجيات من العنف القائم على النوع الاجتماعي من خلال مبادرات التمكين الاقتصادي الشاملة.</p>",
-      coverImageUrl: "/images/nawra-dream-to-jury.jpg",
-      status: "ACTIVE" as const,
-      year: 2025,
-      donorEn: "IRC & World Bank",
-      donorAr: "لجنة الإنقاذ الدولية والبنك الدولي",
-      locationEn: "Beirut, Mount Lebanon, Bekaa",
-      locationAr: "بيروت، جبل لبنان، البقاع",
-      pillarSlug: "incubators",
-      isFeatured: true,
-      budget: "$450,000",
-      beneficiaries: 300,
-      stats: [
-        { labelEn: "Survivors Supported", labelAr: "ناجية مدعومة", value: 300, suffix: "+", icon: "heart", order: 0 },
-        { labelEn: "Vocational Trainings", labelAr: "تدريب مهني", value: 200, suffix: "+", icon: "graduation-cap", order: 1 },
-        { labelEn: "Grants Distributed", labelAr: "منحة موزعة", value: 100, suffix: "", icon: "gift", order: 2 },
-      ],
-    },
-
-    // === COACHING & MENTORING ===
-    {
-      slug: "livelihoods-resilience-lebanese-syrians",
-      titleEn: "Livelihoods & Resilience Support to At-Risk Lebanese & Syrians",
-      titleAr: "دعم سبل العيش والصمود للبنانيين والسوريين المعرضين للخطر",
-      summaryEn: "Basic entrepreneurship training and coaching for at-risk Lebanese and Syrian communities through business development support.",
-      summaryAr: "تدريب أساسي على ريادة الأعمال والإرشاد للمجتمعات اللبنانية والسورية المعرضة للخطر من خلال دعم تطوير الأعمال.",
-      bodyEn: "<p>This program provides basic entrepreneurship training and business coaching to at-risk Lebanese and Syrian communities. Through comprehensive business development support, it helps participants build sustainable livelihoods and strengthen their resilience against economic shocks.</p>",
-      bodyAr: "<p>يوفر هذا البرنامج تدريباً أساسياً على ريادة الأعمال والإرشاد التجاري للمجتمعات اللبنانية والسورية المعرضة للخطر.</p>",
-      coverImageUrl: "/images/mentoring-session.jpg",
-      status: "COMPLETED" as const,
-      year: 2023,
-      donorEn: "WFP & Relief International",
-      donorAr: "برنامج الأغذية العالمي ومنظمة الإغاثة الدولية",
-      locationEn: "Lebanon",
-      locationAr: "لبنان",
-      pillarSlug: "coaching",
-      isFeatured: false,
-      budget: "$200,000",
-      beneficiaries: 500,
-      stats: [
-        { labelEn: "Participants", labelAr: "مشارك", value: 500, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Coaching Sessions", labelAr: "جلسة إرشاد", value: 800, suffix: "+", icon: "target", order: 1 },
-      ],
-    },
-    {
-      slug: "optimizing-women-entrepreneurs-bekaa",
-      titleEn: "Optimizing Women Entrepreneurs & Rural Communities",
-      titleAr: "تمكين رائدات الأعمال والمجتمعات الريفية",
-      summaryEn: "Capacity building of women-led MSMEs on business management and life skills in Bekaa and Baalbeck-Hermel governorates.",
-      summaryAr: "بناء قدرات المنشآت الصغيرة بقيادة النساء في إدارة الأعمال والمهارات الحياتية في محافظتي البقاع وبعلبك الهرمل.",
-      bodyEn: "<p>This program focuses on capacity building for women-led MSMEs in the Bekaa and Baalbeck-Hermel governorates. It provides comprehensive training in business management, financial literacy, and life skills to help women entrepreneurs grow their businesses sustainably.</p>",
-      bodyAr: "<p>يركز هذا البرنامج على بناء قدرات المنشآت الصغيرة بقيادة النساء في محافظتي البقاع وبعلبك الهرمل.</p>",
-      coverImageUrl: "/images/women-group-certificates.jpg",
-      status: "COMPLETED" as const,
-      year: 2024,
-      donorEn: "Solidarités International",
-      donorAr: "منظمة التضامن الدولي",
-      locationEn: "Bekaa, Baalbeck-Hermel",
-      locationAr: "البقاع، بعلبك الهرمل",
-      pillarSlug: "coaching",
-      isFeatured: false,
-      budget: "$160,000",
-      beneficiaries: 250,
-      stats: [
-        { labelEn: "Women Entrepreneurs", labelAr: "رائدة أعمال", value: 250, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "MSMEs Supported", labelAr: "منشأة مدعومة", value: 120, suffix: "", icon: "briefcase", order: 1 },
-      ],
-    },
-    {
-      slug: "social-economic-resilience-vulnerable-communities",
-      titleEn: "Improving Social & Economic Resilience of Vulnerable Communities",
-      titleAr: "تحسين الصمود الاجتماعي والاقتصادي للمجتمعات الضعيفة",
-      summaryEn: "Business diagnosis, coaching, and capacity building for vulnerable host and refugee communities in Lebanon, in collaboration with RMF and Welthungerhilfe.",
-      summaryAr: "تشخيص الأعمال والإرشاد وبناء القدرات للمجتمعات المضيفة واللاجئين الضعيفين في لبنان، بالتعاون مع RMF وWelthungerhilfe.",
-      bodyEn: "<p>This program improves the social and economic resilience of vulnerable host and refugee communities in Lebanon. In collaboration with RMF and Welthungerhilfe, it delivers business diagnosis, coaching, and comprehensive capacity building initiatives.</p>",
-      bodyAr: "<p>يحسن هذا البرنامج الصمود الاجتماعي والاقتصادي للمجتمعات المضيفة واللاجئين الضعيفين في لبنان.</p>",
-      coverImageUrl: "/images/training-presentation.jpg",
-      status: "ACTIVE" as const,
-      year: 2024,
-      donorEn: "BMZ, RMF & Welthungerhilfe",
-      donorAr: "BMZ وRMF وWelthungerhilfe",
-      locationEn: "Lebanon",
-      locationAr: "لبنان",
-      pillarSlug: "coaching",
-      isFeatured: true,
-      budget: "$280,000",
-      beneficiaries: 600,
-      stats: [
-        { labelEn: "Communities Reached", labelAr: "مجتمع تم الوصول إليه", value: 15, suffix: "", icon: "map-pin", order: 0 },
-        { labelEn: "Business Diagnoses", labelAr: "تشخيص أعمال", value: 600, suffix: "+", icon: "clipboard", order: 1 },
-        { labelEn: "Coaching Sessions", labelAr: "جلسة إرشاد", value: 1200, suffix: "+", icon: "target", order: 2 },
-      ],
-    },
-
-    // === TECHNICAL ASSISTANCE ===
-    {
-      slug: "capacity-building-farmers-cooperatives",
-      titleEn: "Capacity Building for Farmers & Cooperatives",
-      titleAr: "بناء قدرات المزارعين والتعاونيات",
-      summaryEn: "Agri-business, organic farming, and pest management training for farmers and cooperatives in Lebanon.",
-      summaryAr: "تدريب على الأعمال الزراعية والزراعة العضوية وإدارة الآفات للمزارعين والتعاونيات في لبنان.",
-      bodyEn: "<p>This technical assistance program builds capacity for farmers and cooperatives across Lebanon. It provides comprehensive training in agri-business management, organic farming techniques, pest management, and sustainable agricultural practices.</p>",
-      bodyAr: "<p>يبني برنامج المساعدة الفنية هذا قدرات المزارعين والتعاونيات في جميع أنحاء لبنان.</p>",
-      coverImageUrl: "/images/field-visit-rural.jpg",
-      status: "COMPLETED" as const,
-      year: 2021,
-      donorEn: "Action Against Hunger",
-      donorAr: "العمل ضد الجوع",
-      locationEn: "Lebanon",
-      locationAr: "لبنان",
-      pillarSlug: "technical-assistance",
-      isFeatured: false,
-      budget: "$190,000",
-      beneficiaries: 300,
-      stats: [
-        { labelEn: "Farmers Trained", labelAr: "مزارع تم تدريبه", value: 300, suffix: "+", icon: "sprout", order: 0 },
-        { labelEn: "Cooperatives", labelAr: "تعاونية", value: 25, suffix: "", icon: "building", order: 1 },
-      ],
-    },
-    {
-      slug: "business-development-youth-north",
-      titleEn: "Business Development & Capacity Building for Youth",
-      titleAr: "تطوير الأعمال وبناء القدرات للشباب",
-      summaryEn: "Youth-focused business development training and capacity building program in North Lebanon.",
-      summaryAr: "برنامج تدريب وبناء قدرات تطوير الأعمال للشباب في شمال لبنان.",
-      bodyEn: "<p>This program targets youth in North Lebanon with focused business development training and capacity building. In partnership with Utopia and Oxfam, it equips young entrepreneurs with the skills and knowledge needed to start and grow their businesses.</p>",
-      bodyAr: "<p>يستهدف هذا البرنامج الشباب في شمال لبنان بتدريب مركز على تطوير الأعمال وبناء القدرات.</p>",
-      coverImageUrl: "/images/international-professionals.jpg",
-      status: "COMPLETED" as const,
-      year: 2023,
-      donorEn: "Utopia & Oxfam",
-      donorAr: "يوتوبيا وأوكسفام",
-      locationEn: "North Lebanon",
-      locationAr: "شمال لبنان",
-      pillarSlug: "technical-assistance",
-      isFeatured: false,
-      budget: "$140,000",
-      beneficiaries: 200,
-      stats: [
-        { labelEn: "Youth Trained", labelAr: "شاب تم تدريبه", value: 200, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Businesses Started", labelAr: "مشروع بدأ", value: 45, suffix: "", icon: "briefcase", order: 1 },
-      ],
-    },
-
-    // === ACADEMY ===
-    {
-      slug: "empowering-women-entrepreneurs-mena",
-      titleEn: "Empowering Women Entrepreneurs in MENA Towards Equal Market Access",
-      titleAr: "تمكين رائدات الأعمال في منطقة الشرق الأوسط وشمال أفريقيا نحو وصول متساوٍ للأسواق",
-      summaryEn: "In-class and e-learning curricula development, TOT, and training delivery for women entrepreneurs across 6 MENA countries.",
-      summaryAr: "تطوير مناهج تعليمية حضورية وإلكترونية وتدريب المدربين والتدريب لرائدات الأعمال في 6 دول في منطقة الشرق الأوسط وشمال أفريقيا.",
-      bodyEn: "<p>This academy program empowers women entrepreneurs across 6 MENA countries towards equal market access. It develops in-class and e-learning curricula, delivers Training of Trainers (TOT), and provides direct training to women entrepreneurs to bridge the gender gap in business.</p>",
-      bodyAr: "<p>يمكّن برنامج الأكاديمية هذا رائدات الأعمال في 6 دول في منطقة الشرق الأوسط وشمال أفريقيا نحو وصول متساوٍ للأسواق.</p>",
-      coverImageUrl: "/images/women-empowerment-art.jpg",
-      status: "COMPLETED" as const,
-      year: 2022,
-      donorEn: "CAWTAR & Kvinna till Kvinna",
-      donorAr: "CAWTAR وKvinna till Kvinna",
-      locationEn: "Lebanon, Egypt, Tunisia, Morocco, Algeria, Jordan",
-      locationAr: "لبنان، مصر، تونس، المغرب، الجزائر، الأردن",
-      pillarSlug: "academy",
-      isFeatured: false,
-      budget: "$500,000",
-      beneficiaries: 1000,
-      stats: [
-        { labelEn: "Countries", labelAr: "دولة", value: 6, suffix: "", icon: "globe", order: 0 },
-        { labelEn: "Women Trained", labelAr: "امرأة تم تدريبها", value: 1000, suffix: "+", icon: "users", order: 1 },
-        { labelEn: "Trainers Certified", labelAr: "مدرب معتمد", value: 50, suffix: "", icon: "award", order: 2 },
-      ],
-    },
-    {
-      slug: "financial-education-women",
-      titleEn: "Financial Education Capacity Building for Women",
-      titleAr: "بناء قدرات التعليم المالي للنساء",
-      summaryEn: "Financial literacy training, coaching, and M&E for women across Bekaa, North, South, and Beirut/Mount Lebanon regions.",
-      summaryAr: "تدريب محو الأمية المالية والإرشاد والمتابعة والتقييم للنساء في البقاع والشمال والجنوب وبيروت/جبل لبنان.",
-      bodyEn: "<p>This program builds financial education capacity for women across multiple regions in Lebanon, including Bekaa, North, South, and Beirut/Mount Lebanon. It delivers financial literacy training, business coaching, and ongoing monitoring and evaluation.</p>",
-      bodyAr: "<p>يبني هذا البرنامج قدرات التعليم المالي للنساء عبر مناطق متعددة في لبنان.</p>",
-      coverImageUrl: "/images/certificate-presentation.jpg",
-      status: "COMPLETED" as const,
-      year: 2023,
-      donorEn: "Lutheran World Relief & USAID",
-      donorAr: "الإغاثة اللوثرية العالمية والوكالة الأمريكية للتنمية الدولية",
-      locationEn: "Bekaa, North, South, BML",
-      locationAr: "البقاع، الشمال، الجنوب، بيروت وجبل لبنان",
-      pillarSlug: "academy",
-      isFeatured: false,
-      budget: "$220,000",
-      beneficiaries: 800,
-      stats: [
-        { labelEn: "Women Reached", labelAr: "امرأة تم الوصول إليها", value: 800, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Regions Covered", labelAr: "منطقة مغطاة", value: 4, suffix: "", icon: "map-pin", order: 1 },
-      ],
-    },
-    {
-      slug: "digital-learning-women-sustainable-business",
-      titleEn: "Digital Learning for Women Sustainable Business",
-      titleAr: "التعلم الرقمي للأعمال المستدامة للنساء",
-      summaryEn: "E-learning curricula development and TOT for women's sustainable business education across 6 MENA countries.",
-      summaryAr: "تطوير مناهج تعلم إلكتروني وتدريب المدربين لتعليم الأعمال المستدامة للنساء في 6 دول في منطقة الشرق الأوسط وشمال أفريقيا.",
-      bodyEn: "<p>This program develops digital learning solutions for women's sustainable business education. It creates e-learning curricula and delivers Training of Trainers across 6 MENA countries to promote green and sustainable business practices among women entrepreneurs.</p>",
-      bodyAr: "<p>يطور هذا البرنامج حلول التعلم الرقمي لتعليم الأعمال المستدامة للنساء.</p>",
-      coverImageUrl: "/images/nawra-women-training.jpg",
-      status: "COMPLETED" as const,
-      year: 2023,
-      donorEn: "CAWTAR & Kvinna till Kvinna",
-      donorAr: "CAWTAR وKvinna till Kvinna",
-      locationEn: "Lebanon, Egypt, Morocco, Tunisia, Algeria, Jordan",
-      locationAr: "لبنان، مصر، المغرب، تونس، الجزائر، الأردن",
-      pillarSlug: "academy",
-      isFeatured: false,
-      budget: "$350,000",
-      beneficiaries: 600,
-      stats: [
-        { labelEn: "Countries", labelAr: "دولة", value: 6, suffix: "", icon: "globe", order: 0 },
-        { labelEn: "E-learning Modules", labelAr: "وحدة تعلم إلكتروني", value: 24, suffix: "", icon: "monitor", order: 1 },
-      ],
-    },
-    {
-      slug: "enable-siyb-training-2024",
-      titleEn: "ENABLE Programme — SIYB Entrepreneurship Training",
-      titleAr: "برنامج ENABLE — تدريب ريادة الأعمال SIYB",
-      summaryEn: "ILO-certified Start and Improve Your Business (SIYB) entrepreneurship training in Beirut, Mount Lebanon, Akkar, and South Lebanon.",
-      summaryAr: "تدريب ريادة الأعمال المعتمد من منظمة العمل الدولية (ابدأ وحسّن عملك SIYB) في بيروت وجبل لبنان وعكار وجنوب لبنان.",
-      bodyEn: "<p>The ENABLE Programme delivers ILO-certified Start and Improve Your Business (SIYB) entrepreneurship training across multiple regions in Lebanon. Funded by the EU and ILO, it provides participants with internationally recognized business skills and certification.</p>",
-      bodyAr: "<p>يقدم برنامج ENABLE تدريب ريادة الأعمال المعتمد من منظمة العمل الدولية (ابدأ وحسّن عملك SIYB) عبر مناطق متعددة في لبنان.</p>",
-      coverImageUrl: "/images/group-training-workshop.jpg",
-      status: "COMPLETED" as const,
-      year: 2024,
-      donorEn: "EU & ILO",
-      donorAr: "الاتحاد الأوروبي ومنظمة العمل الدولية",
-      locationEn: "Beirut, Mount Lebanon, Akkar, South Lebanon",
-      locationAr: "بيروت، جبل لبنان، عكار، جنوب لبنان",
-      pillarSlug: "academy",
-      isFeatured: true,
-      budget: "$400,000",
-      beneficiaries: 500,
-      stats: [
-        { labelEn: "Entrepreneurs Trained", labelAr: "رائد أعمال تم تدريبه", value: 500, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "SIYB Certified", labelAr: "حاصل على شهادة SIYB", value: 350, suffix: "", icon: "award", order: 1 },
-        { labelEn: "Regions Covered", labelAr: "منطقة مغطاة", value: 4, suffix: "", icon: "map-pin", order: 2 },
-      ],
-    },
-
-    // === DIGITAL MEDIA HUB ===
-    {
-      slug: "digital-media-campaigns-women-empowerment",
-      titleEn: "Digital Media Campaigns for Women's Empowerment",
-      titleAr: "حملات إعلامية رقمية لتمكين المرأة",
-      summaryEn: "Strategic communication campaigns amplifying women entrepreneurs' stories and green business success across the MENA region.",
-      summaryAr: "حملات اتصال استراتيجية تعزز قصص رائدات الأعمال ونجاح الأعمال الخضراء عبر منطقة الشرق الأوسط وشمال أفريقيا.",
-      bodyEn: "<p>This program leverages digital media to amplify women entrepreneurs' success stories and green business initiatives across the MENA region. It designs and executes strategic communication campaigns that inspire and empower women in business.</p>",
-      bodyAr: "<p>يستفيد هذا البرنامج من الوسائط الرقمية لتعزيز قصص نجاح رائدات الأعمال ومبادرات الأعمال الخضراء عبر منطقة الشرق الأوسط وشمال أفريقيا.</p>",
-      coverImageUrl: "/images/women-empowerment-art.jpg",
-      status: "COMPLETED" as const,
-      year: 2022,
-      donorEn: "CAWTAR & Kvinna till Kvinna",
-      donorAr: "CAWTAR وKvinna till Kvinna",
-      locationEn: "MENA Region",
-      locationAr: "منطقة الشرق الأوسط وشمال أفريقيا",
-      pillarSlug: "digital-media-hub",
-      isFeatured: false,
-      budget: "$150,000",
-      beneficiaries: 5000,
-      stats: [
-        { labelEn: "Campaign Reach", labelAr: "وصول الحملة", value: 5000, suffix: "+", icon: "eye", order: 0 },
-        { labelEn: "Stories Produced", labelAr: "قصة منتجة", value: 50, suffix: "", icon: "film", order: 1 },
-      ],
-    },
-
-    // === HUMANITARIAN AID ===
-    {
-      slug: "community-kitchens-social-cohesion",
-      titleEn: "Community Kitchen Initiative — Building CSO Capacity for Social Cohesion",
-      titleAr: "مبادرة المطابخ المجتمعية — بناء قدرات المجتمع المدني للتماسك الاجتماعي",
-      summaryEn: "Establishing community kitchens and building CSO capacity for social cohesion in West Beqaa, Zahle, and Upper Chouf with meal distribution and training.",
-      summaryAr: "إنشاء مطابخ مجتمعية وبناء قدرات المجتمع المدني للتماسك الاجتماعي في البقاع الغربي وزحلة والشوف الأعلى مع توزيع الوجبات والتدريب.",
-      bodyEn: "<p>This humanitarian initiative establishes community kitchens and builds CSO capacity for social cohesion across West Beqaa, Zahle, and Upper Chouf. The program combines meal distribution with training to strengthen community bonds and support vulnerable populations.</p>",
-      bodyAr: "<p>تنشئ هذه المبادرة الإنسانية مطابخ مجتمعية وتبني قدرات المجتمع المدني للتماسك الاجتماعي في البقاع الغربي وزحلة والشوف الأعلى.</p>",
-      coverImageUrl: "/images/certificate-presentation.jpg",
-      status: "ACTIVE" as const,
-      year: 2024,
-      donorEn: "GIZ & International Alert",
-      donorAr: "GIZ ومنظمة التنبيه الدولي",
-      locationEn: "West Beqaa, Zahle, Upper Chouf",
-      locationAr: "البقاع الغربي، زحلة، الشوف الأعلى",
-      pillarSlug: "humanitarian-aid",
-      isFeatured: true,
-      budget: "$320,000",
-      beneficiaries: 2000,
-      stats: [
-        { labelEn: "Meals Distributed", labelAr: "وجبة موزعة", value: 50000, suffix: "+", icon: "utensils", order: 0 },
-        { labelEn: "Community Kitchens", labelAr: "مطبخ مجتمعي", value: 10, suffix: "", icon: "home", order: 1 },
-        { labelEn: "CSOs Trained", labelAr: "منظمة مدنية مدربة", value: 15, suffix: "", icon: "building", order: 2 },
-      ],
-    },
-    {
-      slug: "cash-for-work-food-relief-north",
-      titleEn: "Cash for Work for Food Relief in the North",
-      titleAr: "النقد مقابل العمل للإغاثة الغذائية في الشمال",
-      summaryEn: "Cash-for-work programs combined with food relief distribution, training, and meal distribution in northern Lebanon gatherings.",
-      summaryAr: "برامج النقد مقابل العمل المقترنة بتوزيع المساعدات الغذائية والتدريب وتوزيع الوجبات في تجمعات شمال لبنان.",
-      bodyEn: "<p>This program combines cash-for-work initiatives with food relief distribution in northern Lebanon. Working with the Norway Embassy and UNDP Lebanon, it provides immediate food security support while building participants' skills and resilience through training and work opportunities.</p>",
-      bodyAr: "<p>يجمع هذا البرنامج بين مبادرات النقد مقابل العمل وتوزيع المساعدات الغذائية في شمال لبنان.</p>",
-      coverImageUrl: "/images/outdoor-certificate-ceremony.jpg",
-      status: "ACTIVE" as const,
-      year: 2025,
-      donorEn: "Norway Embassy & UNDP Lebanon",
-      donorAr: "سفارة النرويج وبرنامج الأمم المتحدة الإنمائي",
-      locationEn: "North Lebanon",
-      locationAr: "شمال لبنان",
-      pillarSlug: "humanitarian-aid",
-      isFeatured: true,
-      budget: "$500,000",
-      beneficiaries: 3000,
-      stats: [
-        { labelEn: "Beneficiaries", labelAr: "مستفيد", value: 3000, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Meals Distributed", labelAr: "وجبة موزعة", value: 100000, suffix: "+", icon: "utensils", order: 1 },
-        { labelEn: "Work Days", labelAr: "يوم عمل", value: 5000, suffix: "+", icon: "calendar", order: 2 },
-      ],
-    },
-
-    // === CROSS-CUTTING ===
-    {
-      slug: "nawra-green-ventures-acceleration",
-      titleEn: "NAWARA — Green Ventures Acceleration Program",
-      titleAr: "نورة — برنامج تسريع المشاريع الخضراء",
-      summaryEn: "Accelerating green and climate-smart startups led by women across MENA, with focus on agritech, renewable energy, circular economy, and market research.",
-      summaryAr: "تسريع الشركات الناشئة الخضراء والذكية مناخياً بقيادة النساء عبر منطقة الشرق الأوسط وشمال أفريقيا، مع التركيز على التكنولوجيا الزراعية والطاقة المتجددة والاقتصاد الدائري وأبحاث السوق.",
-      bodyEn: `<p>NAWARA is a flagship green ventures acceleration program that supports women-led startups in the green economy across Lebanon, Tunisia, and Morocco. The program focuses on agritech, renewable energy, circular economy, and sustainable production.</p>
-<h3>Program Components</h3>
-<ul>
-<li><strong>Acceleration:</strong> 12-month acceleration journey with mentorship, training, and market access support.</li>
-<li><strong>Seed Funding:</strong> Green business grants for qualifying startups.</li>
-<li><strong>Market Research:</strong> Comprehensive market analysis and business intelligence.</li>
-<li><strong>Networking:</strong> Cross-border networking events and B2B matchmaking.</li>
-</ul>`,
-      bodyAr: `<p>نورة هو برنامج رائد لتسريع المشاريع الخضراء يدعم الشركات الناشئة بقيادة النساء في الاقتصاد الأخضر عبر لبنان وتونس والمغرب.</p>`,
-      coverImageUrl: "/images/nawra-dream-to-jury.jpg",
-      status: "ACTIVE" as const,
-      year: 2025,
-      donorEn: "European Union",
-      donorAr: "الاتحاد الأوروبي",
-      locationEn: "Lebanon, Tunisia, Morocco",
-      locationAr: "لبنان، تونس، المغرب",
-      pillarSlug: "incubators",
-      isFeatured: true,
-      budget: "$1,200,000",
-      beneficiaries: 500,
-      objectivesEn: "Accelerate 60+ green startups led by women across MENA\nProvide $500,000+ in seed funding for green businesses\nCreate 200+ green jobs across the region\nBuild cross-border green business networks\nDeliver 1,500+ mentoring and coaching sessions",
-      objectivesAr: "تسريع أكثر من 60 شركة ناشئة خضراء بقيادة النساء\nتوفير أكثر من 500,000 دولار في التمويل الأولي\nخلق أكثر من 200 فرصة عمل خضراء\nبناء شبكات أعمال خضراء عبر الحدود\nتقديم أكثر من 1,500 جلسة إرشاد وتوجيه",
-      stats: [
-        { labelEn: "Green Startups", labelAr: "شركة ناشئة خضراء", value: 60, suffix: "+", icon: "sprout", order: 0 },
-        { labelEn: "Seed Funding", labelAr: "تمويل أولي", value: 500, suffix: "K$", icon: "dollar", order: 1 },
-        { labelEn: "Green Jobs Created", labelAr: "فرصة عمل خضراء", value: 200, suffix: "+", icon: "briefcase", order: 2 },
-        { labelEn: "Countries", labelAr: "دولة", value: 3, suffix: "", icon: "globe", order: 3 },
-        { labelEn: "Mentoring Sessions", labelAr: "جلسة إرشاد", value: 1500, suffix: "+", icon: "target", order: 4 },
-      ],
-      team: [
-        { nameEn: "Sarah Al-Hassan", nameAr: "سارة الحسن", roleEn: "Program Director", roleAr: "مديرة البرنامج", order: 0 },
-        { nameEn: "Ahmad Khoury", nameAr: "أحمد خوري", roleEn: "Business Development Lead", roleAr: "رئيس تطوير الأعمال", order: 1 },
-        { nameEn: "Nadia Mansour", nameAr: "نادية منصور", roleEn: "Training Coordinator", roleAr: "منسقة التدريب", order: 2 },
-        { nameEn: "Omar Saad", nameAr: "عمر سعد", roleEn: "M&E Specialist", roleAr: "أخصائي المتابعة والتقييم", order: 3 },
-      ],
-      partners: [
-        { nameEn: "European Union", nameAr: "الاتحاد الأوروبي", order: 0 },
-        { nameEn: "CAWTAR", nameAr: "CAWTAR", order: 1 },
-        { nameEn: "Kvinna till Kvinna", nameAr: "Kvinna till Kvinna", order: 2 },
-      ],
-      videos: [
-        { titleEn: "NAWARA Program Overview", titleAr: "نظرة عامة على برنامج نورة", youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", order: 0 },
-      ],
-    },
-    {
-      slug: "houla-women-green-fashion-factory",
-      titleEn: "Houla Women's Green Fashion Factory",
-      titleAr: "مصنع أزياء حولا الخضراء للنساء",
-      summaryEn: "Community-led sewing factory in South Lebanon empowering 50+ women through training in e-commerce, leadership, and sustainable production.",
-      summaryAr: "مصنع خياطة مجتمعي في جنوب لبنان يمكّن أكثر من 50 امرأة من خلال التدريب على التجارة الإلكترونية والقيادة والإنتاج المستدام.",
-      bodyEn: "<p>The Houla Women's Green Fashion Factory is a community-led initiative in South Lebanon that empowers over 50 women through sustainable fashion production. The factory provides training in e-commerce, leadership, and sustainable production techniques, creating economic opportunities in an underserved area.</p>",
-      bodyAr: "<p>مصنع أزياء حولا الخضراء للنساء هو مبادرة مجتمعية في جنوب لبنان تمكّن أكثر من 50 امرأة من خلال إنتاج الأزياء المستدامة.</p>",
-      coverImageUrl: "/images/handcrafted-products.jpg",
-      status: "COMPLETED" as const,
-      year: 2023,
-      donorEn: "UNIFIL",
-      donorAr: "اليونيفيل",
-      locationEn: "South Lebanon",
-      locationAr: "جنوب لبنان",
-      pillarSlug: "incubators",
-      isFeatured: false,
-      budget: "$180,000",
-      beneficiaries: 50,
-      stats: [
-        { labelEn: "Women Employed", labelAr: "امرأة موظفة", value: 50, suffix: "+", icon: "users", order: 0 },
-        { labelEn: "Products Created", labelAr: "منتج تم إنشاؤه", value: 500, suffix: "+", icon: "shirt", order: 1 },
-        { labelEn: "E-commerce Sales", labelAr: "مبيعات إلكترونية", value: 200, suffix: "+", icon: "shopping-cart", order: 2 },
-      ],
-    },
-  ];
-
+  // ── 2. Upsert Programs from Track Record ─────────────────────
   let created = 0;
+  let updated = 0;
   let skipped = 0;
 
-  for (const prog of programs) {
-    const existing = await prisma.program.findUnique({ where: { slug: prog.slug } });
-    if (existing) {
-      console.log(`  SKIP (exists): ${prog.slug}`);
+  for (const proj of trackRecordProjects) {
+    const { pillarSlug, stats, images, ...rest } = proj;
+
+    const pillarId = pillarMap[pillarSlug];
+    if (!pillarId) {
+      console.log(`  SKIP (pillar not found: ${pillarSlug}): ${proj.slug}`);
       skipped++;
       continue;
     }
 
-    const { pillarSlug, stats, team, partners, videos, ...programData } = prog;
+    const existing = await prisma.program.findUnique({ where: { slug: proj.slug } });
 
-    await prisma.program.create({
-      data: {
-        ...programData,
-        objectivesEn: (prog as any).objectivesEn || null,
-        objectivesAr: (prog as any).objectivesAr || null,
-        pillarId: pillarMap[pillarSlug] || null,
-        stats: stats?.length ? { create: stats } : undefined,
-        teamMembers: (team as any)?.length ? { create: team } : undefined,
-        partners: partners?.length ? { create: partners } : undefined,
-        videos: (videos as any)?.length ? { create: videos } : undefined,
-      },
-    });
+    if (existing) {
+      // Update existing program with latest data
+      await prisma.program.update({
+        where: { slug: proj.slug },
+        data: {
+          titleEn: rest.titleEn,
+          titleAr: rest.titleAr,
+          summaryEn: rest.summaryEn,
+          summaryAr: rest.summaryAr,
+          bodyEn: rest.bodyEn,
+          bodyAr: rest.bodyAr,
+          coverImageUrl: rest.coverImageUrl,
+          status: rest.status,
+          year: rest.year,
+          donorEn: rest.donorEn,
+          donorAr: rest.donorAr,
+          locationEn: rest.locationEn,
+          locationAr: rest.locationAr,
+          pillarId,
+          isFeatured: rest.isFeatured,
+          beneficiaries: rest.beneficiaries || null,
+          budget: rest.budget || null,
+          objectivesEn: rest.objectivesEn || null,
+          objectivesAr: rest.objectivesAr || null,
+        },
+      });
 
-    console.log(`  CREATED: ${prog.slug}`);
-    created++;
+      // Delete old stats and re-create
+      await prisma.programStat.deleteMany({ where: { programId: existing.id } });
+      if (stats.length > 0) {
+        await prisma.programStat.createMany({
+          data: stats.map((s) => ({ ...s, programId: existing.id })),
+        });
+      }
+
+      // Sync images: delete old, add new
+      await prisma.programImage.deleteMany({ where: { programId: existing.id } });
+      if (images.length > 0) {
+        await prisma.programImage.createMany({
+          data: images.map((url, i) => ({
+            programId: existing.id,
+            imageUrl: url,
+            order: i,
+          })),
+        });
+      }
+
+      console.log(`  UPDATED: ${proj.slug} (${stats.length} stats, ${images.length} images)`);
+      updated++;
+    } else {
+      // Create new program
+      await prisma.program.create({
+        data: {
+          slug: rest.slug,
+          titleEn: rest.titleEn,
+          titleAr: rest.titleAr,
+          summaryEn: rest.summaryEn,
+          summaryAr: rest.summaryAr,
+          bodyEn: rest.bodyEn,
+          bodyAr: rest.bodyAr,
+          coverImageUrl: rest.coverImageUrl,
+          status: rest.status,
+          year: rest.year,
+          donorEn: rest.donorEn,
+          donorAr: rest.donorAr,
+          locationEn: rest.locationEn,
+          locationAr: rest.locationAr,
+          pillarId,
+          isFeatured: rest.isFeatured,
+          beneficiaries: rest.beneficiaries || null,
+          budget: rest.budget || null,
+          objectivesEn: rest.objectivesEn || null,
+          objectivesAr: rest.objectivesAr || null,
+          stats: stats.length > 0 ? { create: stats } : undefined,
+          images: images.length > 0
+            ? { create: images.map((url, i) => ({ imageUrl: url, order: i })) }
+            : undefined,
+        },
+      });
+
+      console.log(`  CREATED: ${proj.slug} (${stats.length} stats, ${images.length} images)`);
+      created++;
+    }
   }
 
-  console.log(`\nDone! Created: ${created}, Skipped: ${skipped}`);
+  // ── 3. Clean up old demo programs not in track record ────────
+  const trackSlugs = new Set(trackRecordProjects.map((p) => p.slug));
+  const allPrograms = await prisma.program.findMany({ select: { id: true, slug: true } });
+  let removed = 0;
+
+  for (const prog of allPrograms) {
+    if (!trackSlugs.has(prog.slug)) {
+      await prisma.program.delete({ where: { id: prog.id } });
+      console.log(`  REMOVED old: ${prog.slug}`);
+      removed++;
+    }
+  }
+
+  console.log(`\nDone! Created: ${created}, Updated: ${updated}, Removed: ${removed}, Skipped: ${skipped}`);
 }
 
 main()

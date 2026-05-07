@@ -60,7 +60,7 @@ export default async function ProgramDetailPage({
         objectivesAr: program.objectivesAr,
         summaryEn: program.summaryEn,
         summaryAr: program.summaryAr,
-        coverImageUrl: program.coverImageUrl || "/images/new/community-table.jpg",
+        coverImageUrl: program.coverImageUrl || "",
         status: program.status,
         year: program.year || new Date().getFullYear(),
         donorEn: program.donorEn || "",

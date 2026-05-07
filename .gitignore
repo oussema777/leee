@@ -37,3 +37,8 @@ next-env.d.ts
 # uploads
 public/uploads/*
 !public/uploads/.gitkeep
+
+# Large video folder - exceeds GitHub 100MB limit
+public/images/projects/2025-leb-srp2-irc/
+track record with links Manal oussama.xlsx
+~$*

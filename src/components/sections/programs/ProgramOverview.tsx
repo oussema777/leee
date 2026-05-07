@@ -73,10 +73,10 @@ export function ProgramOverview({
     ? objectives.split("\n").filter((o) => o.trim())
     : [];
 
-  // Pick images: prefer gallery images, fall back to decorative
+  // Pick images: prefer gallery images, no fallback if none
   const displayImages = galleryImages && galleryImages.length > 0
     ? galleryImages.map(img => img.imageUrl)
-    : decorativeImages;
+    : [];
 
   const headerAnim = useInView(0.2);
   const bodyAnim = useInView(0.1);

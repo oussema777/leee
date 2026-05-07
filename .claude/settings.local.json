@@ -42,7 +42,9 @@
       "Bash(taskkill:*)",
       "Bash(done)",
       "Bash(find src:*)",
-      "Bash(read f:*)"
+      "Bash(read f:*)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:www.theleeexperience.com)"
     ]
   }
 }

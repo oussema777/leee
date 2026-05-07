@@ -44,14 +44,18 @@ export function ProgramHero({
   return (
     <section className="relative min-h-[520px] md:min-h-[600px] lg:min-h-[660px] overflow-hidden">
       {/* Background */}
-      <Image
-        src={coverImageUrl}
-        alt={isAr ? titleAr : titleEn}
-        fill
-        className="object-cover"
-        sizes="100vw"
-        priority
-      />
+      {coverImageUrl ? (
+        <Image
+          src={coverImageUrl}
+          alt={isAr ? titleAr : titleEn}
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-navy to-brand-blue/80" />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-accent-navy/80 via-accent-navy/65 to-accent-navy/90" />
       <div className="absolute inset-0 grain-overlay pointer-events-none" />
 
