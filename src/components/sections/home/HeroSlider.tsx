@@ -201,7 +201,7 @@ export function HeroSlider() {
             {/* Main image — Co-Founder speaking at GITS Summit */}
             <div className="group absolute top-0 start-0 w-[55%] h-[58%] rounded-2xl overflow-hidden shadow-2xl z-10 transition-all duration-500 hover:shadow-brand-blue/20 hover:translate-y-[-4px]">
               <Image
-                src="/images/projects/gits-1.jpg"
+                src="/images/projects/seketak-acceleration-investment-readiness-2025/cover.jpg"
                 alt="Leadership at GITS Summit"
                 fill
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
@@ -216,7 +216,7 @@ export function HeroSlider() {
             {/* Second image — Woman entrepreneur pitching on stage */}
             <div className="group absolute bottom-0 end-0 w-[50%] h-[48%] rounded-2xl overflow-hidden shadow-xl border-4 border-white z-10 transition-all duration-500 hover:shadow-brand-gold/20 hover:translate-y-[-4px]">
               <Image
-                src="/images/projects/prospects-1.jpg"
+                src="/images/projects/prospects-entrepreneurship-agriculture/cover.jpg"
                 alt="Entrepreneur pitching on stage"
                 fill
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
