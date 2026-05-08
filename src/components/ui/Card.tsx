@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -19,15 +20,21 @@ export function Card({ className, hover = true, children, ...props }: CardProps)
   );
 }
 
-export function CardImage({
-  className,
-  ...props
-}: React.ImgHTMLAttributes<HTMLImageElement>) {
+interface CardImageProps {
+  className?: string;
+  src?: string;
+  alt?: string;
+}
+
+export function CardImage({ className, src, alt = "" }: CardImageProps) {
   return (
-    <div className="relative overflow-hidden">
-      <img
-        className={cn("w-full h-48 object-cover", className)}
-        {...props}
+    <div className="relative overflow-hidden h-48">
+      <Image
+        src={src || ""}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        className={cn("object-cover", className)}
       />
     </div>
   );

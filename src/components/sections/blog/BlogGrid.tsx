@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Clock, ArrowRight, FileX2, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { blogCategories, demoPosts } from "./blogData";
 import type { BlogPost } from "./blogData";
@@ -25,10 +26,12 @@ function FeaturedPost({ post, isAr }: { post: BlogPost; isAr: boolean }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
         {/* Image */}
         <div className="relative h-64 lg:h-auto min-h-[320px] overflow-hidden">
-          <img
+          <Image
             src={post.coverImageUrl}
             alt={isAr ? post.titleAr : post.titleEn}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:hidden" />
         </div>
@@ -54,8 +57,8 @@ function FeaturedPost({ post, isAr }: { post: BlogPost; isAr: boolean }) {
 
           <div className="flex items-center gap-4 text-xs text-text-muted mb-5">
             <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100">
-                <img src={post.authorImageUrl} alt="" className="w-full h-full object-cover" />
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 relative">
+                <Image src={post.authorImageUrl} alt="" fill sizes="24px" className="object-cover" />
               </div>
               <span className="font-medium">{isAr ? post.authorNameAr : post.authorNameEn}</span>
             </div>
@@ -233,10 +236,12 @@ export function BlogGrid() {
                 >
                   {/* Cover */}
                   <div className="relative aspect-[16/9] overflow-hidden">
-                    <img
+                    <Image
                       src={post.coverImageUrl}
                       alt={isAr ? post.titleAr : post.titleEn}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-3 start-3">
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-white bg-brand-blue/90 px-2 py-1">
@@ -261,8 +266,8 @@ export function BlogGrid() {
                       {isAr ? post.excerptAr : post.excerptEn}
                     </p>
                     <div className="flex items-center gap-2 pt-3 border-t border-gray-50">
-                      <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 shrink-0">
-                        <img src={post.authorImageUrl} alt="" className="w-full h-full object-cover" />
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-100 shrink-0 relative">
+                        <Image src={post.authorImageUrl} alt="" fill sizes="24px" className="object-cover" />
                       </div>
                       <span className="text-xs text-text-muted font-medium truncate">
                         {isAr ? post.authorNameAr : post.authorNameEn}

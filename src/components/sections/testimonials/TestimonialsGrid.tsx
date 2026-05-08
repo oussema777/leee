@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Quote, UserX, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { testimonialCategories, demoTestimonials } from "./testimonialsData";
 import type { TestimonialItem } from "./testimonialsData";
@@ -13,9 +14,12 @@ function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: bool
   if (item.isOriginalCard) {
     return (
       <div className="relative mb-14 overflow-hidden rounded-xl shadow-lg">
-        <img
+        <Image
           src={item.imageUrl}
           alt={isAr ? item.nameAr : item.nameEn}
+          width={1200}
+          height={800}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="w-full h-auto"
         />
       </div>
@@ -27,10 +31,12 @@ function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: bool
       <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[400px]">
         {/* Image side */}
         <div className="relative lg:col-span-2 h-72 lg:h-auto">
-          <img
+          <Image
             src={item.imageUrl}
             alt={isAr ? item.nameAr : item.nameEn}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            sizes="(max-width: 1024px) 100vw, 40vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-brand-blue-deeper/80 to-transparent" />
         </div>
@@ -51,11 +57,13 @@ function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: bool
           </blockquote>
 
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/30 shrink-0">
-              <img
+            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/30 shrink-0 relative">
+              <Image
                 src={item.imageUrl}
                 alt={isAr ? item.nameAr : item.nameEn}
-                className="w-full h-full object-cover"
+                fill
+                sizes="56px"
+                className="object-cover"
               />
             </div>
             <div>
@@ -162,9 +170,12 @@ export function TestimonialsGrid() {
                       key={item.id}
                       className="group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                     >
-                      <img
+                      <Image
                         src={item.imageUrl}
                         alt={isAr ? item.nameAr : item.nameEn}
+                        width={600}
+                        height={400}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="w-full h-auto"
                       />
                     </div>
@@ -225,14 +236,16 @@ export function TestimonialsGrid() {
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            "w-11 h-11 rounded-full overflow-hidden shrink-0 border-2",
+                            "w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 relative",
                             isDark ? "border-white/20" : "border-brand-blue/20"
                           )}
                         >
-                          <img
+                          <Image
                             src={item.imageUrl}
                             alt={isAr ? item.nameAr : item.nameEn}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="44px"
+                            className="object-cover"
                           />
                         </div>
                         <div className="min-w-0">

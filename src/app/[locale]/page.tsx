@@ -1,13 +1,29 @@
+import dynamic from "next/dynamic";
 import { HeroSlider } from "@/components/sections/home/HeroSlider";
 import { StatsCounter } from "@/components/sections/home/StatsCounter";
-import { WhoWeAreGrid } from "@/components/sections/home/WhoWeAreGrid";
-import { ProgramsSection } from "@/components/sections/home/ProgramsSection";
-import { PartnersCarousel } from "@/components/sections/home/PartnersCarousel";
-import { CEOSection } from "@/components/sections/home/CEOSection";
-import { LatestBeats } from "@/components/sections/home/LatestBeats";
-import { NewsletterSection } from "@/components/sections/home/NewsletterSection";
-import { CTABanner } from "@/components/sections/home/CTABanner";
 import { getFeaturedPrograms } from "@/lib/data/programs";
+
+const WhoWeAreGrid = dynamic(
+  () => import("@/components/sections/home/WhoWeAreGrid").then((m) => m.WhoWeAreGrid)
+);
+const ProgramsSection = dynamic(
+  () => import("@/components/sections/home/ProgramsSection").then((m) => m.ProgramsSection)
+);
+const PartnersCarousel = dynamic(
+  () => import("@/components/sections/home/PartnersCarousel").then((m) => m.PartnersCarousel)
+);
+const CEOSection = dynamic(
+  () => import("@/components/sections/home/CEOSection").then((m) => m.CEOSection)
+);
+const LatestBeats = dynamic(
+  () => import("@/components/sections/home/LatestBeats").then((m) => m.LatestBeats)
+);
+const NewsletterSection = dynamic(
+  () => import("@/components/sections/home/NewsletterSection").then((m) => m.NewsletterSection)
+);
+const CTABanner = dynamic(
+  () => import("@/components/sections/home/CTABanner").then((m) => m.CTABanner)
+);
 
 export default async function HomePage() {
   const featuredPrograms = await getFeaturedPrograms();

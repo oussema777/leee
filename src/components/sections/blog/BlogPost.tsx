@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -43,11 +44,13 @@ function RelatedPosts({ currentSlug, categorySlug, isAr }: { currentSlug: string
                 href={`/media/blog/${post.slug}`}
                 className="group flex gap-4 items-start"
               >
-                <div className="w-20 h-20 shrink-0 overflow-hidden bg-gray-100">
-                  <img
+                <div className="w-20 h-20 shrink-0 overflow-hidden bg-gray-100 relative">
+                  <Image
                     src={post.coverImageUrl}
                     alt={isAr ? post.titleAr : post.titleEn}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    fill
+                    sizes="80px"
+                    className="object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <div className="min-w-0">
@@ -142,10 +145,13 @@ export function BlogPostPage({ post }: { post: BlogPostType }) {
     <>
       {/* Hero */}
       <section className="relative min-h-[380px] md:min-h-[440px] flex items-end">
-        <img
+        <Image
           src={post.coverImageUrl}
           alt={isAr ? post.titleAr : post.titleEn}
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-blue-deeper/95 via-brand-blue-deeper/60 to-black/30" />
 
@@ -175,8 +181,8 @@ export function BlogPostPage({ post }: { post: BlogPostType }) {
 
           <div className="flex flex-wrap items-center gap-4 text-white/70 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                <img src={post.authorImageUrl} alt="" className="w-full h-full object-cover" />
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 relative">
+                <Image src={post.authorImageUrl} alt="" fill sizes="32px" className="object-cover" />
               </div>
               <span className="font-medium text-white/90">
                 {isAr ? post.authorNameAr : post.authorNameEn}
@@ -230,8 +236,8 @@ export function BlogPostPage({ post }: { post: BlogPostType }) {
 
             {/* Author card */}
             <div className="mt-10 bg-brand-blue-light/30 p-6 flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-brand-blue/20">
-                <img src={post.authorImageUrl} alt="" className="w-full h-full object-cover" />
+              <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-brand-blue/20 relative">
+                <Image src={post.authorImageUrl} alt="" fill sizes="64px" className="object-cover" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-text-primary">

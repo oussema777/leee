@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FileText, Download, Calendar, FileX2, Clock } from "lucide-react";
@@ -101,10 +102,12 @@ export function ReportsGrid() {
             >
               {/* Cover Image */}
               <div className="relative aspect-[3/2] overflow-hidden bg-gray-100">
-                <img
+                <Image
                   src={report.coverImageUrl}
                   alt={isAr ? report.titleAr : report.titleEn}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 {/* Year badge */}
                 <div className="absolute top-3 start-3 bg-brand-blue text-white text-xs font-bold px-2.5 py-1 flex items-center gap-1">

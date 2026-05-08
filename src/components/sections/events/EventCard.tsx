@@ -4,6 +4,7 @@ import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import Image from "next/image";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 
 export interface EventCardData {
@@ -64,11 +65,13 @@ export function EventCard({
   return (
     <Link href={`/media/events/${slug}`}>
       <Card className="h-full flex flex-col group">
-        <div className="relative overflow-hidden">
-          <img
+        <div className="relative overflow-hidden h-52">
+          <Image
             src={imageUrl}
             alt={isAr ? titleAr : titleEn}
-            className={`w-full h-52 object-cover transition-transform duration-500 group-hover:scale-105 ${isPast ? "grayscale-[30%]" : ""}`}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isPast ? "grayscale-[30%]" : ""}`}
           />
           {/* Date chip */}
           <div className="absolute top-3 start-3 bg-brand-blue text-white text-center px-3 py-1.5 min-w-[56px]">

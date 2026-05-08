@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Play, VideoOff, X } from "lucide-react";
@@ -91,10 +92,12 @@ export function VideosGrid() {
               >
                 {/* Thumbnail */}
                 <div className="relative aspect-video bg-gray-100 overflow-hidden">
-                  <img
+                  <Image
                     src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
                     alt={isAr ? video.titleAr : video.titleEn}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* Play overlay */}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">

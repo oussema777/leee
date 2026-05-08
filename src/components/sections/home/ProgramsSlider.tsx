@@ -13,6 +13,7 @@ import {
   Building2,
   ArrowRight,
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface SliderProgram {
@@ -184,10 +185,12 @@ export function ProgramsSlider({ programs }: ProgramsSliderProps) {
                     <div className="bg-white border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
                       {/* Image */}
                       <div className="relative h-52 overflow-hidden">
-                        <img
+                        <Image
                           src={program.coverImageUrl || "/images/group-training-workshop.jpg"}
                           alt={isAr ? program.titleAr : program.titleEn}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
                           draggable={false}
                         />
                         {/* Status badge */}

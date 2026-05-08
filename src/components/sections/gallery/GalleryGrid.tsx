@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { albums, galleryImages } from "./galleryData";
 import type { GalleryImage } from "./galleryData";
@@ -96,10 +97,12 @@ export function GalleryGrid() {
               onClick={() => openLightbox(i)}
               className="relative group overflow-hidden aspect-[4/3] bg-gray-100"
             >
-              <img
+              <Image
                 src={img.imageUrl}
                 alt={isAr ? img.captionAr : img.captionEn}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-brand-blue-deeper/0 group-hover:bg-brand-blue-deeper/40 transition-colors duration-300" />

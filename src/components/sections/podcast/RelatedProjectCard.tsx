@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight } from "lucide-react";
@@ -40,10 +41,12 @@ export function RelatedProjectCard({ slug }: RelatedProjectCardProps) {
       >
         {/* Cover image */}
         <div className="relative w-24 h-24 md:w-28 md:h-28 shrink-0 overflow-hidden bg-gray-100">
-          <img
+          <Image
             src={program.coverImageUrl}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            fill
+            sizes="(max-width: 768px) 96px, 112px"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </div>
 

@@ -4,6 +4,7 @@ import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import Image from "next/image";
 import { CalendarDays, MapPin, ChevronRight } from "lucide-react";
 
 interface EventHeroProps {
@@ -61,10 +62,13 @@ export function EventHero({
   return (
     <section className="relative min-h-[420px] md:min-h-[480px] flex items-end">
       {/* Background */}
-      <img
+      <Image
         src={imageUrl}
         alt={isAr ? titleAr : titleEn}
-        className="absolute inset-0 w-full h-full object-cover"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-brand-blue-deeper/95 via-brand-blue-deeper/60 to-black/30" />
 

@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
+import Image from "next/image";
 import { Building2 } from "lucide-react";
 
 interface Partner {
@@ -47,9 +48,11 @@ export function ProgramPartners({ partners }: ProgramPartnersProps) {
             const content = (
               <div className="bg-surface-secondary rounded-xl border border-surface-tertiary p-5 md:p-6 flex flex-col items-center justify-center text-center h-28 transition-all duration-400 hover:shadow-md hover:border-brand-blue/15 hover:-translate-y-0.5">
                 {partner.logoUrl ? (
-                  <img
+                  <Image
                     src={partner.logoUrl}
                     alt={isAr ? partner.nameAr : partner.nameEn}
+                    width={120}
+                    height={40}
                     className="max-h-10 max-w-full object-contain mb-2"
                   />
                 ) : (

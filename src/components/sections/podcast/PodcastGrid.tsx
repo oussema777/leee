@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Link, useRouter as useI18nRouter } from "@/i18n/navigation";
@@ -27,10 +28,12 @@ function FeaturedEpisode({ ep, isAr }: { ep: PodcastEpisode; isAr: boolean }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[360px]">
           {/* Image */}
           <div className="relative h-64 lg:h-auto">
-            <img
+            <Image
               src={ep.coverImageUrl}
               alt={isAr ? ep.titleAr : ep.titleEn}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-brand-blue-deeper/70 to-transparent lg:bg-none" />
             {/* Play button overlay */}
@@ -188,10 +191,12 @@ export function PodcastGrid() {
                 >
                   {/* Thumbnail */}
                   <div className="relative w-24 h-24 md:w-32 md:h-32 shrink-0 overflow-hidden bg-gray-100">
-                    <img
+                    <Image
                       src={ep.coverImageUrl}
                       alt={isAr ? ep.titleAr : ep.titleEn}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      fill
+                      sizes="(max-width: 768px) 96px, 128px"
+                      className="object-cover group-hover:scale-105 transition-transform"
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Play className="w-8 h-8 text-white" fill="white" />

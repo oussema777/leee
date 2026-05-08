@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/Badge";
@@ -38,10 +39,12 @@ export function FeaturedEventBanner({ event }: { event: EventCardData }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[320px]">
         {/* Image */}
         <div className="relative h-64 lg:h-auto">
-          <img
+          <Image
             src={event.imageUrl}
             alt={isAr ? event.titleAr : event.titleEn}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-brand-blue-deeper/60 to-transparent lg:bg-none" />
         </div>

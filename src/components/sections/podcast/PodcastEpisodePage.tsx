@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
@@ -51,10 +52,13 @@ export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
     <>
       {/* Hero */}
       <section className="relative min-h-[400px] md:min-h-[460px] flex items-end">
-        <img
+        <Image
           src={episode.coverImageUrl}
           alt={isAr ? episode.titleAr : episode.titleEn}
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-blue-deeper/95 via-brand-blue-deeper/70 to-black/40" />
 
@@ -132,8 +136,8 @@ export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
             {/* Guest info */}
             {episode.guestNameEn && (
               <div className="bg-brand-blue-light/30 p-5 mb-8 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 shrink-0 border-2 border-brand-blue/20">
-                  <img src={episode.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-100 shrink-0 border-2 border-brand-blue/20">
+                  <Image src={episode.coverImageUrl} alt="" fill sizes="56px" className="object-cover" />
                 </div>
                 <div>
                   <p className="text-xs text-text-muted uppercase tracking-wider font-semibold mb-0.5">
@@ -241,10 +245,12 @@ export function PodcastEpisodePage({ episode }: { episode: PodcastEpisode }) {
                     className="group flex gap-3 items-start"
                   >
                     <div className="w-20 h-20 shrink-0 overflow-hidden bg-gray-100 relative">
-                      <img
+                      <Image
                         src={ep.coverImageUrl}
                         alt={isAr ? ep.titleAr : ep.titleEn}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        fill
+                        sizes="80px"
+                        className="object-cover group-hover:scale-105 transition-transform"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Play className="w-5 h-5 text-white" fill="white" />
