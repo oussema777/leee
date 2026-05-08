@@ -21,6 +21,13 @@ function useCountUp(target: number, isVisible: boolean) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     if (!isVisible) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setCount(target);
+      return;
+    }
+
     const duration = 2000;
     const startTime = performance.now();
 
@@ -68,26 +75,23 @@ function StatCard({
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
     >
       <div
-        className="rounded-2xl p-6 md:p-7 text-center transition-all duration-400 group-hover:translate-y-[-4px] group-hover:shadow-xl relative overflow-hidden"
+        className="rounded-2xl p-6 md:p-7 text-center transition-all duration-400 group-hover:translate-y-[-4px] group-hover:shadow-xl"
         style={{ backgroundColor: bgColor }}
       >
-        {/* Subtle light overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none" />
-
         {/* Icon */}
-        <div className="relative z-10 w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mx-auto mb-3">
+        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mx-auto mb-3">
           <Icon className="w-6 h-6 text-white" />
         </div>
 
         {/* Value */}
-        <div className="relative z-10 font-serif text-2xl md:text-3xl lg:text-4xl text-white font-bold mb-1 tabular-nums">
+        <div className="font-serif text-2xl md:text-3xl lg:text-4xl text-white mb-1 tabular-nums">
           {prefix}
           {value % 1 !== 0 ? count.toFixed(2) : count.toLocaleString()}
           {suffix}
         </div>
 
         {/* Label */}
-        <div className="relative z-10 text-white/85 text-xs font-medium uppercase tracking-[0.12em] leading-relaxed">
+        <div className="text-white/85 text-sm font-medium uppercase tracking-[0.08em] leading-relaxed">
           {label}
         </div>
       </div>
@@ -118,16 +122,9 @@ export function StatsCounter() {
   return (
     <section
       ref={ref}
-      className="relative py-20 md:py-28 bg-surface-primary overflow-hidden"
+      className="relative py-14 md:py-20 bg-surface-primary overflow-hidden"
     >
-      {/* Subtle background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 -start-20 w-[400px] h-[400px] bg-brand-blue/[0.03] rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -end-20 w-[400px] h-[400px] bg-brand-gold/[0.03] rounded-full blur-3xl" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+      <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
         {/* Header */}
         <motion.div
           className="text-center mb-14"
@@ -136,12 +133,12 @@ export function StatsCounter() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-flex items-center gap-3 text-brand-blue text-[11px] font-bold uppercase tracking-[0.3em] mb-4">
+          <span className="inline-flex items-center gap-3 text-brand-blue text-xs font-bold uppercase tracking-[0.15em] mb-4">
             <span className="w-6 h-[1.5px] bg-brand-blue" />
             {isAr ? "تأثيرنا بالأرقام" : "Impact in Numbers"}
             <span className="w-6 h-[1.5px] bg-brand-blue" />
           </span>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary tracking-tight mt-4">
+          <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-text-primary tracking-tight mt-4">
             {isAr ? "تأثيرنا بلمحة" : "Impact at a Glance"}
           </h2>
         </motion.div>

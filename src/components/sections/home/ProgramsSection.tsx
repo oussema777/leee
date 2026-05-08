@@ -117,24 +117,26 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
 
   const offset = -(current * (100 / visibleCount));
 
+  /* ── Swipe gesture for mobile ── */
+  const touchRef = useRef<{ startX: number; startY: number } | null>(null);
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
+  }, []);
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchRef.current) return;
+      const dx = e.changedTouches[0].clientX - touchRef.current.startX;
+      const dy = e.changedTouches[0].clientY - touchRef.current.startY;
+      touchRef.current = null;
+      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+      if (isAr ? dx > 0 : dx < 0) next();
+      else prev();
+    },
+    [next, prev, isAr]
+  );
+
   return (
     <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-secondary overflow-hidden relative">
-      {/* ═══ ABSTRACT SHAPES ═══ */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-14 end-[10%] w-[260px] h-[260px] bg-brand-blue/[0.03] animate-[morph-blob_14s_ease-in-out_infinite]" style={{ borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" }} />
-        <div className="absolute -bottom-10 -start-10 w-[220px] h-[220px] bg-emerald-400/[0.03] animate-[morph-blob_11s_ease-in-out_infinite_3s]" style={{ borderRadius: "40% 60% 70% 30% / 50% 60% 30% 60%" }} />
-        <div className="absolute top-[5%] start-[4%] w-14 h-14 rounded-full border-2 border-brand-blue/[0.06] animate-[drift-horizontal_8s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[8%] end-[5%] w-5 h-5 rounded-full bg-amber-400/12 animate-[float-medium_5s_ease-in-out_infinite_0.6s]" />
-        <div className="absolute top-[40%] start-[2%] w-4 h-4 bg-pink-400/10 rotate-45 animate-[float-slow_6s_ease-in-out_infinite_1s]" />
-        <div className="absolute top-[15%] end-[3%] w-3 h-3 rounded-full bg-violet-400/10 animate-[float-medium_4s_ease-in-out_infinite_0.3s]" />
-        <div className="absolute bottom-[15%] start-[20%] text-emerald-400/[0.05] animate-[float-slow_7s_ease-in-out_infinite_1.5s]">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
-        </div>
-        <svg className="absolute bottom-[5%] end-[12%] w-20 h-20 text-brand-blue/[0.04] animate-[float-slow_10s_ease-in-out_infinite]" viewBox="0 0 80 80" fill="none">
-          <circle cx="40" cy="40" r="32" stroke="currentColor" strokeWidth="1" strokeDasharray="3 5" />
-        </svg>
-      </div>
-
       <Container>
         {/* Header — slide down */}
         <div
@@ -146,12 +148,12 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
           <SectionLabel color="green" className="mb-5 block justify-center">
             {isAr ? "برامجنا وركائزنا" : "Our Pillars & Programs"}
           </SectionLabel>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary leading-[1.08] tracking-tight mb-5 max-w-2xl mx-auto">
+          <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-text-primary leading-[1.08] tracking-tight mb-5 max-w-2xl mx-auto">
             {isAr
               ? "5 ركائز لإطلاق الأفكار وتنمية المشاريع وتوسيع التأثير"
               : "5 pillars to launch ideas, grow ventures and scale impact"}
           </h2>
-          <p className="text-text-secondary leading-relaxed text-[15px] max-w-xl mx-auto">
+          <p className="text-text-secondary leading-relaxed text-sm max-w-xl mx-auto">
             {isAr
               ? "تقع أنشطتنا وبرامجنا الرئيسية ضمن عدة ركائز متكاملة"
               : "Our main activities and programs fall under several integrated pillars"}
@@ -178,7 +180,7 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                   key={pillar.slug}
                   onClick={() => setActivePillar(pillar.slug)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all duration-300 flex-shrink-0 border",
+                    "flex items-center gap-2 px-4 py-3 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-300 flex-shrink-0 border",
                     isActive
                       ? `${pillar.color} text-white border-transparent shadow-lg`
                       : "bg-white/80 text-text-secondary border-surface-tertiary hover:border-brand-blue/30 hover:text-text-primary hover:shadow-sm"
@@ -206,6 +208,7 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                 <button
                   onClick={prev}
                   disabled={current === 0}
+                  aria-label={isAr ? "البرنامج السابق" : "Previous program"}
                   className={cn(
                     "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all",
                     current === 0
@@ -218,6 +221,7 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                 <button
                   onClick={next}
                   disabled={current >= maxIndex}
+                  aria-label={isAr ? "البرنامج التالي" : "Next program"}
                   className={cn(
                     "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all",
                     current >= maxIndex
@@ -230,7 +234,11 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
               </div>
             </div>
 
-            <div className="relative touch-pan-y">
+            <div
+              className="relative"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activePillar}
@@ -297,7 +305,7 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
                                   {isAr ? program.pillar.titleAr : program.pillar.titleEn}
                                 </span>
                               )}
-                              <h3 className="font-bold text-text-primary leading-snug mb-2.5 line-clamp-2 group-hover:text-brand-blue transition-colors">
+                              <h3 className="font-serif text-[1.125rem] text-text-primary leading-snug mb-2.5 line-clamp-2 group-hover:text-brand-blue transition-colors">
                                 {isAr ? program.titleAr : program.titleEn}
                               </h3>
                               <p className="text-text-secondary text-sm leading-relaxed line-clamp-2 mb-4 flex-1">
@@ -332,18 +340,23 @@ export function ProgramsSection({ programs = [] }: ProgramsSectionProps) {
             </div>
 
             <div className="mt-8 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: maxIndex + 1 }).map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setCurrent(i)}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all duration-300",
-                      i === current
-                        ? "w-8 bg-brand-blue"
-                        : "w-3 bg-gray-200 hover:bg-gray-300"
-                    )}
-                  />
+                    aria-label={`${isAr ? "الصفحة" : "Page"} ${i + 1}`}
+                    className="relative flex items-center justify-center h-11 w-8 touch-manipulation"
+                  >
+                    <span
+                      className={cn(
+                        "block h-1.5 rounded-full transition-all duration-300",
+                        i === current
+                          ? "w-8 bg-brand-blue"
+                          : "w-3 bg-gray-200 hover:bg-gray-300"
+                      )}
+                    />
+                  </button>
                 ))}
               </div>
               <ArrowLink href="/programs">

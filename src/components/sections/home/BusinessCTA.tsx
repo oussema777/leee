@@ -10,8 +10,8 @@ import { HandHeart, UserPlus, Wrench, CircleDollarSign } from "lucide-react";
 const ctaItems = [
   { icon: <HandHeart className="w-8 h-8" />, labelKey: "volunteer", href: "/get-involved/join-us" },
   { icon: <UserPlus className="w-8 h-8" />, labelKey: "expertPool", href: "/get-involved/join-us" },
-  { icon: <Wrench className="w-8 h-8" />, labelKey: "requestServiceCta", href: "/get-involved/request-service" },
-  { icon: <CircleDollarSign className="w-8 h-8" />, labelKey: "crowdfundingCta", href: "/get-involved/crowdfunding" },
+  { icon: <Wrench className="w-8 h-8" />, labelKey: "requestServiceCta", href: "/get-involved/partner" },
+  { icon: <CircleDollarSign className="w-8 h-8" />, labelKey: "crowdfundingCta", href: "/get-involved/partner" },
 ];
 
 export function BusinessCTA() {

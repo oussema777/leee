@@ -76,7 +76,7 @@ export function AboutSection() {
               "transition-all duration-700 ease-out",
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )} style={{ transitionDelay: "300ms" }}>
-              <ArrowLink href="/about/overview">
+              <ArrowLink href="/about">
                 {isAr ? "اعرف المزيد عنا" : "Learn more about us"}
               </ArrowLink>
             </div>

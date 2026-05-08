@@ -1,11 +1,9 @@
 import { HeroSlider } from "@/components/sections/home/HeroSlider";
-import { VisionRibbon } from "@/components/sections/home/VisionRibbon";
 import { StatsCounter } from "@/components/sections/home/StatsCounter";
 import { WhoWeAreGrid } from "@/components/sections/home/WhoWeAreGrid";
 import { ProgramsSection } from "@/components/sections/home/ProgramsSection";
-import { CEOSection } from "@/components/sections/home/CEOSection";
 import { PartnersCarousel } from "@/components/sections/home/PartnersCarousel";
-import { JoinCommunity } from "@/components/sections/home/JoinCommunity";
+import { CEOSection } from "@/components/sections/home/CEOSection";
 import { LatestBeats } from "@/components/sections/home/LatestBeats";
 import { NewsletterSection } from "@/components/sections/home/NewsletterSection";
 import { CTABanner } from "@/components/sections/home/CTABanner";
@@ -34,13 +32,11 @@ export default async function HomePage() {
   return (
     <>
       <HeroSlider />
-      <VisionRibbon />
       <StatsCounter />
       <WhoWeAreGrid />
       <ProgramsSection programs={sliderPrograms} />
-      <CEOSection />
       <PartnersCarousel />
-      <JoinCommunity />
+      <CEOSection />
       <LatestBeats />
       <NewsletterSection />
       <CTABanner />

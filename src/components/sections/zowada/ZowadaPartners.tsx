@@ -48,7 +48,7 @@ export function ZowadaPartners() {
                   </p>
 
                   <a
-                    href="/contact"
+                    href="/get-involved/partner"
                     className="inline-block bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-brand-blue/90 transition"
                   >
                     {isAr ? "لنتحدث" : "Let's Talk"}

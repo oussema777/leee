@@ -35,7 +35,7 @@ const ctas = [
     titleAr: "اطلب خدمة",
     descEn: "Start your journey",
     descAr: "ابدأ رحلتك",
-    href: "/get-involved/request-service",
+    href: "/get-involved/partner",
     gradient: "from-brand-blue to-accent-steel",
     iconBg: "bg-white/20",
     ring: "border-white/10",

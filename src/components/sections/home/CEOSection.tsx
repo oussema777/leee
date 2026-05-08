@@ -135,17 +135,6 @@ function FounderRow({
         animate={visible ? "visible" : "hidden"}
       >
         <div className="relative w-full max-w-sm mx-auto">
-          {/* Decorative rings */}
-          <div
-            className="absolute -inset-4 md:-inset-6 rounded-2xl border border-brand-blue/10"
-            style={{ animation: "drift-horizontal 20s linear infinite" }}
-          />
-          <div
-            className="absolute -inset-2 md:-inset-3 rounded-2xl border border-brand-gold/[0.07]"
-            style={{ animation: "float-slow 12s ease-in-out infinite" }}
-          />
-
-          {/* Photo — full natural height */}
           <div className="relative rounded-2xl overflow-hidden shadow-xl">
             <Image
               src={founder.image}
@@ -155,26 +144,6 @@ function FounderRow({
               className="w-full h-auto object-contain"
               priority
             />
-            {/* Bottom glow accent */}
-            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/30 to-transparent" />
-            <div className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent" />
-          </div>
-
-          {/* Glass badge */}
-          <div
-            className={cn(
-              "absolute -bottom-3 z-10",
-              isAr ? "-start-3" : "-end-3"
-            )}
-          >
-            <div className="px-4 py-2 rounded-xl bg-white/70 backdrop-blur-md border border-white/40 shadow-lg">
-              <span className="text-xs font-semibold text-brand-blue/80 block leading-none">
-                {founder.badge}
-              </span>
-              <span className="text-[10px] text-text-secondary mt-0.5 block">
-                {founder.badgeSub}
-              </span>
-            </div>
           </div>
         </div>
       </motion.div>
@@ -187,7 +156,7 @@ function FounderRow({
         )}
       >
         <motion.h3
-          className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary mb-1 leading-tight"
+          className="font-serif text-2xl md:text-3xl text-text-primary mb-1 leading-tight"
           custom={0}
           variants={textV}
           initial="hidden"
@@ -224,38 +193,10 @@ function FounderRow({
           initial="hidden"
           animate={visible ? "visible" : "hidden"}
         >
-          <div className="relative rounded-xl p-6 md:p-8 bg-gradient-to-br from-surface-secondary/60 to-surface-secondary/30 border border-surface-tertiary/40 overflow-hidden">
-            <div
-              className={cn(
-                "absolute top-4 bottom-4 w-[3px] rounded-full bg-brand-blue",
-                isAr ? "end-0" : "start-0"
-              )}
-            />
-            <span
-              className={cn(
-                "absolute font-serif text-6xl md:text-7xl text-brand-blue/[0.08] leading-none select-none",
-                isAr ? "top-2 end-4" : "top-2 start-4"
-              )}
-            >
-              &ldquo;
-            </span>
-            <span
-              className={cn(
-                "absolute font-serif text-6xl md:text-7xl text-brand-blue/[0.08] leading-none select-none",
-                isAr ? "bottom-0 start-4" : "bottom-0 end-4"
-              )}
-            >
-              &rdquo;
-            </span>
-            <p
-              className={cn(
-                "font-serif text-lg md:text-xl text-text-primary italic relative z-10",
-                isAr ? "pe-6" : "ps-6"
-              )}
-            >
-              {founder.quote}
+          <div className="rounded-xl p-6 md:p-8 bg-surface-secondary/50 border border-surface-tertiary/40">
+            <p className="font-serif text-lg md:text-xl text-text-primary italic">
+              &ldquo;{founder.quote}&rdquo;
             </p>
-            <div className="absolute -top-8 -end-8 w-32 h-32 rounded-full bg-brand-blue/[0.04] blur-2xl" />
           </div>
         </motion.div>
       </div>
@@ -270,47 +211,9 @@ export function CEOSection() {
   const { ref, visible } = useInView(0.1);
 
   return (
-    <section className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute -top-24 -end-32 w-96 h-96 rounded-full bg-brand-blue/[0.03] blur-3xl"
-          style={{ animation: "morph-blob 20s ease-in-out infinite" }}
-        />
-        <div
-          className="absolute top-1/2 -start-12 w-32 h-32 rounded-full border-2 border-brand-gold/10"
-          style={{ animation: "float-slow 16s ease-in-out infinite" }}
-        />
-        <div
-          className="absolute -bottom-16 -start-24 w-72 h-72 rounded-full bg-brand-gold/[0.03] blur-3xl"
-          style={{ animation: "morph-blob 24s ease-in-out infinite reverse" }}
-        />
-      </div>
-
-      {/* Floating particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[
-          { top: "15%", start: "10%", size: "4px", delay: "0s", dur: "12s" },
-          { top: "70%", start: "85%", size: "3px", delay: "2s", dur: "10s" },
-          { top: "40%", start: "60%", size: "2px", delay: "4s", dur: "14s" },
-          { top: "85%", start: "25%", size: "3px", delay: "1s", dur: "11s" },
-        ].map((p, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-brand-blue/10"
-            style={{
-              top: p.top,
-              insetInlineStart: p.start,
-              width: p.size,
-              height: p.size,
-              animation: `float-particle ${p.dur} ease-in-out ${p.delay} infinite`,
-            }}
-          />
-        ))}
-      </div>
-
+    <section className="py-20 md:py-28 bg-surface-secondary relative overflow-hidden">
       <Container>
-        <div ref={ref} className={cn(isAr && "text-right")}>
+        <div ref={ref} className={cn(isAr && "text-end")}>
           {/* Section header */}
           <motion.div
             className="text-center mb-16 md:mb-20"
@@ -321,7 +224,7 @@ export function CEOSection() {
             <SectionLabel color="blue">
               {isAr ? "القيادة" : "Leadership"}
             </SectionLabel>
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary leading-tight mt-4">
+            <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-text-primary leading-tight mt-4">
               {isAr ? "تعرّف على مؤسسينا" : "Meet Our Founders"}
             </h2>
           </motion.div>

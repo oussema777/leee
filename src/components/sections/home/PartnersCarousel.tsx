@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -33,33 +34,29 @@ const partners = [
 export function PartnersCarousel() {
   const t = useTranslations("home");
   const doubled = [...partners, ...partners];
+  const [paused, setPaused] = useState(false);
 
   return (
-    <section className="py-20 bg-surface-primary relative overflow-hidden">
-      {/* Background shapes matching page style */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute -top-16 -end-20 w-72 h-72 rounded-full bg-brand-blue/[0.03] blur-3xl"
-          style={{ animation: "morph-blob 18s ease-in-out infinite" }}
-        />
-        <div
-          className="absolute -bottom-20 -start-20 w-64 h-64 rounded-full bg-brand-gold/[0.03] blur-3xl"
-          style={{ animation: "morph-blob 22s ease-in-out infinite reverse" }}
-        />
-      </div>
-
+    <section className="py-12 md:py-16 bg-surface-primary relative overflow-hidden">
       <Container>
         <SectionHeader
           title={t("partnersTitle")}
           subtitle={t("partnersSubtitle")}
         />
         <div className="relative">
-          {/* Fade edges */}
-          <div className="absolute inset-y-0 start-0 w-24 bg-gradient-to-r from-surface-primary to-transparent z-10 pointer-events-none" />
-          <div className="absolute inset-y-0 end-0 w-24 bg-gradient-to-l from-surface-primary to-transparent z-10 pointer-events-none" />
+          {/* Fade edges — narrower on mobile */}
+          <div className="absolute inset-y-0 start-0 w-10 md:w-24 bg-gradient-to-r from-surface-primary to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 end-0 w-10 md:w-24 bg-gradient-to-l from-surface-primary to-transparent z-10 pointer-events-none" />
 
-          <div className="overflow-hidden">
-            <div className="flex gap-6 items-center animate-scroll">
+          <div
+            className="overflow-hidden"
+            onTouchStart={() => setPaused(true)}
+            onTouchEnd={() => setPaused(false)}
+          >
+            <div
+              className="flex gap-6 items-center animate-scroll"
+              style={paused ? { animationPlayState: "paused" } : undefined}
+            >
               {doubled.map((partner, i) => (
                 <div
                   key={`${partner.id}-${i}`}
@@ -89,6 +86,11 @@ export function PartnersCarousel() {
           }
           .animate-scroll:hover {
             animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .animate-scroll {
+              animation: none;
+            }
           }
         `}</style>
       </Container>

@@ -34,7 +34,7 @@ export function ProgramMiniFooter() {
             <Link href="/" className="hover:text-brand-blue transition-colors">
               {isAr ? "الرئيسية" : "Home"}
             </Link>
-            <Link href="/contact" className="hover:text-brand-blue transition-colors">
+            <Link href="/get-involved" className="hover:text-brand-blue transition-colors">
               {isAr ? "اتصل بنا" : "Contact Us"}
             </Link>
             <Link href="/programs" className="hover:text-brand-blue transition-colors">

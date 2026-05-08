@@ -154,7 +154,7 @@ export function Navbar() {
           <div className="hidden lg:flex items-center gap-2">
             {/* Ask Us Button */}
             <Link
-              href="/contact"
+              href="/get-involved"
               className="px-5 py-2 text-[13px] font-semibold border-2 border-brand-blue-light text-brand-blue-light rounded-sm hover:bg-brand-blue-light hover:text-accent-navy transition-all"
             >
               {locale === "ar" ? "تواصل معنا" : "Ask Us"}
@@ -251,7 +251,7 @@ export function Navbar() {
               {/* Mobile Actions */}
               <div className="pt-4 border-t border-white/10 space-y-3 px-3">
                 <Link
-                  href="/contact"
+                  href="/get-involved"
                   onClick={() => setMobileOpen(false)}
                   className="block w-full text-center px-5 py-2.5 text-sm font-semibold border-2 border-brand-blue-light text-brand-blue-light rounded-sm"
                 >

@@ -21,7 +21,7 @@ export function SectionHeader({
         className
       )}
     >
-      <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-3">
+      <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-text-primary mb-3">
         {title}
       </h2>
       {subtitle && (
@@ -31,7 +31,7 @@ export function SectionHeader({
       )}
       <div
         className={cn(
-          "mt-4 h-1 w-16 bg-brand-blue",
+          "mt-4 h-[2px] w-12 bg-brand-blue rounded-full",
           align === "center" && "mx-auto"
         )}
       />

@@ -55,11 +55,7 @@ export function NewsletterSection() {
   }
 
   return (
-    <section className="relative py-20 bg-gradient-to-br from-brand-blue/5 via-white to-brand-green/5 overflow-hidden">
-      {/* Decorative dots */}
-      <div className="absolute top-8 left-8 w-24 h-24 bg-brand-blue/5 rounded-full blur-2xl" />
-      <div className="absolute bottom-8 right-8 w-32 h-32 bg-brand-green/5 rounded-full blur-2xl" />
-
+    <section className="relative py-14 md:py-16 bg-surface-primary overflow-hidden">
       <Container>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -72,10 +68,10 @@ export function NewsletterSection() {
             <Mail className="w-6 h-6 text-brand-blue" />
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-accent-navy mb-4">
+          <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-accent-navy mb-4">
             {text.title}
           </h2>
-          <p className="text-accent-navy/60 text-lg mb-8 leading-relaxed">
+          <p className="text-text-secondary text-lg mb-8 leading-relaxed">
             {text.subtitle}
           </p>
 

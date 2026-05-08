@@ -27,14 +27,7 @@ export function VisionRibbon() {
       ref={ref}
       className="relative py-14 md:py-20 overflow-hidden bg-gradient-to-b from-white via-surface-primary to-white"
     >
-      {/* Soft accent blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 -start-20 w-[400px] h-[400px] bg-brand-blue/[0.04] rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -end-20 w-[350px] h-[350px] bg-brand-gold/[0.05] rounded-full blur-3xl" />
-      </div>
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-10">
         <div
           className={cn(
             "flex flex-col items-center text-center transition-all duration-700",
@@ -51,30 +44,13 @@ export function VisionRibbon() {
             {c.label}
           </span>
 
-          {/* Decorative lines */}
-          <div className="flex items-center gap-3 mb-6">
-            <span
-              className={cn(
-                "w-10 h-[2px] bg-brand-gold/50 rounded-full transition-all duration-700 delay-200",
-                visible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
-              )}
-            />
-            <span className="w-2 h-2 rounded-full bg-brand-gold/40" />
-            <span
-              className={cn(
-                "w-10 h-[2px] bg-brand-gold/50 rounded-full transition-all duration-700 delay-200",
-                visible ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"
-              )}
-            />
-          </div>
-
           {/* Vision text */}
           <p className="font-serif text-xl md:text-2xl lg:text-[1.75rem] text-text-primary leading-relaxed max-w-3xl">
             &ldquo;{c.text}&rdquo;
           </p>
 
-          {/* Bottom accent */}
-          <div className="mt-8 w-16 h-1 rounded-full bg-gradient-to-r from-brand-blue via-brand-gold to-brand-blue opacity-40" />
+          {/* Editorial line */}
+          <div className="mt-8 w-12 h-[2px] rounded-full bg-brand-blue" />
         </div>
       </div>
     </section>

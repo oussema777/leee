@@ -8,6 +8,7 @@ import { Building2, Lightbulb, Users, MapPin } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState, useCallback } from "react";
 
 const quadrants = {
   en: [
@@ -120,6 +121,18 @@ function FlipCard({
   visible: boolean;
 }) {
   const Icon = item.icon;
+  const [flipped, setFlipped] = useState(false);
+
+  const toggle = useCallback(() => setFlipped((f) => !f), []);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle();
+      }
+    },
+    [toggle]
+  );
 
   return (
     <motion.div
@@ -129,7 +142,19 @@ function FlipCard({
       animate={visible ? "visible" : "hidden"}
       className="group [perspective:1200px]"
     >
-      <div className="relative h-[320px] md:h-[380px] w-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={flipped}
+        onClick={toggle}
+        onKeyDown={handleKeyDown}
+        className={cn(
+          "relative h-[320px] md:h-[380px] w-full transition-transform duration-700 ease-in-out [transform-style:preserve-3d] cursor-pointer",
+          flipped
+            ? "[transform:rotateY(180deg)]"
+            : "md:group-hover:[transform:rotateY(180deg)]"
+        )}
+      >
         {/* ===== FRONT — Full image ===== */}
         <div className="absolute inset-0 [backface-visibility:hidden] rounded-2xl overflow-hidden shadow-lg">
           <Image
@@ -154,41 +179,30 @@ function FlipCard({
             </h3>
           </div>
 
-          {/* Hover hint */}
-          <div className="absolute top-4 end-4 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white/80 text-[11px] font-medium tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            Hover to flip
+          {/* Interaction hint — visible on mobile, hover-reveal on desktop */}
+          <div className="absolute top-4 end-4 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white/80 text-xs font-medium tracking-wide opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            Tap to flip
           </div>
         </div>
 
         {/* ===== BACK — Content ===== */}
         <div
-          className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-center p-8 md:p-10"
+          className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-center p-5 md:p-10"
           style={{ backgroundColor: item.color }}
         >
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{
-            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
-          }} />
-
-          {/* Content */}
           <div className="relative z-10">
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-5">
-              <Icon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/20 flex items-center justify-center mb-3 md:mb-5">
+              <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
 
-            <h3 className="font-serif text-2xl md:text-[1.7rem] text-white mb-4 leading-tight">
+            <h3 className="font-serif text-xl md:text-[1.7rem] text-white mb-2 md:mb-4 leading-tight">
               {item.title}
             </h3>
 
-            <p className="text-white/90 text-sm md:text-[0.95rem] leading-relaxed">
+            <p className="text-white/90 text-sm md:text-base leading-relaxed">
               {item.description}
             </p>
           </div>
-
-          {/* Decorative corner accent */}
-          <div className="absolute top-0 end-0 w-24 h-24 rounded-bl-[48px] bg-white/[0.06]" />
-          <div className="absolute bottom-0 start-0 w-16 h-16 rounded-tr-[32px] bg-white/[0.04]" />
         </div>
       </div>
     </motion.div>
@@ -203,30 +217,8 @@ export function WhoWeAreGrid() {
 
   return (
     <section className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
-      {/* Dot grid pattern */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, #5895D0 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-
-      {/* Floating abstract shapes */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute -top-16 -start-20 w-72 h-72 rounded-full bg-brand-blue/[0.04] blur-2xl"
-          style={{ animation: "morph-blob 18s ease-in-out infinite" }}
-        />
-        <div
-          className="absolute -bottom-20 -end-32 w-80 h-80 rounded-full bg-brand-gold/[0.03] blur-3xl"
-          style={{ animation: "morph-blob 22s ease-in-out infinite reverse" }}
-        />
-      </div>
-
       <Container>
-        <div ref={ref} className={cn(isAr && "text-right")}>
+        <div ref={ref} className={cn(isAr && "text-end")}>
           {/* Section header */}
           <motion.div
             className="text-center mb-14"
@@ -245,7 +237,7 @@ export function WhoWeAreGrid() {
                 initial="hidden"
                 animate={visible ? "visible" : "hidden"}
               />
-              <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.75rem] text-text-primary leading-tight">
+              <h2 className="font-serif text-[clamp(1.75rem,3vw,2.5rem)] text-text-primary leading-tight">
                 {isAr
                   ? "نظرة شاملة على منظومتنا"
                   : "A Snapshot of Our Ecosystem"}

@@ -142,7 +142,7 @@ export default async function PartnerPage({
               {isAr ? "هل أنت مستعد لصنع الأثر؟" : "Ready to make an impact?"}
             </h2>
             <Link
-              href={`/${locale}/contact`}
+              href={`/${locale}/get-involved`}
               className="inline-flex items-center gap-2 bg-brand-blue text-white font-semibold px-8 py-4 rounded-xl hover:bg-brand-blue/90 transition-colors shadow-md hover:shadow-lg"
             >
               {isAr
