@@ -58,6 +58,7 @@ export function Navbar() {
       label: t("media"),
       href: "/media",
       children: [
+        { label: locale === "ar" ? "ذا سبارك" : "The Spark", href: "/media" },
         { label: t("events"), href: "/media/events" },
         { label: t("gallery"), href: "/media/gallery" },
         { label: t("videos"), href: "/media/videos" },
