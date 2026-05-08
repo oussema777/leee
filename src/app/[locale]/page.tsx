@@ -2,6 +2,20 @@ import dynamic from "next/dynamic";
 import { HeroSlider } from "@/components/sections/home/HeroSlider";
 import { StatsCounter } from "@/components/sections/home/StatsCounter";
 import { getFeaturedPrograms } from "@/lib/data/programs";
+import { buildPageMetadata } from "@/lib/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return buildPageMetadata({
+    title: locale === "ar" ? "تجربة LEE — تمكين المجتمعات" : "The LEE Experience — Empowering Communities",
+    description: locale === "ar"
+      ? "تجربة LEE - تمكين المجتمعات من خلال التأثير الاجتماعي وبناء القدرات والتنمية المستدامة في لبنان ومنطقة الشرق الأوسط وشمال أفريقيا."
+      : "The LEE Experience - Empowering communities through social impact, capacity building, and sustainable development in Lebanon and the MENA region.",
+    path: "",
+    locale,
+    keywords: ["LEE Experience", "social enterprise", "MENA", "Lebanon", "empowerment", "sustainable development"],
+  });
+}
 
 const WhoWeAreGrid = dynamic(
   () => import("@/components/sections/home/WhoWeAreGrid").then((m) => m.WhoWeAreGrid)

@@ -86,7 +86,7 @@ export function Navbar() {
       isProgramDetail ? "relative" : "sticky top-0"
     )}>
       <Container>
-        <nav className="flex items-center justify-between h-16 lg:h-[72px]">
+        <nav aria-label="Main navigation" className="flex items-center justify-between h-16 lg:h-[72px]">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <Image

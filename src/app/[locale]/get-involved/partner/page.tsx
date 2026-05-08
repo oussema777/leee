@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { partnerOptions } from "@/components/sections/get-involved/getInvolvedData";
@@ -10,16 +11,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  return {
-    title:
-      locale === "ar"
-        ? "موثوق من قبل — تجربة LEE"
-        : "Trusted By — The LEE Experience",
-    description:
-      locale === "ar"
-        ? "شارك في إنشاء برامج خضراء ومستجيبة للنوع الاجتماعي."
-        : "Co-create green, gender-responsive programs. Invest in women-led climate innovation.",
-  };
+  return buildPageMetadata({
+    title: locale === "ar"
+      ? "موثوق من قبل — تجربة LEE"
+      : "Trusted By — The LEE Experience",
+    description: locale === "ar"
+      ? "شارك في إنشاء برامج خضراء ومستجيبة للنوع الاجتماعي."
+      : "Co-create green, gender-responsive programs. Invest in women-led climate innovation.",
+    path: "get-involved/partner",
+    locale,
+  });
 }
 
 export default async function PartnerPage({

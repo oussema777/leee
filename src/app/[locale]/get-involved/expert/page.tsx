@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 
@@ -9,16 +10,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  return {
-    title:
-      locale === "ar"
-        ? "للخبراء والمرشدين — تجربة LEE"
-        : "For Experts & Mentors — The LEE Experience",
-    description:
-      locale === "ar"
-        ? "انضم إلى فريق المدربين والمرشدين. شارك مهاراتك وغيّر مساراً."
-        : "Join our pool of trainers, coaches, and mentors. Share your skills and change a life.",
-  };
+  return buildPageMetadata({
+    title: locale === "ar"
+      ? "للخبراء والمرشدين — تجربة LEE"
+      : "For Experts & Mentors — The LEE Experience",
+    description: locale === "ar"
+      ? "انضم إلى فريق المدربين والمرشدين. شارك مهاراتك وغيّر مساراً."
+      : "Join our pool of trainers, coaches, and mentors. Share your skills and change a life.",
+    path: "get-involved/expert",
+    locale,
+  });
 }
 
 export default async function ExpertPage({

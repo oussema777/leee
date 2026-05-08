@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { ProgramsGrid } from "@/components/sections/programs/ProgramsGrid";
@@ -8,11 +9,13 @@ import { getPrograms } from "@/lib/data/programs";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "programs" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-    keywords: "LEE programs, projects, economic empowerment, livelihoods, MSMEs, cooperatives, market access, implementation, women empowerment, youth development, green economy",
-  };
+    path: "programs",
+    locale,
+    keywords: ["LEE programs", "projects", "economic empowerment", "livelihoods", "MSMEs", "cooperatives", "market access", "women empowerment", "youth development", "green economy"],
+  });
 }
 
 export default async function ProgramsPage({

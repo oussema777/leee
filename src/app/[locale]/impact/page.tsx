@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ImpactDashboard } from "@/components/sections/impact/ImpactDashboard";
 import { CaseStudies } from "@/components/sections/impact/CaseStudies";
@@ -11,11 +12,13 @@ import { ImpactDownloads } from "@/components/sections/impact/ImpactDownloads";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "about" });
-  return {
+  return buildPageMetadata({
     title: t("impactTitle"),
     description: "Impact isn't a report. It's a ripple.",
-    keywords: "LEE impact, economic empowerment, livelihoods, MSMEs, women innovators, green economy, MENA, humanitarian aid, case studies",
-  };
+    path: "impact",
+    locale,
+    keywords: ["LEE impact", "economic empowerment", "livelihoods", "MSMEs", "women innovators", "green economy", "MENA", "humanitarian aid", "case studies"],
+  });
 }
 
 export default async function ImpactPage({

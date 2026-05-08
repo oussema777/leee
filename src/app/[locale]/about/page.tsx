@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AboutIntro } from "@/components/sections/about/AboutIntro";
 import { AboutVMV } from "@/components/sections/about/AboutVMV";
@@ -13,10 +14,12 @@ import { AboutPartners } from "@/components/sections/about/AboutPartners";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "about" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: "Born in crisis. Built for change.",
-  };
+    path: "about",
+    locale,
+  });
 }
 
 export default async function AboutPage({

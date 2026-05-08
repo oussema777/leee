@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { ReportsGrid } from "@/components/sections/reports/ReportsGrid";
@@ -7,10 +8,12 @@ import { ReportsGrid } from "@/components/sections/reports/ReportsGrid";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "reports" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-  };
+    path: "media/reports",
+    locale,
+  });
 }
 
 export default async function ReportsPage({

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { GetInvolvedHub } from "@/components/sections/get-involved/GetInvolvedHub";
 
@@ -8,16 +9,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  return {
-    title:
-      locale === "ar"
-        ? "شارك معنا — تجربة LEE"
-        : "Get Involved — The LEE Experience",
-    description:
-      locale === "ar"
-        ? "التغيير ليس رياضة مشاهدة. اعثر على دورك في الحركة."
-        : "Change isn't a spectator sport. Find your role in the movement.",
-  };
+  return buildPageMetadata({
+    title: locale === "ar"
+      ? "شارك معنا — تجربة LEE"
+      : "Get Involved — The LEE Experience",
+    description: locale === "ar"
+      ? "التغيير ليس رياضة مشاهدة. اعثر على دورك في الحركة."
+      : "Change isn't a spectator sport. Find your role in the movement.",
+    path: "get-involved",
+    locale,
+  });
 }
 
 export default async function GetInvolvedPage({

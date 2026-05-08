@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { JoinUsForm } from "@/components/forms/JoinUsForm";
@@ -6,12 +7,14 @@ import { JoinUsForm } from "@/components/forms/JoinUsForm";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "getInvolved" });
-  return {
+  return buildPageMetadata({
     title: t("joinUsTitle"),
     description: locale === "ar"
       ? "انضم إلى تجربة LEE وكن جزءاً من مجتمعنا المتنامي"
       : "Join The LEE Experience and become part of our growing community",
-  };
+    path: "get-involved/join-us",
+    locale,
+  });
 }
 
 export default async function JoinUsPage({

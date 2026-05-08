@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { entrepreneurSteps } from "@/components/sections/get-involved/getInvolvedData";
@@ -10,16 +11,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  return {
-    title:
-      locale === "ar"
-        ? "لرواد الأعمال — تجربة LEE"
-        : "For Entrepreneurs — The LEE Experience",
-    description:
-      locale === "ar"
-        ? "لديك فكرة مشروع أخضر؟ سنساعدك على التحقق منها وبنائها وتمويلها."
-        : "Got a green business idea? We'll help you validate, build, and fund it.",
-  };
+  return buildPageMetadata({
+    title: locale === "ar"
+      ? "لرواد الأعمال — تجربة LEE"
+      : "For Entrepreneurs — The LEE Experience",
+    description: locale === "ar"
+      ? "لديك فكرة مشروع أخضر؟ سنساعدك على التحقق منها وبنائها وتمويلها."
+      : "Got a green business idea? We'll help you validate, build, and fund it.",
+    path: "get-involved/entrepreneur",
+    locale,
+  });
 }
 
 export default async function EntrepreneurPage({

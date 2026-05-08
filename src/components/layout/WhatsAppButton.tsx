@@ -19,7 +19,7 @@ export function WhatsAppButton() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="WhatsApp"
+      aria-label="Chat on WhatsApp"
       className="group fixed bottom-6 end-6 z-50 flex items-center gap-0 hover:gap-3 transition-all duration-300"
     >
       {/* Text label — hidden by default, slides out on hover */}

@@ -110,6 +110,7 @@ export function PageHeader({
           {/* Breadcrumbs */}
           {breadcrumbs && breadcrumbs.length > 0 && (
             <nav
+              aria-label="Breadcrumb"
               className={cn(
                 "flex items-center gap-2 text-sm text-white/50 mb-6 transition-all duration-700 ease-out",
                 visible
@@ -204,6 +205,23 @@ export function PageHeader({
             />
           </svg>
         </div>
+      )}
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: breadcrumbs.map((crumb, i) => ({
+                "@type": "ListItem",
+                position: i + 1,
+                name: crumb.label,
+                ...(crumb.href ? { item: `https://theleeexperience.com${crumb.href}` } : {}),
+              })),
+            }),
+          }}
+        />
       )}
     </section>
   );

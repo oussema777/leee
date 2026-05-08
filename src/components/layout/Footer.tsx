@@ -16,7 +16,7 @@ export function Footer() {
   const [footerStatus, setFooterStatus] = React.useState<"idle" | "loading" | "success" | "already" | "error">("idle");
 
   return (
-    <footer className="bg-accent-navy border-t border-white/10">
+    <footer aria-label="Footer" className="bg-accent-navy border-t border-white/10">
       <Container className="py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Column 1: Brand */}

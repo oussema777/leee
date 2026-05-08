@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { GalleryGrid } from "@/components/sections/gallery/GalleryGrid";
@@ -7,10 +8,12 @@ import { GalleryGrid } from "@/components/sections/gallery/GalleryGrid";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "gallery" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-  };
+    path: "media/gallery",
+    locale,
+  });
 }
 
 export default async function GalleryPage({

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { ZowadaHero } from "@/components/sections/zowada/ZowadaHero";
 import { ZowadaFeatures } from "@/components/sections/zowada/ZowadaFeatures";
 import { ZowadaConditions } from "@/components/sections/zowada/ZowadaConditions";
@@ -8,10 +9,12 @@ import { ZowadaVision } from "@/components/sections/zowada/ZowadaVision";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  return {
+  return buildPageMetadata({
     title: "Zowada Digital Accelerator",
     description: "Your green business. In your pocket. Marketplace, classroom, mentor network, and funding portal for entrepreneurs.",
-  };
+    path: "zowada",
+    locale,
+  });
 }
 
 export default async function ZowadaPage({

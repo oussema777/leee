@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 
@@ -9,16 +10,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  return {
-    title:
-      locale === "ar"
-        ? "للمناصرين — تجربة LEE"
-        : "For Advocates — The LEE Experience",
-    description:
-      locale === "ar"
-        ? "ضخّم قصص نجاحنا وادعم الابتكار الأخضر بقيادة النساء في شبكتك."
-        : "Amplify our success stories and champion women-led green innovation in your network.",
-  };
+  return buildPageMetadata({
+    title: locale === "ar"
+      ? "للمناصرين — تجربة LEE"
+      : "For Advocates — The LEE Experience",
+    description: locale === "ar"
+      ? "ضخّم قصص نجاحنا وادعم الابتكار الأخضر بقيادة النساء في شبكتك."
+      : "Amplify our success stories and champion women-led green innovation in your network.",
+    path: "get-involved/advocate",
+    locale,
+  });
 }
 
 export default async function AdvocatePage({

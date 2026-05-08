@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CareersList } from "@/components/sections/careers/CareersList";
 import { db } from "@/lib/db";
@@ -6,10 +7,12 @@ import { db } from "@/lib/db";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "careers" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-  };
+    path: "get-involved/careers",
+    locale,
+  });
 }
 
 export default async function CareersPage() {

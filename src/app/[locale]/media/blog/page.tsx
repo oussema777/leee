@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { BlogGrid } from "@/components/sections/blog/BlogGrid";
@@ -11,10 +12,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     locale === "ar"
       ? "أدلة إرشادية وتدريبات تعليمية ورؤى وقصص حول بناء الأعمال المرنة، والاقتصاد الأخضر، والمبتكرات من النساء في منطقة الشرق الأوسط وشمال أفريقيا."
       : "How-to guides, training tutorials, insights, and stories on building resilient businesses, the green economy, and women innovators across MENA.";
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description,
-  };
+    path: "media/blog",
+    locale,
+  });
 }
 
 export default async function BlogPage({

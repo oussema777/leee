@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { PodcastGrid } from "@/components/sections/podcast/PodcastGrid";
@@ -7,10 +8,12 @@ import { PodcastGrid } from "@/components/sections/podcast/PodcastGrid";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "podcast" });
-  return {
+  return buildPageMetadata({
     title: t("pageTitle"),
     description: t("pageSubtitle"),
-  };
+    path: "media/podcast",
+    locale,
+  });
 }
 
 export default async function PodcastPage({

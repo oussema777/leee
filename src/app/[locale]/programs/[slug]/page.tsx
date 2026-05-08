@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { ProgramPage } from "@/components/sections/programs/ProgramPage";
 import { getProgramBySlug } from "@/lib/data/programs";
+import { buildPageMetadata } from "@/lib/metadata";
+import { JsonLd } from "@/components/shared/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -19,17 +21,16 @@ export async function generateMetadata({
   const locationStr = locale === "ar"
     ? program.locationAr || program.locationEn || ""
     : program.locationEn || "";
-  const seoKeywords = "programs, projects, economic empowerment, livelihoods, MSMEs, cooperatives, market access, implementation, supported, delivered, strengthened";
-
-  return {
+  const base = buildPageMetadata({
     title,
-    description: summary,
-    keywords: seoKeywords,
-    openGraph: {
-      title,
-      description: summary,
-      ...(program.coverImageUrl ? { images: [{ url: program.coverImageUrl }] } : {}),
-    },
+    description: summary || "",
+    path: `programs/${slug}`,
+    locale,
+    ogImage: program.coverImageUrl || undefined,
+    keywords: ["programs", "projects", "economic empowerment", "livelihoods", "MSMEs", "cooperatives", "market access"],
+  });
+  return {
+    ...base,
     other: {
       ...(pillarName ? { "article:section": pillarName } : {}),
       ...(locationStr ? { "geo.placename": locationStr } : {}),
@@ -50,6 +51,17 @@ export default async function ProgramDetailPage({
   }
 
   return (
+    <>
+    <JsonLd data={{
+      "@context": "https://schema.org",
+      "@type": "Project",
+      name: program.titleEn,
+      description: program.summaryEn,
+      ...(program.coverImageUrl ? { image: `https://theleeexperience.com${program.coverImageUrl}` } : {}),
+      ...(program.locationEn ? { location: { "@type": "Place", name: program.locationEn } } : {}),
+      ...(program.donorEn ? { funder: { "@type": "Organization", name: program.donorEn } } : {}),
+      url: `https://theleeexperience.com/en/programs/${program.slug}`,
+    }} />
     <ProgramPage
       program={{
         titleEn: program.titleEn,
@@ -103,5 +115,6 @@ export default async function ProgramDetailPage({
         })),
       }}
     />
+    </>
   );
 }

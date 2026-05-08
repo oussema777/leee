@@ -37,7 +37,7 @@ export function NewsTicker() {
   const allItems = [...items, ...items];
 
   return (
-    <div className="bg-brand-black text-white overflow-hidden">
+    <div role="marquee" aria-live="polite" aria-label="News ticker" className="bg-brand-black text-white overflow-hidden">
       <div className="flex items-center h-8">
         {/* Label */}
         <div className="flex-shrink-0 flex items-center gap-1.5 px-3 bg-brand-blue h-full text-[11px] font-bold uppercase tracking-wider z-10">
