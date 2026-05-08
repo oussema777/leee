@@ -38,7 +38,9 @@ next-env.d.ts
 public/uploads/*
 !public/uploads/.gitkeep
 
-# Large video folder - exceeds GitHub 100MB limit
+# Large video/media folders - exceed GitHub 100MB limit
 public/images/projects/2025-leb-srp2-irc/
+public/images/spark/*.mp4
+public/images/The spark/
 track record with links Manal oussama.xlsx
 ~$*
