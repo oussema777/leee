@@ -11,7 +11,6 @@ const partners = [
   { id: "eu", name: "European Union", logo: "/images/partners/European Union.png" },
   { id: "undp", name: "UNDP", logo: "/images/partners/UNDP_logo.svg.png" },
   { id: "wfp", name: "World Food Programme", logo: "/images/partners/WFP.png" },
-  { id: "usaid", name: "USAID", logo: "/images/partners/USAID.jpg" },
   { id: "worldbank", name: "World Bank", logo: "/images/partners/World Bank.jpg" },
   { id: "irc", name: "IRC", logo: "/images/partners/IRC.png" },
   { id: "unifil", name: "UNIFIL", logo: "/images/partners/UNIFIL.jpg" },

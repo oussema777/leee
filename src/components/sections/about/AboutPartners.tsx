@@ -17,7 +17,6 @@ const partners = [
   { id: "netherlands", name: "Gov. of Netherlands" },
   { id: "norway", name: "Gov. of Norway" },
   { id: "bmz", name: "BMZ Germany" },
-  { id: "usaid", name: "USAID" },
   { id: "cawtar", name: "CAWTAR" },
   { id: "kvinna", name: "Kvinna till Kvinna" },
   { id: "solidarites", name: "Solidarités Int'l" },
