@@ -2,6 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { CoverLetterDialog } from "./CoverLetterDialog";
 
+export const dynamic = "force-dynamic";
+
 function formatRelative(date: Date) {
   const diff = Date.now() - date.getTime();
   const m = Math.round(diff / 60000);

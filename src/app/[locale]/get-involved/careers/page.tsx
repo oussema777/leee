@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CareersList } from "@/components/sections/careers/CareersList";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "careers" });
