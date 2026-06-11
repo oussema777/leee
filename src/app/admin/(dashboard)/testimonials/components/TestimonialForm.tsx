@@ -9,24 +9,38 @@ import ImageUploader from "../../../components/ImageUploader";
 import { useToast } from "../../../components/AdminToast";
 import { adminPost, adminPut } from "@/lib/admin-api";
 
-interface TestimonialData {
+export interface TestimonialData {
   id?: string;
   nameEn: string; nameAr: string;
   titleEn: string; titleAr: string;
   quoteEn: string; quoteAr: string;
   imageUrl: string;
+  programEn: string; programAr: string;
+  category: string;
+  year: number;
+  isOriginalCard: boolean;
   order: number; isActive: boolean;
 }
 
 const empty: TestimonialData = {
   nameEn: "", nameAr: "", titleEn: "", titleAr: "",
-  quoteEn: "", quoteAr: "", imageUrl: "", order: 0, isActive: true,
+  quoteEn: "", quoteAr: "", imageUrl: "",
+  programEn: "", programAr: "", category: "entrepreneurs",
+  year: new Date().getFullYear(), isOriginalCard: false,
+  order: 0, isActive: true,
 };
 
-export default function TestimonialForm({ initial }: { initial?: TestimonialData }) {
+const CATEGORIES = [
+  { label: "Entrepreneurs", value: "entrepreneurs" },
+  { label: "Women Leaders", value: "women" },
+  { label: "Community Members", value: "community" },
+  { label: "Trusted By", value: "partners" },
+];
+
+export default function TestimonialForm({ initial, submissionId }: { initial?: TestimonialData; submissionId?: string }) {
   const router = useRouter();
   const toast = useToast();
-  const [form, setForm] = useState<TestimonialData>(initial || empty);
+  const [form, setForm] = useState<TestimonialData>(initial ? { ...empty, ...initial } : empty);
   const [loading, setLoading] = useState(false);
 
   const set = <K extends keyof TestimonialData>(key: K, value: TestimonialData[K]) =>
@@ -38,7 +52,7 @@ export default function TestimonialForm({ initial }: { initial?: TestimonialData
     setLoading(true);
     try {
       if (form.id) { await adminPut(`/testimonials/${form.id}`, form); toast.success("Updated"); }
-      else { await adminPost("/testimonials", form); toast.success("Created"); }
+      else { await adminPost("/testimonials", submissionId ? { ...form, submissionId } : form); toast.success("Created"); }
       router.push("/admin/testimonials");
     } catch { toast.error("Failed to save"); }
     finally { setLoading(false); }
@@ -50,13 +64,19 @@ export default function TestimonialForm({ initial }: { initial?: TestimonialData
         {(lang) => (
           <div className="space-y-4">
             <AdminFormField type="text" label={`Name (${lang.toUpperCase()})`} value={lang === "en" ? form.nameEn : form.nameAr} onChange={(v) => set(lang === "en" ? "nameEn" : "nameAr", v)} required={lang === "en"} />
-            <AdminFormField type="text" label={`Title (${lang.toUpperCase()})`} value={lang === "en" ? form.titleEn : form.titleAr} onChange={(v) => set(lang === "en" ? "titleEn" : "titleAr", v)} />
+            <AdminFormField type="text" label={`Title / Role (${lang.toUpperCase()})`} value={lang === "en" ? form.titleEn : form.titleAr} onChange={(v) => set(lang === "en" ? "titleEn" : "titleAr", v)} />
+            <AdminFormField type="text" label={`Program (${lang.toUpperCase()})`} value={lang === "en" ? form.programEn : form.programAr} onChange={(v) => set(lang === "en" ? "programEn" : "programAr", v)} />
             <AdminFormField type="textarea" label={`Quote (${lang.toUpperCase()})`} value={lang === "en" ? form.quoteEn : form.quoteAr} onChange={(v) => set(lang === "en" ? "quoteEn" : "quoteAr", v)} required={lang === "en"} rows={4} />
           </div>
         )}
       </BilingualTabs>
       <ImageUploader value={form.imageUrl} onChange={(url) => set("imageUrl", url)} onRemove={() => set("imageUrl", "")} folder="testimonials" label="Photo" />
-      <AdminFormField type="number" label="Order" value={form.order} onChange={(v) => set("order", parseInt(v) || 0)} />
+      <AdminFormField type="select" label="Category" value={form.category} onChange={(v) => set("category", v)} options={CATEGORIES} />
+      <div className="grid grid-cols-2 gap-4">
+        <AdminFormField type="number" label="Year" value={form.year} onChange={(v) => set("year", parseInt(v) || 0)} />
+        <AdminFormField type="number" label="Order" value={form.order} onChange={(v) => set("order", parseInt(v) || 0)} />
+      </div>
+      <AdminFormField type="toggle" label="Original Card (image-only — imageUrl is a full designed testimonial card)" value={form.isOriginalCard} onChange={(v) => set("isOriginalCard", v)} />
       <AdminFormField type="toggle" label="Active" value={form.isActive} onChange={(v) => set("isActive", v)} />
     </AdminFormPage>
   );

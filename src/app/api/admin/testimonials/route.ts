@@ -28,7 +28,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const testimonial = await db.testimonial.create({ data: body });
+    const { submissionId, ...data } = body;
+
+    if (submissionId) {
+      // Approve & Publish: create the testimonial and mark the source
+      // submission APPROVED atomically.
+      const testimonial = await db.$transaction(async (tx) => {
+        const created = await tx.testimonial.create({ data });
+        await tx.testimonialSubmission.update({
+          where: { id: submissionId },
+          data: { status: "APPROVED", reviewedAt: new Date(), publishedTestimonialId: created.id },
+        });
+        return created;
+      });
+      return NextResponse.json(testimonial, { status: 201 });
+    }
+
+    const testimonial = await db.testimonial.create({ data });
     return NextResponse.json(testimonial, { status: 201 });
   } catch {
     return errorResponse("Failed to create testimonial");
