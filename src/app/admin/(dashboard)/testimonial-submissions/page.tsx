@@ -37,7 +37,7 @@ export default function TestimonialSubmissionsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminGet<PaginatedResponse<Submission>>(`/testimonial-submissions?page=${page}&search=${search}`);
+      const res = await adminGet<PaginatedResponse<Submission>>(`/testimonial-submissions?page=${page}&search=${encodeURIComponent(search)}`);
       setData(res.data); setTotalPages(res.pagination.totalPages); setTotal(res.pagination.total);
     } catch { toast.error("Failed to load submissions"); }
     finally { setLoading(false); }
