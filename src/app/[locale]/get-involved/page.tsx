@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { GetInvolvedHub } from "@/components/sections/get-involved/GetInvolvedHub";
+import { ShareStoryCTA } from "@/components/sections/get-involved/ShareStoryCTA";
 
 export async function generateMetadata({
   params,
@@ -49,6 +50,7 @@ export default async function GetInvolvedPage({
       />
 
       <GetInvolvedHub />
+      <ShareStoryCTA />
     </>
   );
 }
