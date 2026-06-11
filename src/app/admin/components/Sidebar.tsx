@@ -20,9 +20,11 @@ import {
   BookOpen,
   BarChart3,
   Layers,
+  Quote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { adminGet } from "@/lib/admin-api";
 
 const navGroups = [
   {
@@ -58,6 +60,7 @@ const navGroups = [
       { label: "Contact Messages", href: "/admin/contacts", icon: Mail },
       { label: "Join Us", href: "/admin/join-us", icon: UserPlus },
       { label: "Service Requests", href: "/admin/services", icon: Briefcase },
+      { label: "Testimonials Inbox", href: "/admin/testimonial-submissions", icon: Quote },
     ],
   },
   {
@@ -71,6 +74,12 @@ const navGroups = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [inboxCount, setInboxCount] = useState(0);
+  useEffect(() => {
+    adminGet<{ count: number }>("/testimonial-submissions/unread-count")
+      .then((d) => setInboxCount(d.count))
+      .catch(() => {});
+  }, [pathname]); // refetch on navigation so it clears after reading
 
   return (
     <aside
@@ -121,7 +130,7 @@ export default function Sidebar() {
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                        "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                         isActive
                           ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/20"
                           : "text-gray-400 hover:text-white hover:bg-gray-700/40"
@@ -130,6 +139,15 @@ export default function Sidebar() {
                     >
                       <item.icon size={20} className="shrink-0" />
                       {!collapsed && <span>{item.label}</span>}
+                      {item.href === "/admin/testimonial-submissions" && inboxCount > 0 && (
+                        collapsed ? (
+                          <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                        ) : (
+                          <span className="ms-auto bg-red-500 text-white text-[11px] font-semibold rounded-full px-2 py-0.5 leading-none">
+                            {inboxCount}
+                          </span>
+                        )
+                      )}
                     </Link>
                   </li>
                 );
