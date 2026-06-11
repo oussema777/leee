@@ -27,6 +27,7 @@ export function Navbar() {
       href: "/about",
       children: [
         { label: locale === "ar" ? "من نحن" : "About Us", href: "/about" },
+        { label: locale === "ar" ? "الخبراء والمرشدون" : "Experts & Mentors", href: "/about/experts" },
         { label: locale === "ar" ? "الأثر" : "Impact", href: "/impact" },
         { label: locale === "ar" ? "زوادة" : "Zowada", href: "/zowada" },
       ],
@@ -51,6 +52,7 @@ export function Navbar() {
         { label: locale === "ar" ? "موثوق من قبل" : "Trusted By", href: "/get-involved/partner" },
         { label: locale === "ar" ? "الخبراء" : "Experts", href: "/get-involved/expert" },
         { label: locale === "ar" ? "المناصرة" : "Advocates", href: "/get-involved/advocate" },
+        { label: locale === "ar" ? "شارك قصتك" : "Share Your Story", href: "/get-involved/share-your-story" },
         { label: locale === "ar" ? "الوظائف" : "Careers", href: "/get-involved/careers" },
       ],
     },

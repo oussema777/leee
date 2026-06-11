@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { demoEvents } from "@/components/sections/events/eventsData";
+import { getEventBySlug, getRelatedEvents } from "@/lib/data/events";
 import { EventPage } from "@/components/sections/events/EventPage";
 import { buildPageMetadata } from "@/lib/metadata";
 import { JsonLd } from "@/components/shared/JsonLd";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -10,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const event = demoEvents.find((e) => e.slug === slug);
+  const event = await getEventBySlug(slug);
   if (!event) return {};
 
   const isAr = locale === "ar";
@@ -29,11 +31,13 @@ export default async function EventDetailPage({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { slug } = await params;
-  const event = demoEvents.find((e) => e.slug === slug);
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     notFound();
   }
+
+  const relatedEvents = await getRelatedEvents(event.slug, event.category);
 
   return (
     <>
@@ -49,7 +53,7 @@ export default async function EventDetailPage({
         url: `https://theleeexperience.com/en/media/events/${event.slug}`,
         organizer: { "@type": "Organization", name: "The LEE Experience" },
       }} />
-      <EventPage event={event} />
+      <EventPage event={event} relatedEvents={relatedEvents} />
     </>
   );
 }

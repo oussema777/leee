@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendNotificationEmail, renderNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +37,28 @@ export async function POST(request: NextRequest) {
         motivation: motivation?.trim() || null,
         cvUrl: cvUrl || null,
       },
+    });
+
+    await sendNotificationEmail({
+      subject: `[LEEE] New application: ${firstName} ${lastName}${role ? ` (${role})` : ""}`,
+      replyTo: email,
+      html: renderNotification(
+        "New application received",
+        `A new application was submitted via the website${role ? ` for the "${role}" path.` : "."}`,
+        [
+          { label: "Name", value: `${firstName} ${lastName}` },
+          { label: "Email", value: email },
+          { label: "Phone", value: phone },
+          { label: "Nationality", value: nationality },
+          { label: "Organization", value: organization },
+          { label: "Role", value: role },
+          { label: "Sector", value: sector },
+          { label: "Experience", value: experience },
+          { label: "Interest area", value: interestArea ? String(interestArea) : null },
+          { label: "Motivation", value: motivation },
+          { label: "CV", value: cvUrl },
+        ]
+      ),
     });
 
     return NextResponse.json({ success: true, id: submission.id }, { status: 201 });

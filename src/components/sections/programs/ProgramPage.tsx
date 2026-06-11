@@ -23,6 +23,7 @@ interface ProgramData {
   coverImageUrl: string;
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
   year: number;
+  endYear?: number | null;
   donorEn: string;
   donorAr: string;
   locationEn: string;
@@ -91,6 +92,7 @@ export function ProgramPage({ program }: { program: ProgramData }) {
         locationEn={program.locationEn}
         locationAr={program.locationAr}
         year={program.year}
+        endYear={program.endYear}
         beneficiaries={program.beneficiaries}
         galleryImages={program.images}
       />

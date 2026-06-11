@@ -5,7 +5,7 @@ import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { Users, Shield, Target, Heart, Scale, Leaf, Network } from "lucide-react";
-import { coreValues } from "./aboutData";
+import type { CoreValueItem } from "@/lib/data/about";
 import Image from "next/image";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -44,10 +44,12 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function AboutValues() {
+export function AboutValues({ values }: { values: CoreValueItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
+
+  if (values.length === 0) return null;
 
   return (
     <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
@@ -110,7 +112,7 @@ export function AboutValues() {
 
         {/* Value cards — alternating slide left/right */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 xl:grid-cols-4">
-          {coreValues.map((value, i) => {
+          {values.map((value, i) => {
             const Icon = iconMap[value.icon] ?? Users;
             const colors = valueColors[i % valueColors.length];
             const fromLeft = i % 2 === 0;

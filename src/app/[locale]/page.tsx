@@ -1,8 +1,13 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { HeroSlider } from "@/components/sections/home/HeroSlider";
 import { StatsCounter } from "@/components/sections/home/StatsCounter";
 import { getFeaturedPrograms } from "@/lib/data/programs";
+import { getExperienceNumbers } from "@/lib/data/stats";
+import { getPartners } from "@/lib/data/partners";
+import { getSliders } from "@/lib/data/sliders";
 import { buildPageMetadata } from "@/lib/metadata";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -17,30 +22,35 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-const WhoWeAreGrid = dynamic(
+const WhoWeAreGrid = nextDynamic(
   () => import("@/components/sections/home/WhoWeAreGrid").then((m) => m.WhoWeAreGrid)
 );
-const ProgramsSection = dynamic(
+const ProgramsSection = nextDynamic(
   () => import("@/components/sections/home/ProgramsSection").then((m) => m.ProgramsSection)
 );
-const PartnersCarousel = dynamic(
+const PartnersCarousel = nextDynamic(
   () => import("@/components/sections/home/PartnersCarousel").then((m) => m.PartnersCarousel)
 );
-const CEOSection = dynamic(
+const CEOSection = nextDynamic(
   () => import("@/components/sections/home/CEOSection").then((m) => m.CEOSection)
 );
-const LatestBeats = dynamic(
+const LatestBeats = nextDynamic(
   () => import("@/components/sections/home/LatestBeats").then((m) => m.LatestBeats)
 );
-const NewsletterSection = dynamic(
+const NewsletterSection = nextDynamic(
   () => import("@/components/sections/home/NewsletterSection").then((m) => m.NewsletterSection)
 );
-const CTABanner = dynamic(
+const CTABanner = nextDynamic(
   () => import("@/components/sections/home/CTABanner").then((m) => m.CTABanner)
 );
 
 export default async function HomePage() {
-  const featuredPrograms = await getFeaturedPrograms();
+  const [featuredPrograms, stats, partners, sliders] = await Promise.all([
+    getFeaturedPrograms(),
+    getExperienceNumbers(),
+    getPartners(),
+    getSliders(),
+  ]);
 
   const sliderPrograms = featuredPrograms.map((p) => ({
     id: p.id,
@@ -61,11 +71,11 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSlider />
-      <StatsCounter />
+      <HeroSlider slides={sliders} />
+      <StatsCounter stats={stats} />
       <WhoWeAreGrid />
       <ProgramsSection programs={sliderPrograms} />
-      <PartnersCarousel />
+      <PartnersCarousel partners={partners} />
       <CEOSection />
       <LatestBeats />
       <NewsletterSection />

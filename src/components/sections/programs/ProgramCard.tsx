@@ -19,6 +19,7 @@ interface ProgramCardProps {
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
   category?: string | null;
   year?: number | null;
+  endYear?: number | null;
   donorEn?: string | null;
   donorAr?: string | null;
   locationEn?: string | null;
@@ -53,6 +54,7 @@ export function ProgramCard({
   coverImageUrl,
   status,
   year,
+  endYear,
   donorEn,
   donorAr,
   locationEn,
@@ -160,7 +162,7 @@ export function ProgramCard({
               {year && (
                 <div className="flex items-center gap-1.5">
                   <Calendar className={cn("w-3.5 h-3.5 shrink-0", accent.iconColor)} />
-                  <span>{year}</span>
+                  <span>{endYear && endYear !== year ? `${year} – ${endYear}` : year}</span>
                 </div>
               )}
             </div>

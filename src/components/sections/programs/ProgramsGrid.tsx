@@ -4,7 +4,7 @@ import { useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { ProgramCard } from "./ProgramCard";
 import { ProgramFilters } from "./ProgramFilters";
-import { FolderOpen, Sparkles } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 
 /* ── Theme detection ── */
 const themeKeywords: Record<string, { en: string; ar: string; keywords: string[] }> = {
@@ -52,6 +52,7 @@ interface Program {
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
   category: string | null;
   year: number | null;
+  endYear: number | null;
   donorEn: string | null;
   donorAr: string | null;
   locationEn: string | null;
@@ -129,25 +130,6 @@ export function ProgramsGrid({ programs }: ProgramsGridProps) {
           {filteredPrograms.map((program) => (
             <ProgramCard key={program.id} {...program} themes={program.themes} />
           ))}
-
-          {/* Finafas Teaser Card */}
-          <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl overflow-hidden border-2 border-dashed border-amber-300/60 h-full flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
-              <Sparkles className="w-7 h-7 text-amber-600" />
-            </div>
-            <span className="inline-block px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full mb-4">
-              {isAr ? "قريباً" : "Coming Soon"}
-            </span>
-            <h3 className="font-serif text-xl text-text-primary mb-2">Finafas</h3>
-            <p className="text-text-secondary text-sm leading-relaxed mb-1">
-              {isAr
-                ? "إطلاق 2026 — تدريب هجين للتمكين المالي"
-                : "Launching 2026 — Hybrid coaching for financial empowerment"}
-            </p>
-            <p className="text-amber-600 text-xs font-semibold mt-3">
-              {isAr ? "ترقبوا المزيد" : "Stay tuned"}
-            </p>
-          </div>
         </div>
       ) : (
         <div className="text-center py-20">

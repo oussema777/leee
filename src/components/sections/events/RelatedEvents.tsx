@@ -2,26 +2,17 @@
 
 import { useLocale } from "next-intl";
 import { EventCard } from "./EventCard";
-import { demoEvents } from "./eventsData";
-import type { EventCardData } from "./EventCard";
+import type { EventListItem } from "@/lib/data/events";
 
 interface RelatedEventsProps {
-  currentSlug: string;
-  category: string;
+  events: EventListItem[];
 }
 
-export function RelatedEvents({ currentSlug, category }: RelatedEventsProps) {
+export function RelatedEvents({ events }: RelatedEventsProps) {
   const locale = useLocale();
   const isAr = locale === "ar";
 
-  // Find related: same category first, then any other, exclude current
-  const sameCategory = demoEvents.filter(
-    (e) => e.slug !== currentSlug && e.category === category
-  );
-  const others = demoEvents.filter(
-    (e) => e.slug !== currentSlug && e.category !== category
-  );
-  const related = [...sameCategory, ...others].slice(0, 3);
+  const related = events;
 
   if (related.length === 0) return null;
 

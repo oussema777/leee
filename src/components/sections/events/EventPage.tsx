@@ -6,9 +6,9 @@ import { EventHero } from "./EventHero";
 import { EventDetails } from "./EventDetails";
 import { EventGallery } from "./EventGallery";
 import { RelatedEvents } from "./RelatedEvents";
-import type { DemoEvent } from "./eventsData";
+import type { EventDetail, EventListItem } from "@/lib/data/events";
 
-export function EventPage({ event }: { event: DemoEvent }) {
+export function EventPage({ event, relatedEvents }: { event: EventDetail; relatedEvents: EventListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
 
@@ -67,10 +67,7 @@ export function EventPage({ event }: { event: DemoEvent }) {
           </div>
 
           {/* Related Events */}
-          <RelatedEvents
-            currentSlug={event.slug}
-            category={event.category}
-          />
+          <RelatedEvents events={relatedEvents} />
         </Container>
       </section>
     </>

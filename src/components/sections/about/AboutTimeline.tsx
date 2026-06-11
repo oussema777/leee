@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
-import { timelineData } from "./aboutData";
+import type { MilestoneItem } from "@/lib/data/about";
 import Image from "next/image";
 
 const yearColors = [
@@ -32,10 +32,12 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function AboutTimeline() {
+export function AboutTimeline({ timeline }: { timeline: MilestoneItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
+
+  if (timeline.length === 0) return null;
 
   return (
     <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-secondary relative overflow-hidden">
@@ -85,7 +87,7 @@ export function AboutTimeline() {
           <div className="absolute start-6 md:start-1/2 top-0 bottom-0 w-[2px] bg-surface-tertiary md:-translate-x-[1px]" />
 
           <div className="space-y-12 md:space-y-16">
-            {timelineData.map((item, i) => {
+            {timeline.map((item, i) => {
               const isLeft = i % 2 === 0;
               const color = yearColors[i % yearColors.length];
               return (

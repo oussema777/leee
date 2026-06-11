@@ -44,7 +44,20 @@
       "Bash(find src:*)",
       "Bash(read f:*)",
       "WebFetch(domain:www.youtube.com)",
-      "WebFetch(domain:www.theleeexperience.com)"
+      "WebFetch(domain:www.theleeexperience.com)",
+      "Skill(impeccable)",
+      "Bash(du:*)",
+      "Bash(copy:*)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:theleeexperience.com)",
+      "Bash(ls .claude/skills)",
+      "Bash(grep -Hm1 '^description:' .claude/skills/*/SKILL.md)",
+      "Bash(seq 1 40)",
+      "Bash(grep -qiE \"Ready|Local:|started server|http://localhost\" \"C:/Users/Marketing Manager/AppData/Local/Temp/claude/C--Users-Marketing-Manager-Desktop-Agent-X-Leee-Expirence-leee-experience/eee14b23-c0ad-4703-a381-03a08bb389c2/tasks/bmnz6o0f7.output\")",
+      "Bash(echo \"READY-FOUND\")",
+      "Bash(break)",
+      "Bash(sleep 2)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/en/about/experts\" -UseBasicParsing -TimeoutSec 90; \"STATUS: $\\($r.StatusCode\\); card: $\\($r.Content -match 'bg-surface-card'\\)\" } catch { \"ERR: $\\($_.Exception.Message\\)\" })"
     ]
   }
 }

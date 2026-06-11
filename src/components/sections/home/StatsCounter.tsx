@@ -5,17 +5,19 @@ import { useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Users, Rocket, Globe, Coins, Leaf, Heart, GraduationCap, FolderOpen } from "lucide-react";
+import type { StatItem } from "@/lib/data/stats";
 
-const demoStats = [
-  { id: "1", labelEn: "Lives Touched", labelAr: "حياة تأثرت", value: 38790, suffix: "+", prefix: "", icon: Users, bgColor: "#5A5A59" },
-  { id: "2", labelEn: "Startups Incubated", labelAr: "شركات ناشئة احتُضنت", value: 2365, suffix: "+", prefix: "", icon: Rocket, bgColor: "#F8B51F" },
-  { id: "3", labelEn: "Funds Mobilized", labelAr: "أموال مُعبأة", value: 3, suffix: "M+", prefix: "$", icon: Coins, bgColor: "#3FAC49" },
-  { id: "4", labelEn: "Countries", labelAr: "دول", value: 10, suffix: "", prefix: "", icon: Globe, bgColor: "#147DBB" },
-  { id: "5", labelEn: "Green Ventures", labelAr: "مشاريع خضراء", value: 60, suffix: "%", prefix: "", icon: Leaf, bgColor: "#ED6E28" },
-  { id: "6", labelEn: "Women Reached", labelAr: "نساء مستفيدات", value: 65, suffix: "%", prefix: "", icon: Heart, bgColor: "#1B3765" },
-  { id: "7", labelEn: "Youth Supported", labelAr: "شباب مدعوم", value: 12400, suffix: "+", prefix: "", icon: GraduationCap, bgColor: "#5193CF" },
-  { id: "8", labelEn: "Programs Delivered", labelAr: "برامج منفذة", value: 45, suffix: "+", prefix: "", icon: FolderOpen, bgColor: "#DE1881" },
-];
+// Map the DB icon string key to a lucide icon component.
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  users: Users,
+  rocket: Rocket,
+  coins: Coins,
+  globe: Globe,
+  leaf: Leaf,
+  heart: Heart,
+  "graduation-cap": GraduationCap,
+  "folder-open": FolderOpen,
+};
 
 function useCountUp(target: number, isVisible: boolean) {
   const [count, setCount] = useState(0);
@@ -99,7 +101,7 @@ function StatCard({
   );
 }
 
-export function StatsCounter() {
+export function StatsCounter({ stats }: { stats: StatItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const ref = useRef<HTMLDivElement>(null);
@@ -145,15 +147,15 @@ export function StatsCounter() {
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-          {demoStats.map((stat, i) => (
+          {stats.map((stat, i) => (
             <StatCard
               key={stat.id}
               label={isAr ? stat.labelAr : stat.labelEn}
               value={stat.value}
               suffix={stat.suffix}
               prefix={stat.prefix}
-              icon={stat.icon}
-              bgColor={stat.bgColor}
+              icon={ICON_MAP[stat.icon] ?? Users}
+              bgColor={stat.color}
               isVisible={isVisible}
               index={i}
             />

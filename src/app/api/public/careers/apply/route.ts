@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { sendNotificationEmail, renderNotification } from "@/lib/email";
 
 const applySchema = z.object({
   careerSlug:  z.string().min(1).max(200),
@@ -68,6 +69,23 @@ export async function POST(request: NextRequest) {
         resumeUrl: data.resumeUrl?.trim() || null,
         coverLetter: data.coverLetter.trim(),
       },
+    });
+
+    await sendNotificationEmail({
+      subject: `[LEEE] Job application: ${data.fullName} (${career.titleEn})`,
+      replyTo: data.email,
+      html: renderNotification(
+        "New job application",
+        `A new application was submitted for the position "${career.titleEn}".`,
+        [
+          { label: "Position", value: career.titleEn },
+          { label: "Name", value: data.fullName },
+          { label: "Email", value: data.email },
+          { label: "Phone", value: data.phone },
+          { label: "Resume", value: data.resumeUrl },
+          { label: "Cover letter", value: data.coverLetter },
+        ]
+      ),
     });
 
     return NextResponse.json({ ok: true }, { status: 200 });

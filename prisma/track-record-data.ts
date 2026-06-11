@@ -40,6 +40,7 @@ export interface TrackRecordProject {
   coverImageUrl: string;
   status: "ACTIVE" | "COMPLETED" | "UPCOMING";
   year: number;
+  endYear?: number;
   donorEn: string;
   donorAr: string;
   locationEn: string;
@@ -382,7 +383,7 @@ export const trackRecordProjects: TrackRecordProject[] = [
 <ul><li>20 senior managers trained in leadership and strategic management</li></ul>`,
     bodyAr: `<p>يقدم هذا البرنامج (2024-2025) تدريباً إدارياً متخصصاً لـ 20 مهنياً كبيراً في الصومال بالشراكة مع KIMS ومؤسسة التمويل الدولية والبنك الدولي.</p>`,
     coverImageUrl: "/images/projects/kims-ifc-senior-management-somalia/cover.jpg",
-    status: "ACTIVE",
+    status: "COMPLETED",
     year: 2024,
     donorEn: "KIMS, IFC, World Bank",
     donorAr: "KIMS، مؤسسة التمويل الدولية، البنك الدولي",
@@ -474,7 +475,7 @@ export const trackRecordProjects: TrackRecordProject[] = [
 <ul><li>3 roundtables for market linkages</li></ul>`,
     bodyAr: `<p>يعزز هذا البرنامج (2024-2026) المزارعين والتعاونيات في لبنان بالشراكة مع منظمة التضامن الدولي (SI) وGIZ.</p>`,
     coverImageUrl: "",
-    status: "ACTIVE",
+    status: "COMPLETED",
     year: 2024,
     donorEn: "Solidarités International (SI) & GIZ",
     donorAr: "منظمة التضامن الدولي (SI) وGIZ",
@@ -666,7 +667,7 @@ export const trackRecordProjects: TrackRecordProject[] = [
 <ul><li>24,000 hot meals distributed through community kitchens</li></ul>`,
     bodyAr: `<p>توزع هذه المبادرة الإنسانية (2024-2025) وجبات ساخنة عبر المطابخ المجتمعية في لبنان بالشراكة مع GIZ ومنظمة التنبيه الدولي.</p>`,
     coverImageUrl: "",
-    status: "ACTIVE",
+    status: "COMPLETED",
     year: 2024,
     donorEn: "GIZ & International Alert",
     donorAr: "GIZ ومنظمة التنبيه الدولي",
@@ -843,6 +844,7 @@ export const trackRecordProjects: TrackRecordProject[] = [
     coverImageUrl: "/images/projects/unifil-women-social-enterprises/cover.jpg",
     status: "COMPLETED",
     year: 2020,
+    endYear: 2022,
     donorEn: "UNIFIL",
     donorAr: "اليونيفيل",
     locationEn: "Lebanon",

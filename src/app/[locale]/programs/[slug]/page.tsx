@@ -75,6 +75,7 @@ export default async function ProgramDetailPage({
         coverImageUrl: program.coverImageUrl || "",
         status: program.status,
         year: program.year || new Date().getFullYear(),
+        endYear: program.endYear,
         donorEn: program.donorEn || "",
         donorAr: program.donorAr || "",
         locationEn: program.locationEn || "",

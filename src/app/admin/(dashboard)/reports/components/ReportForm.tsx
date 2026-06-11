@@ -8,6 +8,7 @@ import BilingualTabs from "../../../components/BilingualTabs";
 import ImageUploader from "../../../components/ImageUploader";
 import { useToast } from "../../../components/AdminToast";
 import { adminPost, adminPut } from "@/lib/admin-api";
+import { reportCategories } from "@/components/sections/reports/reportsData";
 
 interface ReportData {
   id?: string;
@@ -15,19 +16,23 @@ interface ReportData {
   descriptionEn: string; descriptionAr: string;
   fileUrl: string;
   coverImageUrl: string;
+  category: string;
   year: number;
   isActive: boolean;
 }
 
 const empty: ReportData = {
   titleEn: "", titleAr: "", descriptionEn: "", descriptionAr: "",
-  fileUrl: "", coverImageUrl: "", year: new Date().getFullYear(), isActive: true,
+  fileUrl: "", coverImageUrl: "", category: reportCategories[0].slug,
+  year: new Date().getFullYear(), isActive: true,
 };
+
+const CATEGORIES = reportCategories.map((c) => ({ label: c.nameEn, value: c.slug }));
 
 export default function ReportForm({ initial }: { initial?: ReportData }) {
   const router = useRouter();
   const toast = useToast();
-  const [form, setForm] = useState<ReportData>(initial || empty);
+  const [form, setForm] = useState<ReportData>(initial ? { ...empty, ...initial } : empty);
   const [loading, setLoading] = useState(false);
 
   const set = <K extends keyof ReportData>(key: K, value: ReportData[K]) =>
@@ -61,6 +66,7 @@ export default function ReportForm({ initial }: { initial?: ReportData }) {
       </BilingualTabs>
       <ImageUploader value={form.fileUrl} onChange={(url) => set("fileUrl", url)} onRemove={() => set("fileUrl", "")} folder="reports" label="PDF File" accept="application/pdf" />
       <ImageUploader value={form.coverImageUrl} onChange={(url) => set("coverImageUrl", url)} onRemove={() => set("coverImageUrl", "")} folder="reports" label="Cover Image" />
+      <AdminFormField type="select" label="Category" value={form.category} onChange={(v) => set("category", v)} options={CATEGORIES} />
       <AdminFormField type="number" label="Year" value={form.year} onChange={(v) => set("year", parseInt(v) || new Date().getFullYear())} />
       <AdminFormField type="toggle" label="Active" value={form.isActive} onChange={(v) => set("isActive", v)} />
     </AdminFormPage>

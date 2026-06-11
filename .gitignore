@@ -44,3 +44,9 @@ public/images/spark/*.mp4
 public/images/The spark/
 track record with links Manal oussama.xlsx
 ~$*
+
+# internal planning docs / binaries (not for deploy)
+/DESIGN.json
+/DESIGN.md
+/PRODUCT.md
+docs/*.docx

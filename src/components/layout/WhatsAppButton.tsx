@@ -2,17 +2,18 @@
 
 import { useLocale } from "next-intl";
 
-const WHATSAPP_NUMBER = "96103600747";
+const DEFAULT_WHATSAPP_NUMBER = "96103600747";
 
-export function WhatsAppButton() {
+export function WhatsAppButton({ whatsappNumber }: { whatsappNumber?: string } = {}) {
   const locale = useLocale();
   const isAr = locale === "ar";
+  const number = whatsappNumber?.trim() || DEFAULT_WHATSAPP_NUMBER;
   const message = isAr
     ? "مرحباً، أريد معرفة المزيد عن تجربة LEE"
     : "Hello, I'd like to learn more about LEE Experience";
 
   const label = isAr ? "تحدث معنا" : "Chat with us";
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  const href = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 
   return (
     <a

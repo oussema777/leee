@@ -9,6 +9,10 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { JsonLd } from "@/components/shared/JsonLd";
+import { getContactInfo, contactValue } from "@/lib/data/contact";
+
+// Footer / WhatsApp button / JSON-LD read live contact details from the DB.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -67,6 +71,21 @@ export default async function LocaleLayout({
   const messages = (await import(`../../../messages/${locale}.json`)).default;
   const dir = locale === "ar" ? "rtl" : "ltr";
 
+  // Live contact details from the ContactInfo table (admin Settings → Contact).
+  // Each read falls back to the current hardcoded value if the key is missing.
+  const contact = await getContactInfo();
+  const phone = contactValue(contact, "phone", locale, "+961 3 002 430");
+  const email = contactValue(contact, "email", locale, "info@theleeexperience.com");
+  const address = contactValue(
+    contact,
+    "address",
+    locale,
+    locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"
+  );
+  const whatsapp = contactValue(contact, "whatsapp", locale, "96103600747");
+  // JSON-LD telephone uses E.164-ish digits/plus only.
+  const phoneTel = phone.replace(/[^+\d]/g, "");
+
   return (
     <html
       lang={locale}
@@ -96,9 +115,9 @@ export default async function LocaleLayout({
           foundingDate: "2018",
           contactPoint: {
             "@type": "ContactPoint",
-            telephone: "+961-3-002-430",
+            telephone: phoneTel,
             contactType: "customer service",
-            email: "info@theleeexperience.com",
+            email,
           },
         }} />
         <JsonLd data={{
@@ -116,8 +135,8 @@ export default async function LocaleLayout({
             <NewsTicker />
             <Navbar />
             <main id="main-content" className="flex-1">{children}</main>
-            <Footer />
-          <WhatsAppButton />
+            <Footer phone={phone} email={email} address={address} />
+          <WhatsAppButton whatsappNumber={whatsapp} />
         </NextIntlClientProvider>
       </body>
     </html>

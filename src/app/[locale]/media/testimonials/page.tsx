@@ -4,6 +4,9 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { TestimonialsGrid } from "@/components/sections/testimonials/TestimonialsGrid";
+import { getTestimonials } from "@/lib/data/testimonials";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -24,6 +27,8 @@ export default async function TestimonialsPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "testimonials" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
+
+  const testimonials = await getTestimonials();
 
   return (
     <>
@@ -47,7 +52,7 @@ export default async function TestimonialsPage({
               </div>
             }
           >
-            <TestimonialsGrid />
+            <TestimonialsGrid testimonials={testimonials} />
           </Suspense>
         </Container>
       </section>

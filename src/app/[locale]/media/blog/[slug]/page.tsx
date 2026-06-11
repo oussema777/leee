@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { demoPosts } from "@/components/sections/blog/blogData";
+import { getBlogPostBySlug, getRelatedBlogPosts } from "@/lib/data/blog";
 import { BlogPostPage } from "@/components/sections/blog/BlogPost";
 import { buildPageMetadata } from "@/lib/metadata";
 import { JsonLd } from "@/components/shared/JsonLd";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -10,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const post = demoPosts.find((p) => p.slug === slug);
+  const post = await getBlogPostBySlug(slug);
   if (!post) return {};
 
   const isAr = locale === "ar";
@@ -29,11 +31,13 @@ export default async function BlogDetailPage({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { slug } = await params;
-  const post = demoPosts.find((p) => p.slug === slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
+
+  const relatedPosts = await getRelatedBlogPosts(post.slug, post.categorySlug);
 
   return (
     <>
@@ -48,7 +52,7 @@ export default async function BlogDetailPage({
         publisher: { "@type": "Organization", name: "The LEE Experience", logo: { "@type": "ImageObject", url: "https://theleeexperience.com/LEEE-LOGO.png" } },
         url: `https://theleeexperience.com/en/media/blog/${post.slug}`,
       }} />
-      <BlogPostPage post={post} />
+      <BlogPostPage post={post} relatedPosts={relatedPosts} />
     </>
   );
 }

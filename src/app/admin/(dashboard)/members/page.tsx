@@ -56,7 +56,16 @@ export default function MembersPage() {
     { key: "imageUrl", label: "Photo", render: (item) => item.imageUrl ? <img src={item.imageUrl} alt="" className="h-10 w-10 rounded-full object-cover" /> : <div className="h-10 w-10 rounded-full bg-gray-700" /> },
     { key: "nameEn", label: "Name", sortable: true },
     { key: "titleEn", label: "Title" },
-    { key: "memberType", label: "Type", render: (item) => <StatusBadge label={item.memberType === "BOARD" ? "Board" : "Team"} variant={item.memberType === "BOARD" ? "info" : "success"} /> },
+    { key: "memberType", label: "Type", render: (item) => {
+      const typeMeta: Record<string, { label: string; variant: "info" | "success" | "warning" | "neutral" }> = {
+        BOARD: { label: "Board", variant: "info" },
+        TEAM: { label: "Team", variant: "success" },
+        EXPERT: { label: "Expert", variant: "warning" },
+        MENTOR: { label: "Mentor", variant: "neutral" },
+      };
+      const meta = typeMeta[item.memberType] ?? { label: item.memberType, variant: "neutral" as const };
+      return <StatusBadge label={meta.label} variant={meta.variant} />;
+    } },
     { key: "order", label: "Order", sortable: true },
     { key: "isActive", label: "Status", render: (item) => <ActiveBadge isActive={item.isActive} /> },
   ];
@@ -65,7 +74,7 @@ export default function MembersPage() {
     <div>
       <AdminPageHeader title="Board & Team" actionLabel="Add Member" actionHref="/admin/members/new" />
       <div className="flex gap-2 mb-4">
-        {["", "BOARD", "TEAM"].map((t) => (
+        {["", "BOARD", "TEAM", "EXPERT", "MENTOR"].map((t) => (
           <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${typeFilter === t ? "bg-brand-blue text-white" : "bg-[#1e293b] text-gray-400 hover:text-white"}`}
           >

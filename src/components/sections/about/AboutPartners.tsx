@@ -5,27 +5,7 @@ import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-const partners = [
-  { id: "ilo", name: "ILO" },
-  { id: "eu", name: "European Union" },
-  { id: "unifil", name: "UNIFIL" },
-  { id: "wfp", name: "World Food Programme" },
-  { id: "undp", name: "UNDP" },
-  { id: "irc", name: "Int'l Rescue Committee" },
-  { id: "canada", name: "Gov. of Canada" },
-  { id: "netherlands", name: "Gov. of Netherlands" },
-  { id: "norway", name: "Gov. of Norway" },
-  { id: "bmz", name: "BMZ Germany" },
-  { id: "cawtar", name: "CAWTAR" },
-  { id: "kvinna", name: "Kvinna till Kvinna" },
-  { id: "solidarites", name: "Solidarités Int'l" },
-  { id: "ri", name: "Relief International" },
-  { id: "oxfam", name: "Oxfam" },
-  { id: "aah", name: "Action Against Hunger" },
-  { id: "berytech", name: "Berytech" },
-  { id: "worldbank", name: "World Bank" },
-];
+import type { PartnerItem } from "@/lib/data/partners";
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -43,7 +23,7 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function AboutPartners() {
+export function AboutPartners({ partners }: { partners: PartnerItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
@@ -132,7 +112,7 @@ export function AboutPartners() {
                 style={{ transitionDelay: `${200 + i * 35}ms` }}
               >
                 <span className="text-text-muted text-xs font-semibold text-center leading-tight">
-                  {partner.name}
+                  {isAr ? partner.nameAr : partner.nameEn}
                 </span>
               </div>
             );

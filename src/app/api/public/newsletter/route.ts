@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendNotificationEmail, renderNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +41,19 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         locale: locale || "en",
       },
+    });
+
+    await sendNotificationEmail({
+      subject: `[LEEE] New newsletter subscriber`,
+      replyTo: normalizedEmail,
+      html: renderNotification(
+        "New newsletter subscriber",
+        "Someone subscribed to the newsletter via the website.",
+        [
+          { label: "Email", value: normalizedEmail },
+          { label: "Locale", value: locale || "en" },
+        ]
+      ),
     });
 
     return NextResponse.json({ success: true }, { status: 201 });

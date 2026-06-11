@@ -40,6 +40,7 @@ export default async function ProgramsPage({
     status: p.status,
     category: p.category,
     year: p.year,
+    endYear: p.endYear,
     donorEn: p.donorEn,
     donorAr: p.donorAr,
     locationEn: p.locationEn,

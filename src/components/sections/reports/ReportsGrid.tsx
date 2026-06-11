@@ -6,9 +6,10 @@ import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FileText, Download, Calendar, FileX2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { reportCategories, demoReports } from "./reportsData";
+import { reportCategories } from "./reportsData";
+import type { ReportListItem } from "@/lib/data/reports";
 
-export function ReportsGrid() {
+export function ReportsGrid({ reports }: { reports: ReportListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -17,9 +18,9 @@ export function ReportsGrid() {
   const currentCategory = searchParams.get("category") || "";
   const currentYear = searchParams.get("year") || "";
 
-  const years = [...new Set(demoReports.map((r) => r.year))].sort((a, b) => b - a);
+  const years = [...new Set(reports.map((r) => r.year))].sort((a, b) => b - a);
 
-  const filteredReports = demoReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     if (currentCategory && report.categorySlug !== currentCategory) return false;
     if (currentYear && report.year !== Number(currentYear)) return false;
     return true;

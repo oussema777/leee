@@ -6,23 +6,42 @@ import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import type { SliderItem } from "@/lib/data/sliders";
 
-const heroContent = {
+/**
+ * Static collage hero, but admin-editable:
+ *  - The 3 collage photos come from the first 3 active Sliders (Admin → Sliders),
+ *    by `order`. Slider #1 = big top-left, #2 = bottom-right, #3 = small top-right.
+ *  - The headline / subtitle / CTA come from Slider #1 (title supports a line break
+ *    "\n" — the first line is dark, the rest is highlighted blue).
+ *  - Anything missing falls back to the hardcoded defaults below, so the hero is
+ *    never empty even with no sliders in the DB.
+ *  - The eyebrow tag is fixed copy (bilingual).
+ */
+
+const FALLBACK = {
   en: {
     tag: "Leadership & Empowerment",
     title: "We turn mindset",
     titleHighlight: "into movement",
-    subtitle: "empowering women & youth through green, tech\u2011oriented, and inclusive business development.",
+    subtitle: "empowering women & youth through green, tech‑oriented, and inclusive business development.",
     cta: "Explore Our Programs",
   },
   ar: {
-    tag: "\u0627\u0644\u0642\u064A\u0627\u062F\u0629 \u0648\u0627\u0644\u062A\u0645\u0643\u064A\u0646",
-    title: "\u0646\u062D\u0648\u0651\u0644 \u0627\u0644\u0639\u0642\u0644\u064A\u0629",
-    titleHighlight: "\u0625\u0644\u0649 \u062D\u0631\u0643\u0629",
-    subtitle: "\u062A\u0645\u0643\u064A\u0646 \u0627\u0644\u0646\u0633\u0627\u0621 \u0648\u0627\u0644\u0634\u0628\u0627\u0628 \u0645\u0646 \u062E\u0644\u0627\u0644 \u0627\u0644\u062A\u0646\u0645\u064A\u0629 \u0627\u0644\u062E\u0636\u0631\u0627\u0621 \u0648\u0627\u0644\u062A\u0642\u0646\u064A\u0629 \u0648\u0627\u0644\u0634\u0627\u0645\u0644\u0629 \u0644\u0644\u0623\u0639\u0645\u0627\u0644.",
-    cta: "\u0627\u0643\u062A\u0634\u0641 \u0628\u0631\u0627\u0645\u062C\u0646\u0627",
+    tag: "القيادة والتمكين",
+    title: "نحوّل العقلية",
+    titleHighlight: "إلى حركة",
+    subtitle: "تمكين النساء والشباب من خلال التنمية الخضراء والتقنية والشاملة للأعمال.",
+    cta: "اكتشف برامجنا",
   },
 };
+
+// Fallback collage images (used per-slot when fewer than 3 sliders exist).
+const FALLBACK_IMAGES = [
+  "/images/projects/seketak-acceleration-investment-readiness-2025/cover.jpg",
+  "/images/projects/prospects-entrepreneurship-agriculture/cover.jpg",
+  "/images/new/pitch-winner.jpg",
+];
 
 /* ── Staggered entrance helper ── */
 const stagger = (delay: number) => ({
@@ -31,10 +50,28 @@ const stagger = (delay: number) => ({
   transition: { duration: 0.65, delay, ease: "easeOut" as const },
 });
 
-export function HeroSlider() {
+export function HeroSlider({ slides }: { slides?: SliderItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
-  const content = isAr ? heroContent.ar : heroContent.en;
+  const fb = isAr ? FALLBACK.ar : FALLBACK.en;
+
+  const first = slides?.[0];
+
+  // Title: split Slider #1's title on a newline → first line dark, rest blue.
+  let titleMain = fb.title;
+  let titleHighlight: string | undefined = fb.titleHighlight;
+  if (first) {
+    const lines = (isAr ? first.titleAr : first.titleEn).split("\n").filter(Boolean);
+    titleMain = lines[0] ?? fb.title;
+    titleHighlight = lines.slice(1).join(" ") || undefined;
+  }
+
+  const subtitle = (first && (isAr ? first.subtitleAr : first.subtitleEn)) || fb.subtitle;
+  const ctaLabel = (first && (isAr ? first.ctaLabelAr : first.ctaLabelEn)) || fb.cta;
+  const ctaUrl = first?.ctaUrl || "/programs";
+  const tag = fb.tag;
+
+  const imageAt = (i: number) => slides?.[i]?.imageUrl || FALLBACK_IMAGES[i];
 
   return (
     <section
@@ -58,35 +95,41 @@ export function HeroSlider() {
               className="relative inline-flex items-center gap-2 text-brand-blue text-sm font-semibold uppercase tracking-[0.15em] mb-6"
             >
               <span className="w-8 h-[2px] bg-brand-blue rounded-full" />
-              {content.tag}
+              {tag}
             </motion.span>
 
             {/* Title */}
             <motion.div {...stagger(0.12)}>
               <h1 className="font-serif text-[clamp(2.2rem,5vw,4.2rem)] text-text-primary leading-[1.05]">
-                {content.title}
-                <span className="block text-brand-blue">{content.titleHighlight}</span>
+                {titleMain}
+                {titleHighlight && (
+                  <span className="block text-brand-blue">{titleHighlight}</span>
+                )}
               </h1>
             </motion.div>
 
             {/* Subtitle */}
-            <motion.p
-              {...stagger(0.24)}
-              className="relative text-text-secondary text-xl md:text-2xl leading-relaxed mt-6 mb-10 max-w-xl"
-            >
-              {content.subtitle}
-            </motion.p>
+            {subtitle && (
+              <motion.p
+                {...stagger(0.24)}
+                className="relative text-text-secondary text-xl md:text-2xl leading-relaxed mt-6 mb-10 max-w-xl"
+              >
+                {subtitle}
+              </motion.p>
+            )}
 
             {/* CTA Button */}
-            <motion.div {...stagger(0.36)}>
-              <Link
-                href="/programs"
-                className="group relative inline-flex items-center gap-3 bg-brand-blue text-white font-bold text-sm uppercase tracking-[0.15em] px-8 py-4 rounded-full hover:bg-brand-blue-dark active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl hover:translate-y-[-2px]"
-              >
-                {content.cta}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform rtl:rotate-180 rtl:group-hover:-translate-x-1" />
-              </Link>
-            </motion.div>
+            {ctaLabel && (
+              <motion.div {...stagger(0.36)}>
+                <Link
+                  href={ctaUrl}
+                  className="group relative inline-flex items-center gap-3 bg-brand-blue text-white font-bold text-sm uppercase tracking-[0.15em] px-8 py-4 rounded-full hover:bg-brand-blue-dark active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl hover:translate-y-[-2px]"
+                >
+                  {ctaLabel}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform rtl:rotate-180 rtl:group-hover:-translate-x-1" />
+                </Link>
+              </motion.div>
+            )}
           </div>
 
           {/* ── Mobile: Single hero image ── */}
@@ -97,8 +140,8 @@ export function HeroSlider() {
             className="relative h-[240px] rounded-2xl overflow-hidden shadow-xl md:hidden"
           >
             <Image
-              src="/images/projects/seketak-acceleration-investment-readiness-2025/cover.jpg"
-              alt="Leadership at GITS Summit"
+              src={imageAt(0)}
+              alt={titleMain}
               fill
               className="object-cover object-top"
               priority
@@ -113,32 +156,32 @@ export function HeroSlider() {
             transition={{ duration: 0.9, delay: 0.25, ease: "easeOut" }}
             className="relative h-[400px] md:h-[500px] lg:h-[550px] hidden md:block"
           >
-            {/* Main image */}
+            {/* Main image (Slider #1) */}
             <div className="group absolute top-0 start-0 w-[55%] h-[58%] rounded-2xl overflow-hidden shadow-2xl z-10 transition-all duration-500 hover:translate-y-[-4px]">
               <Image
-                src="/images/projects/seketak-acceleration-investment-readiness-2025/cover.jpg"
-                alt="Leadership at GITS Summit"
+                src={imageAt(0)}
+                alt={titleMain}
                 fill
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 priority
               />
             </div>
 
-            {/* Second image */}
+            {/* Second image (Slider #2) */}
             <div className="group absolute bottom-0 end-0 w-[50%] h-[48%] rounded-2xl overflow-hidden shadow-xl border-4 border-white z-10 transition-all duration-500 hover:translate-y-[-4px]">
               <Image
-                src="/images/projects/prospects-entrepreneurship-agriculture/cover.jpg"
-                alt="Entrepreneur pitching on stage"
+                src={imageAt(1)}
+                alt=""
                 fill
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />
             </div>
 
-            {/* Third image */}
+            {/* Third image (Slider #3) */}
             <div className="group absolute top-[15%] end-[5%] w-[35%] h-[35%] rounded-2xl overflow-hidden shadow-lg border-4 border-white z-10 transition-all duration-500 hover:translate-y-[-4px]">
               <Image
-                src="/images/new/pitch-winner.jpg"
-                alt="Pitch Competition Winner"
+                src={imageAt(2)}
+                alt=""
                 fill
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />

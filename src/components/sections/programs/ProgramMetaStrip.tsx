@@ -13,6 +13,7 @@ interface ProgramMetaStripProps {
   locationAr?: string | null;
 
   year?: number | null;
+  endYear?: number | null;
   beneficiaries?: number | null;
 }
 
@@ -30,6 +31,7 @@ export function ProgramMetaStrip({
   locationEn,
   locationAr,
   year,
+  endYear,
   beneficiaries,
 }: ProgramMetaStripProps) {
   const locale = useLocale();
@@ -67,7 +69,7 @@ export function ProgramMetaStrip({
 {
       icon: <Calendar className="w-4 h-4" />,
       label: isAr ? "السنة" : "Year",
-      value: year,
+      value: endYear && endYear !== year ? `${year} – ${endYear}` : year,
       show: !!year,
     },
     {

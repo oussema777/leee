@@ -8,23 +8,27 @@ import BilingualTabs from "../../../components/BilingualTabs";
 import ImageUploader from "../../../components/ImageUploader";
 import { useToast } from "../../../components/AdminToast";
 import { adminPost, adminPut } from "@/lib/admin-api";
+import { albums } from "@/components/sections/gallery/galleryData";
 
 interface GalleryData {
   id?: string;
   imageUrl: string;
   captionEn: string; captionAr: string;
   albumName: string; albumNameAr: string;
+  albumSlug: string;
   order: number; isActive: boolean;
 }
 
 const empty: GalleryData = {
-  imageUrl: "", captionEn: "", captionAr: "", albumName: "", albumNameAr: "", order: 0, isActive: true,
+  imageUrl: "", captionEn: "", captionAr: "", albumName: "", albumNameAr: "", albumSlug: "", order: 0, isActive: true,
 };
+
+const ALBUM_OPTIONS = albums.map((a) => ({ label: a.nameEn, value: a.slug }));
 
 export default function GalleryForm({ initial }: { initial?: GalleryData }) {
   const router = useRouter();
   const toast = useToast();
-  const [form, setForm] = useState<GalleryData>(initial || empty);
+  const [form, setForm] = useState<GalleryData>(initial ? { ...empty, ...initial } : empty);
   const [loading, setLoading] = useState(false);
 
   const set = <K extends keyof GalleryData>(key: K, value: GalleryData[K]) =>
@@ -53,6 +57,7 @@ export default function GalleryForm({ initial }: { initial?: GalleryData }) {
           </div>
         )}
       </BilingualTabs>
+      <AdminFormField type="select" label="Album" value={form.albumSlug} onChange={(v) => set("albumSlug", v)} options={ALBUM_OPTIONS} />
       <AdminFormField type="number" label="Order" value={form.order} onChange={(v) => set("order", parseInt(v) || 0)} />
       <AdminFormField type="toggle" label="Active" value={form.isActive} onChange={(v) => set("isActive", v)} />
     </AdminFormPage>

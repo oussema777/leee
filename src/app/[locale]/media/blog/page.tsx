@@ -4,6 +4,9 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { BlogGrid } from "@/components/sections/blog/BlogGrid";
+import { getBlogPosts } from "@/lib/data/blog";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -29,6 +32,8 @@ export default async function BlogPage({
   const t = await getTranslations({ locale, namespace: "blog" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
 
+  const posts = await getBlogPosts();
+
   return (
     <>
       <PageHeader
@@ -51,7 +56,7 @@ export default async function BlogPage({
               </div>
             }
           >
-            <BlogGrid />
+            <BlogGrid posts={posts} />
           </Suspense>
         </Container>
       </section>

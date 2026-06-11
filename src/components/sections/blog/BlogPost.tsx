@@ -13,14 +13,10 @@ import {
   Share2,
   Link2,
 } from "lucide-react";
-import { blogCategories, demoPosts } from "./blogData";
-import type { BlogPost as BlogPostType } from "./blogData";
+import { blogCategories } from "./blogData";
+import type { BlogPostDetail, BlogPostListItem } from "@/lib/data/blog";
 
-function RelatedPosts({ currentSlug, categorySlug, isAr }: { currentSlug: string; categorySlug: string; isAr: boolean }) {
-  const sameCategory = demoPosts.filter((p) => p.slug !== currentSlug && p.categorySlug === categorySlug);
-  const others = demoPosts.filter((p) => p.slug !== currentSlug && p.categorySlug !== categorySlug);
-  const related = [...sameCategory, ...others].slice(0, 3);
-
+function RelatedPosts({ related, isAr }: { related: BlogPostListItem[]; isAr: boolean }) {
   if (related.length === 0) return null;
 
   return (
@@ -68,7 +64,7 @@ function RelatedPosts({ currentSlug, categorySlug, isAr }: { currentSlug: string
   );
 }
 
-export function BlogPostPage({ post }: { post: BlogPostType }) {
+export function BlogPostPage({ post, relatedPosts }: { post: BlogPostDetail; relatedPosts: BlogPostListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
 
@@ -251,7 +247,7 @@ export function BlogPostPage({ post }: { post: BlogPostType }) {
       </section>
 
       {/* Related */}
-      <RelatedPosts currentSlug={post.slug} categorySlug={post.categorySlug} isAr={isAr} />
+      <RelatedPosts related={relatedPosts} isAr={isAr} />
     </>
   );
 }

@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Quote, UserX, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { testimonialCategories, demoTestimonials } from "./testimonialsData";
-import type { TestimonialItem } from "./testimonialsData";
+import { testimonialCategories } from "./testimonialsData";
+import type { TestimonialListItem } from "@/lib/data/testimonials";
 
-function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: boolean }) {
+function FeaturedTestimonial({ item, isAr }: { item: TestimonialListItem; isAr: boolean }) {
   // If it's an original designed card, show the image as-is
   if (item.isOriginalCard) {
     return (
@@ -84,7 +84,7 @@ function FeaturedTestimonial({ item, isAr }: { item: TestimonialItem; isAr: bool
   );
 }
 
-export function TestimonialsGrid() {
+export function TestimonialsGrid({ testimonials }: { testimonials: TestimonialListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -93,8 +93,8 @@ export function TestimonialsGrid() {
   const currentCategory = searchParams.get("category") || "";
 
   const filteredTestimonials = currentCategory
-    ? demoTestimonials.filter((t) => t.categorySlug === currentCategory)
-    : demoTestimonials;
+    ? testimonials.filter((t) => t.categorySlug === currentCategory)
+    : testimonials;
 
   // Featured: first testimonial from filtered, rest in grid
   const featured = filteredTestimonials[0] || null;

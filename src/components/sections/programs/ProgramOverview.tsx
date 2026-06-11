@@ -20,6 +20,7 @@ interface ProgramOverviewProps {
   locationEn?: string | null;
   locationAr?: string | null;
   year?: number | null;
+  endYear?: number | null;
   beneficiaries?: number | null;
   galleryImages?: { id: string; imageUrl: string; caption?: string | null }[];
 }
@@ -62,6 +63,7 @@ export function ProgramOverview({
   locationEn,
   locationAr,
   year,
+  endYear,
   beneficiaries,
   galleryImages,
 }: ProgramOverviewProps) {
@@ -95,6 +97,7 @@ export function ProgramOverview({
         locationEn={locationEn}
         locationAr={locationAr}
         year={year}
+        endYear={endYear}
         beneficiaries={beneficiaries}
       />
 

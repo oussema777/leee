@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { albums, galleryImages } from "./galleryData";
-import type { GalleryImage } from "./galleryData";
+import { albums } from "./galleryData";
+import type { GalleryImageItem } from "@/lib/data/gallery";
 
-export function GalleryGrid() {
+export function GalleryGrid({ images }: { images: GalleryImageItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -18,9 +18,9 @@ export function GalleryGrid() {
   const currentAlbum = searchParams.get("album") || "";
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const filteredImages: GalleryImage[] = currentAlbum
-    ? galleryImages.filter((img) => img.albumSlug === currentAlbum)
-    : galleryImages;
+  const filteredImages: GalleryImageItem[] = currentAlbum
+    ? images.filter((img) => img.albumSlug === currentAlbum)
+    : images;
 
   const updateAlbum = useCallback(
     (slug: string) => {

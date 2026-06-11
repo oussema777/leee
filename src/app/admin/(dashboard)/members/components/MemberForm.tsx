@@ -14,15 +14,21 @@ interface MemberData {
   nameEn: string; nameAr: string;
   titleEn: string; titleAr: string;
   bioEn: string; bioAr: string;
+  quoteEn: string; quoteAr: string;
   imageUrl: string;
   linkedinUrl: string;
+  twitterUrl: string;
+  instagramUrl: string;
+  websiteUrl: string;
   memberType: string;
   order: number; isActive: boolean;
 }
 
 const empty: MemberData = {
   nameEn: "", nameAr: "", titleEn: "", titleAr: "", bioEn: "", bioAr: "",
-  imageUrl: "", linkedinUrl: "", memberType: "TEAM", order: 0, isActive: true,
+  quoteEn: "", quoteAr: "",
+  imageUrl: "", linkedinUrl: "", twitterUrl: "", instagramUrl: "", websiteUrl: "",
+  memberType: "TEAM", order: 0, isActive: true,
 };
 
 export default function MemberForm({ initial }: { initial?: MemberData }) {
@@ -49,18 +55,22 @@ export default function MemberForm({ initial }: { initial?: MemberData }) {
   return (
     <AdminFormPage title={form.id ? "Edit Member" : "New Member"} backHref="/admin/members" onSubmit={handleSubmit} loading={loading}>
       <AdminFormField type="select" label="Member Type" value={form.memberType} onChange={(v) => set("memberType", v)}
-        options={[{ label: "Board Member", value: "BOARD" }, { label: "Team Member", value: "TEAM" }]} />
+        options={[{ label: "Board Member", value: "BOARD" }, { label: "Team Member", value: "TEAM" }, { label: "Expert", value: "EXPERT" }, { label: "Mentor", value: "MENTOR" }]} />
       <BilingualTabs>
         {(lang) => (
           <div className="space-y-4">
             <AdminFormField type="text" label={`Name (${lang.toUpperCase()})`} value={lang === "en" ? form.nameEn : form.nameAr} onChange={(v) => set(lang === "en" ? "nameEn" : "nameAr", v)} required={lang === "en"} />
             <AdminFormField type="text" label={`Title (${lang.toUpperCase()})`} value={lang === "en" ? form.titleEn : form.titleAr} onChange={(v) => set(lang === "en" ? "titleEn" : "titleAr", v)} required={lang === "en"} />
             <AdminFormField type="textarea" label={`Bio (${lang.toUpperCase()})`} value={lang === "en" ? form.bioEn : form.bioAr} onChange={(v) => set(lang === "en" ? "bioEn" : "bioAr", v)} rows={4} />
+            <AdminFormField type="textarea" label={`Quote (${lang.toUpperCase()}) — used on the Team cards`} value={lang === "en" ? form.quoteEn : form.quoteAr} onChange={(v) => set(lang === "en" ? "quoteEn" : "quoteAr", v)} rows={2} />
           </div>
         )}
       </BilingualTabs>
       <ImageUploader value={form.imageUrl} onChange={(url) => set("imageUrl", url)} onRemove={() => set("imageUrl", "")} folder="members" label="Photo" />
       <AdminFormField type="url" label="LinkedIn URL" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} />
+      <AdminFormField type="url" label="X (Twitter) URL" value={form.twitterUrl} onChange={(v) => set("twitterUrl", v)} />
+      <AdminFormField type="url" label="Instagram URL" value={form.instagramUrl} onChange={(v) => set("instagramUrl", v)} />
+      <AdminFormField type="url" label="Website URL" value={form.websiteUrl} onChange={(v) => set("websiteUrl", v)} />
       <AdminFormField type="number" label="Order" value={form.order} onChange={(v) => set("order", parseInt(v) || 0)} />
       <AdminFormField type="toggle" label="Active" value={form.isActive} onChange={(v) => set("isActive", v)} />
     </AdminFormPage>

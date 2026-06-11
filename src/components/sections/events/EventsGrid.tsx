@@ -6,9 +6,9 @@ import { EventCard } from "./EventCard";
 import { FeaturedEventBanner } from "./FeaturedEventBanner";
 import { EventFilters } from "./EventFilters";
 import { CalendarX2 } from "lucide-react";
-import { demoEvents } from "./eventsData";
+import type { EventListItem } from "@/lib/data/events";
 
-export function EventsGrid() {
+export function EventsGrid({ events }: { events: EventListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const searchParams = useSearchParams();
@@ -17,7 +17,7 @@ export function EventsGrid() {
   const currentCategory = searchParams.get("category") || "";
   const now = new Date();
 
-  const filteredEvents = demoEvents.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.startDate);
     if (currentStatus === "UPCOMING" && eventDate <= now) return false;
     if (currentStatus === "PAST" && eventDate > now) return false;
@@ -25,10 +25,10 @@ export function EventsGrid() {
     return true;
   });
 
-  const categories = [...new Set(demoEvents.map((e) => e.category))];
+  const categories = [...new Set(events.map((e) => e.category).filter(Boolean))];
 
   // Find featured upcoming event
-  const featuredEvent = demoEvents.find((e) => e.isFeatured && new Date(e.startDate) > now);
+  const featuredEvent = events.find((e) => e.isFeatured && new Date(e.startDate) > now);
 
   return (
     <>

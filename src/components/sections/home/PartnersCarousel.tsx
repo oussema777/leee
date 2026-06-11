@@ -1,37 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import Image from "next/image";
+import type { PartnerItem } from "@/lib/data/partners";
 
-const partners = [
-  { id: "ilo", name: "ILO", logo: "/images/partners/ILO.png" },
-  { id: "eu", name: "European Union", logo: "/images/partners/European Union.png" },
-  { id: "undp", name: "UNDP", logo: "/images/partners/UNDP_logo.svg.png" },
-  { id: "wfp", name: "World Food Programme", logo: "/images/partners/WFP.png" },
-  { id: "worldbank", name: "World Bank", logo: "/images/partners/World Bank.jpg" },
-  { id: "irc", name: "IRC", logo: "/images/partners/IRC.png" },
-  { id: "unifil", name: "UNIFIL", logo: "/images/partners/UNIFIL.jpg" },
-  { id: "canada", name: "Canada Embassy", logo: "/images/partners/Canada Embassy.png" },
-  { id: "netherlands", name: "Netherlands Embassy", logo: "/images/partners/logo-netherlands-embassy.png" },
-  { id: "norway", name: "Norway Embassy", logo: "/images/partners/Norway Embassy.png" },
-  { id: "bmz", name: "BMZ Germany", logo: "/images/partners/BMZ Germany.jpg" },
-  { id: "prospects", name: "PROSPECTS", logo: "/images/partners/PROSPECTS.png" },
-  { id: "oxfam", name: "Oxfam", logo: "/images/partners/Oxfam.webp" },
-  { id: "cawtar", name: "CAWTAR", logo: "/images/partners/CAWTAR.jpg" },
-  { id: "kvinna", name: "Kvinna till Kvinna", logo: "/images/partners/Kvinna till Kvinna.jpg" },
-  { id: "solidarites", name: "Solidarités International", logo: "/images/partners/Solidarités Int..jpg" },
-  { id: "relief", name: "Relief International", logo: "/images/partners/Relief Int..jpg" },
-  { id: "aah", name: "Action Against Hunger", logo: "/images/partners/Action Against Hunger.png" },
-  { id: "whh", name: "WHH", logo: "/images/partners/WHH.png" },
-  { id: "lutheran", name: "Lutheran World Relief", logo: "/images/partners/Lutheran WR.webp" },
-  { id: "intalert", name: "International Alert", logo: "/images/partners/Int. Alert.png" },
-];
-
-export function PartnersCarousel() {
+export function PartnersCarousel({ partners }: { partners: PartnerItem[] }) {
   const t = useTranslations("home");
+  const locale = useLocale();
+  const isAr = locale === "ar";
   const doubled = [...partners, ...partners];
   const [paused, setPaused] = useState(false);
 
@@ -63,8 +42,8 @@ export function PartnersCarousel() {
                   style={{ minWidth: "160px", height: "80px" }}
                 >
                   <Image
-                    src={partner.logo}
-                    alt={partner.name}
+                    src={partner.logoUrl}
+                    alt={isAr ? partner.nameAr : partner.nameEn}
                     width={200}
                     height={80}
                     className="h-12 w-auto object-contain max-w-[140px]"

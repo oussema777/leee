@@ -6,10 +6,16 @@ import { AboutVMV } from "@/components/sections/about/AboutVMV";
 import { AboutOfferings } from "@/components/sections/about/AboutOfferings";
 import { AboutTimeline } from "@/components/sections/about/AboutTimeline";
 import { AboutTeam } from "@/components/sections/about/AboutTeam";
+import { AboutExpertsTeaser } from "@/components/sections/about/AboutExpertsTeaser";
 import { AboutValues } from "@/components/sections/about/AboutValues";
 import { AboutQuoteBanner } from "@/components/sections/about/AboutQuoteBanner";
 import { AboutStrategy } from "@/components/sections/about/AboutStrategy";
 import { AboutPartners } from "@/components/sections/about/AboutPartners";
+import { getTeamMembers } from "@/lib/data/members";
+import { getPartners } from "@/lib/data/partners";
+import { getCoreValues, getMilestones } from "@/lib/data/about";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -30,6 +36,13 @@ export default async function AboutPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "about" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
+
+  const [team, partners, values, timeline] = await Promise.all([
+    getTeamMembers(),
+    getPartners(),
+    getCoreValues(),
+    getMilestones(),
+  ]);
 
   return (
     <>
@@ -57,19 +70,22 @@ export default async function AboutPage({
       <AboutQuoteBanner />
 
       {/* Timeline */}
-      <AboutTimeline />
+      <AboutTimeline timeline={timeline} />
 
       {/* Team */}
-      <AboutTeam />
+      <AboutTeam team={team} />
+
+      {/* Experts & Mentors teaser → dedicated page at /about/experts */}
+      <AboutExpertsTeaser />
 
       {/* Values in action */}
-      <AboutValues />
+      <AboutValues values={values} />
 
       {/* Strategic framework */}
       <AboutStrategy />
 
       {/* Partners grid */}
-      <AboutPartners />
+      <AboutPartners partners={partners} />
     </>
   );
 }

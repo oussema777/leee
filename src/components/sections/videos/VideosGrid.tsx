@@ -6,9 +6,10 @@ import { useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Play, VideoOff, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { videoCategories, demoVideos, getYouTubeId } from "./videosData";
+import { videoCategories, getYouTubeId } from "./videosData";
+import type { VideoListItem } from "@/lib/data/videos";
 
-export function VideosGrid() {
+export function VideosGrid({ videos }: { videos: VideoListItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -18,8 +19,8 @@ export function VideosGrid() {
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   const filteredVideos = currentCategory
-    ? demoVideos.filter((v) => v.categorySlug === currentCategory)
-    : demoVideos;
+    ? videos.filter((v) => v.categorySlug === currentCategory)
+    : videos;
 
   const updateCategory = useCallback(
     (slug: string) => {
@@ -35,7 +36,7 @@ export function VideosGrid() {
   );
 
   const activeVideo = activeVideoId
-    ? demoVideos.find((v) => v.id === activeVideoId)
+    ? videos.find((v) => v.id === activeVideoId)
     : null;
   const activeYouTubeId = activeVideo
     ? getYouTubeId(activeVideo.youtubeUrl)

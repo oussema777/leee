@@ -9,10 +9,27 @@ import { AnimatedSection } from "@/components/shared/AnimatedSection";
 import { Link } from "@/i18n/navigation";
 import { Phone, Mail, MapPin, Rocket, Handshake, BrainCircuit } from "lucide-react";
 
-export function ContactSection() {
+interface ContactSectionProps {
+  phone?: string;
+  email?: string;
+  address?: string;
+  mapUrl?: string;
+}
+
+export function ContactSection({ phone, email, address, mapUrl }: ContactSectionProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  // Fall back to current hardcoded values if a DB-provided prop is missing.
+  const phoneValue = phone?.trim() || "+961 3 002 430";
+  const emailValue = email?.trim() || "info@theleeexperience.com";
+  const addressValue =
+    address?.trim() ||
+    (locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt");
+  const mapUrlValue =
+    mapUrl?.trim() ||
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d106069.67600028!2d35.4309!3d33.8938!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151f17215880a78f%3A0x729182bae99836b4!2sBeirut%2C%20Lebanon!5e0!3m2!1sen!2s!4v1";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -100,23 +117,23 @@ export function ContactSection() {
               <ContactItem
                 icon={<Phone className="w-5 h-5" />}
                 label={t("common.phone")}
-                value="+961 3 002 430"
+                value={phoneValue}
               />
               <ContactItem
                 icon={<Mail className="w-5 h-5" />}
                 label={t("common.email")}
-                value="info@theleeexperience.com"
-                href="mailto:info@theleeexperience.com"
+                value={emailValue}
+                href={`mailto:${emailValue}`}
               />
               <ContactItem
                 icon={<MapPin className="w-5 h-5" />}
                 label={t("common.address")}
-                value={locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"}
+                value={addressValue}
               />
 
               <div className="mt-8 overflow-hidden h-64">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d106069.67600028!2d35.4309!3d33.8938!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151f17215880a78f%3A0x729182bae99836b4!2sBeirut%2C%20Lebanon!5e0!3m2!1sen!2s!4v1"
+                  src={mapUrlValue}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

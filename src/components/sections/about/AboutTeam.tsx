@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
-import { teamMembers } from "./aboutData";
+import type { TeamMemberItem } from "@/lib/data/members";
 import Image from "next/image";
 
 const cardAccents = [
@@ -32,10 +32,12 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function AboutTeam() {
+export function AboutTeam({ team }: { team: TeamMemberItem[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
+
+  if (team.length === 0) return null;
 
   return (
     <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
@@ -81,7 +83,7 @@ export function AboutTeam() {
 
         {/* Team grid — alternating slide directions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teamMembers.map((member, i) => {
+          {team.map((member, i) => {
             // Cycle: left, scale, right
             const entranceType = i % 3;
             const entrance = entranceType === 0

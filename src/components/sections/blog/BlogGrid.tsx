@@ -7,12 +7,12 @@ import { Link } from "@/i18n/navigation";
 import { Clock, ArrowRight, FileX2, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { blogCategories, demoPosts } from "./blogData";
-import type { BlogPost } from "./blogData";
+import { blogCategories } from "./blogData";
+import type { BlogPostListItem } from "@/lib/data/blog";
 
 const PAGE_SIZE = 9;
 
-function FeaturedPost({ post, isAr }: { post: BlogPost; isAr: boolean }) {
+function FeaturedPost({ post, isAr }: { post: BlogPostListItem; isAr: boolean }) {
   const date = new Date(post.publishedAt);
   const dateStr = date.toLocaleDateString(isAr ? "ar-LB" : "en-US", {
     day: "numeric",
@@ -89,7 +89,7 @@ function paginationRange(current: number, total: number): (number | "…")[] {
   return pages;
 }
 
-export function BlogGrid() {
+export function BlogGrid({ posts }: { posts: BlogPostListItem[] }) {
   const locale = useLocale();
   const t = useTranslations("blog");
   const isAr = locale === "ar";
@@ -132,7 +132,7 @@ export function BlogGrid() {
 
   const filtered = useMemo(() => {
     const q = currentSearch.trim().toLowerCase();
-    return demoPosts.filter((p) => {
+    return posts.filter((p) => {
       if (currentCategory && p.categorySlug !== currentCategory) return false;
       if (q) {
         const hay = [p.titleEn, p.titleAr, p.excerptEn, p.excerptAr, p.authorNameEn, p.authorNameAr]
@@ -143,7 +143,7 @@ export function BlogGrid() {
       }
       return true;
     });
-  }, [currentCategory, currentSearch]);
+  }, [posts, currentCategory, currentSearch]);
 
   const noFilters = !currentCategory && !currentSearch;
   const featured = noFilters ? filtered.find((p) => p.isFeatured) ?? null : null;

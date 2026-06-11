@@ -4,6 +4,9 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { GalleryGrid } from "@/components/sections/gallery/GalleryGrid";
+import { getGalleryImages } from "@/lib/data/gallery";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -24,6 +27,8 @@ export default async function GalleryPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "gallery" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
+
+  const images = await getGalleryImages();
 
   return (
     <>
@@ -47,7 +52,7 @@ export default async function GalleryPage({
               </div>
             }
           >
-            <GalleryGrid />
+            <GalleryGrid images={images} />
           </Suspense>
         </Container>
       </section>

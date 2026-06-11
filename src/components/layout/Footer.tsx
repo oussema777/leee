@@ -8,10 +8,24 @@ import Image from "next/image";
 import { Phone, Mail, MapPin, CheckCircle } from "lucide-react";
 import { socialLinks } from "@/lib/socialLinks";
 
-export function Footer() {
+interface FooterProps {
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export function Footer({ phone, email, address }: FooterProps = {}) {
   const t = useTranslations();
   const locale = useLocale();
   const currentYear = new Date().getFullYear();
+
+  // Fall back to current hardcoded values if a DB-provided prop is missing.
+  const phoneValue = phone?.trim() || "+961 3 002 430";
+  const phoneHref = `tel:${phoneValue.replace(/[^+\d]/g, "")}`;
+  const emailValue = email?.trim() || "info@theleeexperience.com";
+  const addressValue =
+    address?.trim() ||
+    (locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt");
   const [footerEmail, setFooterEmail] = React.useState("");
   const [footerStatus, setFooterStatus] = React.useState<"idle" | "loading" | "success" | "already" | "error">("idle");
 
@@ -62,22 +76,23 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
                 <span className="text-white/60 text-sm">
-                  {locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"}
+                  {addressValue}
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
-                <a href="tel:+9613002430" className="text-white/60 text-sm hover:text-brand-blue-light transition-colors">
-                  +961 3 002 430
+                <a href={phoneHref} className="text-white/60 text-sm hover:text-brand-blue-light transition-colors" dir="ltr">
+                  {phoneValue}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-white/40 mt-0.5 flex-shrink-0" />
                 <a
-                  href="mailto:info@theleeexperience.com"
+                  href={`mailto:${emailValue}`}
                   className="text-white/60 text-sm hover:text-brand-blue-light transition-colors"
+                  dir="ltr"
                 >
-                  info@theleeexperience.com
+                  {emailValue}
                 </a>
               </li>
             </ul>

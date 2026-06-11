@@ -4,6 +4,9 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { EventsGrid } from "@/components/sections/events/EventsGrid";
+import { getEvents } from "@/lib/data/events";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -24,6 +27,8 @@ export default async function EventsPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "events" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
+
+  const events = await getEvents();
 
   return (
     <>
@@ -47,7 +52,7 @@ export default async function EventsPage({
               </div>
             }
           >
-            <EventsGrid />
+            <EventsGrid events={events} />
           </Suspense>
         </Container>
       </section>

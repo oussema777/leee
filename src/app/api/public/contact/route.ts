@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendNotificationEmail, renderNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +30,22 @@ export async function POST(request: NextRequest) {
         subject: subject?.trim() || null,
         message: message.trim(),
       },
+    });
+
+    await sendNotificationEmail({
+      subject: `[LEEE] Contact message: ${name}`,
+      replyTo: email,
+      html: renderNotification(
+        "New contact message",
+        "A new message was submitted via the website contact form.",
+        [
+          { label: "Name", value: name },
+          { label: "Email", value: email },
+          { label: "Phone", value: phone },
+          { label: "Subject", value: subject },
+          { label: "Message", value: message },
+        ]
+      ),
     });
 
     return NextResponse.json({ success: true }, { status: 201 });
