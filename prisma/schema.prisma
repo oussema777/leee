@@ -54,7 +54,9 @@ model ExperienceNumber {
   labelAr   String
   value     Int
   suffix    String?
+  prefix    String?
   icon      String?
+  color     String?
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
@@ -88,6 +90,9 @@ model CoreValue {
   titleAr       String
   descriptionEn String  @db.Text
   descriptionAr String  @db.Text
+  storyEn       String? @db.Text
+  storyAr       String? @db.Text
+  sdgNumber     Int?
   icon          String?
   order         Int     @default(0)
   isActive      Boolean @default(true)
@@ -101,8 +106,13 @@ model BoardMember {
   titleAr     String
   bioEn       String?    @db.Text
   bioAr       String?    @db.Text
+  quoteEn     String?    @db.Text
+  quoteAr     String?    @db.Text
   imageUrl    String?
   linkedinUrl String?
+  twitterUrl  String?
+  instagramUrl String?
+  websiteUrl  String?
   order       Int        @default(0)
   isActive    Boolean    @default(true)
   memberType  MemberType @default(BOARD)
@@ -111,6 +121,8 @@ model BoardMember {
 enum MemberType {
   BOARD
   TEAM
+  EXPERT
+  MENTOR
 }
 
 model SuccessMilestone {
@@ -120,6 +132,7 @@ model SuccessMilestone {
   titleAr       String
   descriptionEn String? @db.Text
   descriptionAr String? @db.Text
+  imageUrl      String?
   order         Int     @default(0)
 }
 
@@ -191,6 +204,7 @@ model Program {
   budget        String?
   beneficiaries Int?
   year          Int?
+  endYear       Int?
   startDate     DateTime?
   endDate       DateTime?
   objectivesEn  String?        @db.Text
@@ -277,10 +291,15 @@ model Event {
   slug            String   @unique
   titleEn         String
   titleAr         String
+  summaryEn       String?  @db.Text
+  summaryAr       String?  @db.Text
   descriptionEn   String   @db.Text
   descriptionAr   String   @db.Text
   imageUrl        String?
   location        String?
+  locationAr      String?
+  category        String?
+  galleryImages   String[]
   startDate       DateTime
   endDate         DateTime?
   registrationUrl String?
@@ -297,6 +316,7 @@ model GalleryImage {
   captionAr   String?
   albumName   String?
   albumNameAr String?
+  albumSlug   String?
   order       Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -306,8 +326,11 @@ model Video {
   id           String   @id @default(cuid())
   titleEn      String
   titleAr      String
+  descriptionEn String? @db.Text
+  descriptionAr String? @db.Text
   youtubeUrl   String
   thumbnailUrl String?
+  category     String?
   order        Int      @default(0)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -321,6 +344,7 @@ model Report {
   descriptionAr String?  @db.Text
   fileUrl       String
   coverImageUrl String?
+  category      String?
   year          Int?
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -335,6 +359,11 @@ model Testimonial {
   quoteEn  String  @db.Text
   quoteAr  String  @db.Text
   imageUrl String?
+  programEn String?
+  programAr String?
+  category String?
+  year     Int?
+  isOriginalCard Boolean @default(false)
   order    Int     @default(0)
   isActive Boolean @default(true)
 }
@@ -350,6 +379,11 @@ model BlogPost {
   bodyAr        String    @db.Text
   coverImageUrl String?
   authorName    String?
+  authorNameAr  String?
+  authorRole    String?
+  authorImageUrl String?
+  readTimeMin   Int?
+  isFeatured    Boolean   @default(false)
   category      String?
   isPublished   Boolean   @default(false)
   publishedAt   DateTime?
@@ -503,6 +537,47 @@ model ServiceRequest {
   timeline    String?
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+enum TestimonialSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model TestimonialSubmission {
+  id           String  @id @default(cuid())
+
+  // Step 1 — publishable testimonial
+  fullName     String
+  email        String   // internal only — never published
+  phone        String?  // internal only — never published
+  businessName String?
+  governorate  String?
+  program      String?
+  quote        String  @db.Text
+  locale       String   // "en" | "ar" — language the beneficiary wrote in
+  consent      Boolean @default(false)
+  consentTextVersion String?
+  photoUrl     String?
+
+  // Step 2 — internal impact survey (all optional)
+  motivation         String? @db.Text
+  challenges         String? @db.Text
+  skillsGained       String? @db.Text
+  valuableLesson     String? @db.Text
+  lifeImpact         String? @db.Text
+  results            String? @db.Text
+  successStory       String? @db.Text
+  adviceToOthers     String? @db.Text
+  additionalComments String? @db.Text
+
+  // Moderation
+  status                 TestimonialSubmissionStatus @default(PENDING)
+  publishedTestimonialId String?
+  isRead                 Boolean   @default(false)
+  reviewedAt             DateTime?
+  createdAt              DateTime  @default(now())
 }
 
 // ─────────────────────────────────────────
