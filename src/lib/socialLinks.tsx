@@ -10,7 +10,7 @@ export function XIcon({ className }: { className?: string }) {
 }
 
 export const socialLinks = [
-  { name: "Facebook", icon: Facebook, href: "https://www.facebook.com/theleeexperience/" },
+  { name: "Facebook", icon: Facebook, href: "https://www.facebook.com/profile.php?id=61554718851998" },
   { name: "X", icon: XIcon, href: "https://twitter.com/lee_experience" },
   { name: "Instagram", icon: Instagram, href: "https://www.instagram.com/the_lee_experience/" },
   { name: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/company/the-lee-experience" },

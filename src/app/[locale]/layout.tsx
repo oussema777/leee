@@ -102,7 +102,7 @@ export default async function LocaleLayout({
           logo: "https://theleeexperience.com/LEEE-LOGO.png",
           description: "Social enterprise ecosystem empowering communities in Lebanon and MENA",
           sameAs: [
-            "https://www.facebook.com/theleeexperience/",
+            "https://www.facebook.com/profile.php?id=61554718851998",
             "https://twitter.com/lee_experience",
             "https://www.instagram.com/the_lee_experience/",
             "https://www.linkedin.com/company/the-lee-experience",
