@@ -82,11 +82,66 @@ export function BlogPostPage({ post, relatedPosts }: { post: BlogPostDetail; rel
     navigator.clipboard.writeText(window.location.href);
   };
 
+  // Render inline markdown (bold + links) inside a line of text
+  const renderInline = (text: string) => {
+    // Split on **bold** or [label](url), keeping the delimiters
+    const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
+    return parts.map((part, j) => {
+      const bold = part.match(/^\*\*([^*]+)\*\*$/);
+      if (bold) {
+        return (
+          <strong key={j} className="text-text-primary font-semibold">
+            {bold[1]}
+          </strong>
+        );
+      }
+      const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (link) {
+        const href = link[2];
+        const external = /^https?:\/\//.test(href);
+        return (
+          <a
+            key={j}
+            href={href}
+            {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            className="text-brand-blue font-medium underline underline-offset-2 hover:text-brand-blue-dark transition-colors break-words"
+          >
+            {link[1]}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   // Parse markdown-like content into paragraphs and headings
   const renderContent = (text: string) => {
     return text.split("\n").map((line, i) => {
       const trimmed = line.trim();
       if (!trimmed) return null;
+
+      // Inline image: ![alt](url)
+      const img = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+      if (img) {
+        return (
+          <figure key={i} className="my-8">
+            <div className="relative w-full overflow-hidden bg-gray-50 border border-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img[2]}
+                alt={img[1]}
+                loading="lazy"
+                className="w-full h-auto block"
+              />
+            </div>
+            {img[1] && (
+              <figcaption className="text-xs text-text-muted text-center mt-2 italic">
+                {img[1]}
+              </figcaption>
+            )}
+          </figure>
+        );
+      }
 
       if (trimmed.startsWith("## ")) {
         return (
@@ -131,7 +186,7 @@ export function BlogPostPage({ post, relatedPosts }: { post: BlogPostDetail; rel
 
       return (
         <p key={i} className="text-text-secondary text-[15px] leading-relaxed mb-4">
-          {trimmed}
+          {renderInline(trimmed)}
         </p>
       );
     });
