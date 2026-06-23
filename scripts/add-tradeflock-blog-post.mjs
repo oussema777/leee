@@ -73,7 +73,7 @@ const data = {
     "تفخر The LEE Experience بالإعلان عن اختيار مديرتها التنفيذية منال حسون ضمن أكثر القيادات النسائية تأثيراً لعام 2026 من قبل مجلة TradeFlock — محطة تحتفي برؤيتها للتنمية الشاملة في لبنان.",
   bodyEn,
   bodyAr,
-  coverImageUrl: "/images/blog/tradeflock-women-leaders-cover.jpg",
+  coverImageUrl: "/images/blog/tradeflock-feature-hero.jpg",
   authorName: "The LEE Experience",
   authorNameAr: "The LEE Experience",
   authorRole: "Official Announcement",
