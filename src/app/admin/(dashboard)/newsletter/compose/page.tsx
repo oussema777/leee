@@ -151,6 +151,11 @@ export default function ComposeNewsletterPage() {
     if (!campaignId) return;
     setSending(true);
     try {
+      // Persist the CURRENT tags (and only tags) right before enqueueing so the
+      // server targets exactly the group shown in the count/modal. Sending only
+      // targetTags — not subject/html — keeps the server's lastTestedAt intact,
+      // so the send still passes the test-gate check.
+      await adminPut(`/newsletter/campaigns/${campaignId}`, { targetTags });
       await adminPost(`/newsletter/campaigns/${campaignId}/send`, {});
       toast.success("Newsletter send enqueued");
       setShowSendModal(false);
