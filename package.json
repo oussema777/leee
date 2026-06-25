@@ -12,7 +12,9 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -56,6 +58,7 @@
     "@types/bcryptjs": "^2.4.6",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.6",
-    "prisma": "^6.19.2"
+    "prisma": "^6.19.2",
+    "vitest": "^4.1.9"
   }
 }
