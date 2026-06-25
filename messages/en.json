@@ -286,5 +286,9 @@
     "donateTitle": "Donate Now",
     "interventionTitle": "Areas of Intervention",
     "partnerWithUs": "Partner With Us"
+  },
+  "unsubscribe": {
+    "title": "You're unsubscribed",
+    "body": "You've been removed from The LEE Experience newsletter and won't receive further emails. If this was a mistake, contact us at info@theleeexperience.com."
   }
 }
