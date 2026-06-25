@@ -16,35 +16,45 @@ export type ShowcaseMember = {
 };
 
 /**
- * Active EXPERT and MENTOR members for the public "Our Experts & Mentors"
- * showcase on the About page, split by type and ordered by `order`.
+ * Active TEAM members for the About page "Meet The Team" section.
+ * Returns the same `ShowcaseMember` shape as the experts/mentors showcase so
+ * the team renders with the identical profile-card component. Members have no
+ * separate bio, so their quote fills the card's description slot.
  */
-export type TeamMemberItem = {
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  roleEn: string;
-  roleAr: string;
-  quoteEn: string;
-  quoteAr: string;
-  imageUrl: string;
-};
-
-/** Active TEAM members for the About page "Meet The Team" section. */
-export async function getTeamMembers(): Promise<TeamMemberItem[]> {
+export async function getTeamMembers(): Promise<ShowcaseMember[]> {
   const rows = await db.boardMember.findMany({
     where: { isActive: true, memberType: "TEAM" },
     orderBy: { order: "asc" },
+    select: {
+      id: true,
+      nameEn: true,
+      nameAr: true,
+      titleEn: true,
+      titleAr: true,
+      bioEn: true,
+      bioAr: true,
+      quoteEn: true,
+      quoteAr: true,
+      imageUrl: true,
+      linkedinUrl: true,
+      twitterUrl: true,
+      instagramUrl: true,
+      websiteUrl: true,
+    },
   });
   return rows.map((m) => ({
     id: m.id,
     nameEn: m.nameEn,
     nameAr: m.nameAr,
-    roleEn: m.titleEn,
-    roleAr: m.titleAr,
-    quoteEn: m.quoteEn ?? "",
-    quoteAr: m.quoteAr ?? "",
-    imageUrl: m.imageUrl ?? "",
+    titleEn: m.titleEn,
+    titleAr: m.titleAr,
+    bioEn: m.bioEn || m.quoteEn || null,
+    bioAr: m.bioAr || m.quoteAr || null,
+    imageUrl: m.imageUrl,
+    linkedinUrl: m.linkedinUrl,
+    twitterUrl: m.twitterUrl,
+    instagramUrl: m.instagramUrl,
+    websiteUrl: m.websiteUrl,
   }));
 }
 

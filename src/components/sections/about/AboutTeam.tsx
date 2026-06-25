@@ -4,17 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
-import type { TeamMemberItem } from "@/lib/data/members";
-import Image from "next/image";
-
-const cardAccents = [
-  "border-t-brand-blue",
-  "border-t-emerald-400",
-  "border-t-amber-400",
-  "border-t-pink-400",
-  "border-t-violet-400",
-  "border-t-cyan-400",
-];
+import type { ShowcaseMember } from "@/lib/data/members";
+import { MemberCard } from "@/components/sections/experts/MemberCard";
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -32,7 +23,7 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function AboutTeam({ team }: { team: TeamMemberItem[] }) {
+export function AboutTeam({ team }: { team: ShowcaseMember[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
@@ -81,57 +72,11 @@ export function AboutTeam({ team }: { team: TeamMemberItem[] }) {
           </h2>
         </div>
 
-        {/* Team grid — alternating slide directions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {team.map((member, i) => {
-            // Cycle: left, scale, right
-            const entranceType = i % 3;
-            const entrance = entranceType === 0
-              ? (sectionAnim.visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12")
-              : entranceType === 1
-                ? (sectionAnim.visible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-8")
-                : (sectionAnim.visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12");
-
-            return (
-              <div
-                key={member.id}
-                className={cn(
-                  "group transition-all duration-700 ease-out",
-                  entrance
-                )}
-                style={{ transitionDelay: `${200 + i * 100}ms` }}
-              >
-                <div className={cn(
-                  "bg-surface-secondary rounded-2xl overflow-hidden border border-surface-tertiary border-t-[3px] hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5",
-                  cardAccents[i % cardAccents.length]
-                )}>
-                  <div className="relative h-56 md:h-64 overflow-hidden">
-                    <Image
-                      src={member.imageUrl}
-                      alt={isAr ? member.nameAr : member.nameEn}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-accent-navy/40 to-transparent" />
-                    <div className="absolute top-3 end-3 w-7 h-7 rounded-full border-2 border-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-
-                  <div className="p-5 md:p-6">
-                    <h3 className="font-serif text-xl text-text-primary tracking-tight">
-                      {isAr ? member.nameAr : member.nameEn}
-                    </h3>
-                    <p className="text-brand-blue text-sm font-medium mt-1">
-                      {isAr ? member.roleAr : member.roleEn}
-                    </p>
-                    <p className="text-text-muted text-sm italic mt-3 leading-relaxed">
-                      &ldquo;{isAr ? member.quoteAr : member.quoteEn}&rdquo;
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* Team grid — experts-style profile cards */}
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {team.map((member, i) => (
+            <MemberCard key={member.id} member={member} index={i} visible={sectionAnim.visible} />
+          ))}
         </div>
       </Container>
     </section>
