@@ -132,6 +132,7 @@ enum CampaignEventType {
   CLICKED
   BOUNCED
   COMPLAINED
+  UNSUBSCRIBED // written by our own unsubscribe endpoint (not a Resend webhook), for per-campaign attribution
 }
 
 model Contact {
@@ -991,23 +992,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const suppressed = new Set(suppressedRows.map((s) => s.email));
     const recipients = resolveRecipients(contacts as never, c.targetTags, suppressed);
 
-    // Create ledger rows. unsubToken needs the recipient id, so create then patch the token,
-    // OR sign with a pre-generated cuid. Here: create rows, then set tokens in a second pass.
+    // Pre-generate each row id with crypto.randomUUID() so the signed unsubToken can be set in
+    // a SINGLE create (no placeholder, no second pass, no cross-campaign collisions). The token
+    // signs against the row's own id, so it's globally unique by construction.
     await db.$transaction(async (tx) => {
       for (let i = 0; i < recipients.length; i++) {
         const r = recipients[i];
-        const row = await tx.campaignRecipient.create({
+        const rid = crypto.randomUUID();
+        await tx.campaignRecipient.create({
           data: {
+            id: rid,
             campaignId: id,
             email: r.email,
             name: r.name,
             batchIndex: Math.floor(i / BATCH_SIZE),
-            unsubToken: "pending", // placeholder, replaced below
+            unsubToken: signUnsubToken({ rid, cid: id }, SECRET),
           },
-        });
-        await tx.campaignRecipient.update({
-          where: { id: row.id },
-          data: { unsubToken: signUnsubToken({ rid: row.id, cid: id }, SECRET) },
         });
       }
       await tx.campaign.update({
@@ -1023,7 +1023,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 }
 ```
 
-> Note the `unsubToken` placeholder must be unique per row; using `"pending"` would violate the unique constraint for >1 recipient. **Fix in implementation:** generate the token from a pre-made id (e.g. `createId()` from `@paralleldrive/cuid2` if available) so it's set in the `create` directly, OR temporarily set `unsubToken: row-unique placeholder` like `\`pending-${i}\``. Prefer signing against a pre-generated id and passing it as the row `id`.
+Add `import crypto from "crypto";` at the top of the file. (`crypto.randomUUID()` is a stable, dependency-free id — Prisma accepts an explicit string `id`. No need for cuid2.)
+
+> For very large lists, this per-row loop inside one transaction is acceptable for v1 (the enqueue request is fast relative to the actual send). If it ever feels slow, batch the inserts with `createManyAndReturn` after pre-computing ids — but keep the campaign status flip in the same transaction so a failed enqueue leaves the campaign `DRAFT`.
 
 - [ ] **Step 2: Manual check** — enqueue a draft targeting a small tag; confirm rows exist with distinct `unsubToken`, correct `batchIndex` grouping, and campaign `status = SENDING`.
 
@@ -1128,9 +1130,16 @@ import { applyMergeTags, injectUnsubscribeFooter } from "@/lib/newsletter/render
 import { idempotencyKeyFor, nextBatchIndex } from "@/lib/newsletter/drain";
 import { sendNewsletterBatch } from "@/lib/email";
 
+// Route-segment config (App Router): force dynamic + extend the timeout for this handler.
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 const RETRY_BUDGET = 3;
-const BATCHES_PER_TICK = 5; // tune under the function timeout
+const BATCHES_PER_TICK = 5;      // tune under the function timeout
+const INTER_BATCH_MS = 600;      // small pause between batches to respect Resend's API rate limit
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "";
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -1164,12 +1173,15 @@ export async function GET(request: NextRequest) {
 
       for (let n = 0; n < BATCHES_PER_TICK; n++) {
         const rows = await tx.campaignRecipient.findMany({ where: { campaignId } });
-        const bi = nextBatchIndex(
-          rows.map((r) => ({ batchIndex: r.batchIndex, status: r.status, attempts: r.attempts })),
-          RETRY_BUDGET
-        );
+        const drainRows = rows.map((r) => ({ batchIndex: r.batchIndex, status: r.status, attempts: r.attempts }));
+        const bi = nextBatchIndex(drainRows, RETRY_BUDGET);
         if (bi === null) {
-          await tx.campaign.update({ where: { id: campaignId }, data: { status: "SENT", sentAt: new Date() } });
+          // Drained: SENT only if no row is permanently FAILED; otherwise FAILED.
+          const hasFailed = rows.some((r) => r.status === "FAILED");
+          await tx.campaign.update({
+            where: { id: campaignId },
+            data: hasFailed ? { status: "FAILED" } : { status: "SENT", sentAt: new Date() },
+          });
           break;
         }
         const batch = rows.filter((r) => r.batchIndex === bi);
@@ -1190,25 +1202,23 @@ export async function GET(request: NextRequest) {
 
         try {
           const sent = await sendNewsletterBatch(emails, idempotencyKeyFor(campaignId, bi), campaignId);
-          await Promise.all(
-            batch.map((r, i) =>
-              tx.campaignRecipient.update({
-                where: { id: r.id },
-                data: { status: "SENT", sentAt: new Date(), providerMessageId: sent[i]?.id ?? null },
-              })
-            )
-          );
+          // Sequential writes: Prisma interactive transactions run on one connection — no Promise.all.
+          for (let i = 0; i < batch.length; i++) {
+            await tx.campaignRecipient.update({
+              where: { id: batch[i].id },
+              data: { status: "SENT", sentAt: new Date(), providerMessageId: sent[i]?.id ?? null },
+            });
+          }
         } catch (e) {
-          await Promise.all(
-            batch.map((r) =>
-              tx.campaignRecipient.update({
-                where: { id: r.id },
-                data: { status: "FAILED", attempts: { increment: 1 }, error: (e as Error).message.slice(0, 500) },
-              })
-            )
-          );
+          const msg = (e as Error).message.slice(0, 500);
+          // updateMany is a single statement — safe and avoids per-row round-trips for the failure path.
+          await tx.campaignRecipient.updateMany({
+            where: { id: { in: batch.map((r) => r.id) } },
+            data: { status: "FAILED", attempts: { increment: 1 }, error: msg },
+          });
         }
         processed++;
+        await sleep(INTER_BATCH_MS);
       }
     }, { timeout: 55_000 });
   }
@@ -1219,14 +1229,15 @@ export async function GET(request: NextRequest) {
 
 > **Verify during implementation:** Supabase pooled connections sometimes disallow advisory locks / long transactions — use `DIRECT_DATABASE_URL` for this route if needed, and confirm the `pg_try_advisory_xact_lock` raw query runs. Tune `BATCHES_PER_TICK` and the transaction `timeout` to stay under the Vercel function `maxDuration`. If a single campaign's batches can't fit one tick, the next tick resumes it (idempotency-safe).
 
-- [ ] **Step 2: Create `vercel.json`** registering the cron (every minute) and a longer function duration:
+- [ ] **Step 2: Create `vercel.json`** registering the cron (every minute). The function timeout is set via route-segment config (`export const maxDuration = 60` in the route), not here.
 
 ```json
 {
-  "crons": [{ "path": "/api/cron/newsletter-drain", "schedule": "* * * * *" }],
-  "functions": { "src/app/api/cron/newsletter-drain/route.ts": { "maxDuration": 60 } }
+  "crons": [{ "path": "/api/cron/newsletter-drain", "schedule": "* * * * *" }]
 }
 ```
+
+> **Plan note:** an every-minute cron requires a Vercel **Pro** plan (Hobby allows once-daily crons). If you're on Hobby, either upgrade or change the schedule to the allowed cadence and trigger the drainer manually/externally for now. Vercel Cron sends the configured `CRON_SECRET` as the `Authorization: Bearer` header automatically when set in project env.
 
 - [ ] **Step 3: Manual check (local)** — with a `SENDING` campaign and a real `RESEND_API_KEY` (or a mock), hit `GET /api/cron/newsletter-drain` with `Authorization: Bearer $CRON_SECRET`. Confirm rows flip to `SENT`, campaign reaches `SENT`, and a second call is a no-op.
 
@@ -1294,19 +1305,28 @@ export async function POST(request: NextRequest) {
   const evt: string = payload?.type ?? "";
   const data = payload?.data ?? {};
   const email: string | undefined = data?.to?.[0] ?? data?.email;
-  const providerEventId: string | undefined = payload?.id ?? data?.email_id;
+  // The webhook delivery's own event id (NOT email_id, which repeats across event types for one email).
+  const providerEventId: string | undefined = payload?.id;
   const campaignId: string | undefined = (data?.tags ?? []).find((t: any) => t.name === "campaignId")?.value;
   const bounceType: string | undefined = data?.bounce?.type;
+  const occurredAt = data?.created_at ? new Date(data.created_at) : new Date();
 
   const type = mapType(evt, bounceType);
   if (!type || !campaignId || !email) return NextResponse.json({ ok: true });
 
+  // Idempotency: dedupe on providerEventId when present, else on the composite
+  // (campaignId, email, type, occurredAt) — never on email_id.
+  const dup = providerEventId
+    ? await db.campaignEvent.findUnique({ where: { providerEventId } })
+    : await db.campaignEvent.findFirst({ where: { campaignId, email, type, occurredAt } });
+  if (dup) return NextResponse.json({ ok: true });
+
   try {
     await db.campaignEvent.create({
-      data: { campaignId, type, email, providerEventId, occurredAt: new Date() },
+      data: { campaignId, type, email, providerEventId, occurredAt },
     });
   } catch {
-    // unique violation on providerEventId → duplicate delivery, ignore
+    // Lost a race on the unique providerEventId → already recorded, ignore.
     return NextResponse.json({ ok: true });
   }
 
@@ -1385,7 +1405,15 @@ export function computeSummary(i: SummaryInput): Summary {
 
 - [ ] **Step 4: Run — verify pass.**
 
-- [ ] **Step 5: Implement the summary API** — count `CampaignRecipient` where `status=SENT` (sent), `CampaignEvent` DELIVERED, distinct-email OPENED/CLICKED, BOUNCED count, and `Suppression`/event-based unsubscribes for this campaign; feed `computeSummary`. Mark "still finalizing" when `campaign.status !== "SENT"` or `sentAt` is recent.
+- [ ] **Step 5: Implement the summary API** — derive each input for `computeSummary` from this campaign's rows:
+  - `sent` = `db.campaignRecipient.count({ where: { campaignId, status: "SENT" } })`
+  - `delivered` = count of `CampaignEvent` `DELIVERED`
+  - `uniqueOpens` = distinct `email` among `OPENED` events (e.g. `groupBy` by email, or `findMany` distinct)
+  - `uniqueClicks` = distinct `email` among `CLICKED` events
+  - `bounces` = count of `BOUNCED` events (hard only — soft bounces are never written)
+  - `unsubscribes` = count of `UNSUBSCRIBED` events for this campaign (written by the unsubscribe endpoint)
+
+  Feed those to `computeSummary`. Set a `finalizing: true` flag when `campaign.status !== "SENT"` (still sending) or `sentAt` is within ~the last few minutes, so the screen can show the "still finalizing" note.
 
 - [ ] **Step 6: Commit**
 
@@ -1443,6 +1471,16 @@ async function suppress(token: string): Promise<boolean> {
   if (!r) return false;
   await db.suppression.upsert({ where: { email: r.email }, update: {}, create: { email: r.email, reason: "UNSUBSCRIBED" } });
   await db.contact.updateMany({ where: { email: r.email }, data: { status: "UNSUBSCRIBED" } });
+  // Record a campaign-scoped UNSUBSCRIBED event so the summary card can attribute it.
+  // Idempotent: skip if this recipient already has one (a recipient can click twice).
+  const existing = await db.campaignEvent.findFirst({
+    where: { campaignId: payload.cid, email: r.email, type: "UNSUBSCRIBED" },
+  });
+  if (!existing) {
+    await db.campaignEvent.create({
+      data: { campaignId: payload.cid, type: "UNSUBSCRIBED", email: r.email, occurredAt: new Date() },
+    });
+  }
   return true;
 }
 
