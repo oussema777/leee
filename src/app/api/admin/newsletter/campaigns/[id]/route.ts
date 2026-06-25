@@ -19,6 +19,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if ("error" in auth) return auth.error;
   const { id } = await params;
   try {
+    const existing = await db.campaign.findUnique({ where: { id } });
+    if (!existing) return errorResponse("Campaign not found", 404);
+    if (existing.status !== "DRAFT") return errorResponse("Only draft campaigns can be edited", 400);
     const body = await request.json();
     const data: Prisma.CampaignUpdateInput = {};
     if (body.subject !== undefined) data.subject = body.subject;
@@ -37,6 +40,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if ("error" in auth) return auth.error;
   const { id } = await params;
   try {
+    const existing = await db.campaign.findUnique({ where: { id } });
+    if (!existing) return errorResponse("Campaign not found", 404);
+    if (existing.status !== "DRAFT") return errorResponse("Only draft campaigns can be deleted", 400);
     await db.campaign.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch { return errorResponse("Failed to delete campaign"); }

@@ -28,30 +28,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const suppressed = new Set(suppressedRows.map((s) => s.email));
     const recipients = resolveRecipients(contacts as never, c.targetTags, suppressed);
 
-    // Pre-generate each row id so the signed unsubToken is set in a single create
-    // (no placeholder, no second pass, no cross-campaign collisions).
-    await db.$transaction(async (tx) => {
-      for (let i = 0; i < recipients.length; i++) {
-        const r = recipients[i];
-        const rid = crypto.randomUUID();
-        await tx.campaignRecipient.create({
-          data: {
-            id: rid,
-            campaignId: id,
-            email: r.email,
-            name: r.name,
-            batchIndex: Math.floor(i / BATCH_SIZE),
-            unsubToken: signUnsubToken({ rid, cid: id }, SECRET),
-          },
-        });
-      }
-      await tx.campaign.update({
-        where: { id },
-        data: { status: "SENDING", enqueuedAt: new Date(), recipientCount: recipients.length },
-      });
+    // Pre-compute all ledger rows in memory so the DB write is a single createMany,
+    // not N sequential round-trips (which would blow Prisma's 5s default tx timeout on large lists).
+    const rows = recipients.map((r, i) => {
+      const rid = crypto.randomUUID();
+      return {
+        id: rid,
+        campaignId: id,
+        email: r.email,
+        name: r.name,
+        batchIndex: Math.floor(i / BATCH_SIZE),
+        unsubToken: signUnsubToken({ rid, cid: id }, SECRET),
+      };
     });
 
-    return NextResponse.json({ enqueued: recipients.length });
+    await db.$transaction(
+      async (tx) => {
+        if (rows.length > 0) {
+          await tx.campaignRecipient.createMany({ data: rows });
+        }
+        await tx.campaign.update({
+          where: { id },
+          data: { status: "SENDING", enqueuedAt: new Date(), recipientCount: rows.length },
+        });
+      },
+      { timeout: 30_000 }
+    );
+
+    return NextResponse.json({ enqueued: rows.length });
   } catch {
     return errorResponse("Failed to enqueue campaign");
   }
