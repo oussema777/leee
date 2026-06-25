@@ -75,3 +75,38 @@ export async function sendNotificationEmail(opts: {
     console.error("[email] Failed to send notification:", err);
   }
 }
+
+export interface BatchEmail {
+  to: string;
+  subject: string;
+  html: string;
+  headers?: Record<string, string>;
+}
+
+const NEWSLETTER_FROM = process.env.NEWSLETTER_FROM || FROM;
+const NEWSLETTER_REPLY_TO = process.env.NEWSLETTER_REPLY_TO;
+
+/**
+ * Sends a batch of distinct newsletter emails in one request.
+ * `idempotencyKey` makes a retried identical batch a no-op at Resend.
+ * Returns Resend's per-email ids, or throws so the drainer can mark the batch failed.
+ */
+export async function sendNewsletterBatch(
+  emails: BatchEmail[],
+  idempotencyKey: string,
+  campaignId: string
+): Promise<{ id: string }[]> {
+  if (!resend) throw new Error("RESEND_API_KEY not set");
+  const payload = emails.map((e) => ({
+    from: NEWSLETTER_FROM,
+    to: e.to,
+    subject: e.subject,
+    html: e.html,
+    replyTo: NEWSLETTER_REPLY_TO,
+    headers: e.headers,
+    tags: [{ name: "campaignId", value: campaignId }],
+  }));
+  const { data, error } = await resend.batch.send(payload, { idempotencyKey });
+  if (error) throw new Error(typeof error === "string" ? error : JSON.stringify(error));
+  return (data?.data ?? []) as { id: string }[];
+}
