@@ -110,10 +110,18 @@ accent bar; hover lift + image zoom unchanged.
   - **Role** (new vs. today): `roleEn/Ar`, rendered only when non-empty, in the
     existing small uppercase-accent label style.
   - Quote: `quoteEn/Ar`, italic, as today.
+- **Role label style**: reuse the section's existing small uppercase-accent
+  label treatment (the `text-[11px] font-bold uppercase tracking-[...]` eyebrow
+  style already in this component / `MemberCard`'s `accent.text`), colored with
+  the card's cycled accent.
 - **Accent color**: cycle the existing blue → emerald → amber palette by card
   index (`i % palette.length`), so cards stay visually varied regardless of
   which testimonials surface. (Today's hardcoded per-story colors are dropped in
-  favor of index cycling.)
+  favor of index cycling.) Today's accent is used in **three** places — the
+  outer card `border` color, the `-top-3 -end-3` abstract ring `border`, and the
+  bottom accent bar `bg` — so the palette is an index→`{ color, borderColor }`
+  map (e.g. `{ color: "bg-emerald-500", borderColor: "border-emerald-400/15" }`)
+  covering all three, mirroring the current `previewStories` color/border pairs.
 - **CTA**
   - Per-card blog link **removed**.
   - One **"See all stories →"** button (localized: "See all stories" /
