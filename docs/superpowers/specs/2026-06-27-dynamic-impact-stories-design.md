@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-27
 **Branch:** `feat/newsletter-tool` (current working branch)
-**Status:** Approved design, pending implementation
+**Status:** Approved design (10/10 after expert review), proceeding to implementation
 
 ## Summary
 
@@ -50,8 +50,9 @@ The published pool already powers `/media/testimonials` via
 - Auto-hide the entire section when there are zero testimonials.
 
 ### Out of scope
-- Changing the `Testimonial` schema or admin UI (existing `order`/`isActive`
-  fields are sufficient).
+- Changing the `Testimonial` **schema** or admin UI (existing `order`/`isActive`
+  fields are sufficient). Note: `getTestimonials()` gets a one-line `orderBy`
+  tiebreaker change (see Deterministic ordering) — no schema/migration involved.
 - The raw `TestimonialSubmission` flow, moderation UI, or `/media/testimonials`
   page (unchanged).
 - Any new "feature on impact" toggle — selection is by `order`, top 3.
@@ -59,11 +60,37 @@ The published pool already powers `/media/testimonials` via
 ## Data flow
 
 1. **`src/app/[locale]/impact/page.tsx`**
-   - Add `export const dynamic = "force-dynamic"` (the page is fully static
-     today; it must read the DB at request time, matching the existing
-     admin↔site wiring pattern).
-   - Call `getTestimonials()`, take the first 3 (already ordered by `order asc`,
-     filtered to `isActive`), and pass them to `<ImpactStories stories={...} />`.
+   - Add `export const revalidate = 60` (ISR) rather than `force-dynamic`. The
+     page is fully static today and most of it (dashboard, MENA map, journey,
+     lessons, downloads) has no DB dependency — `force-dynamic` would add a DB
+     round-trip to *every* view of the whole page for the sake of 3 testimonials.
+     ISR keeps the page statically served, refreshing testimonials at most once a
+     minute, which is far fresh-enough for an admin reorder. (Deviation from the
+     repo's usual `force-dynamic` wiring pattern, made deliberately because the
+     impact page is heavy and the dynamic data is a small, change-rarely island.)
+   - Call `getTestimonials()`, take the first 3 (ordered deterministically — see
+     below — and filtered to `isActive`), and pass them to
+     `<ImpactStories stories={...} />`.
+
+### Deterministic ordering (required)
+
+`getTestimonials()` today sorts by `order: "asc"` only. `Testimonial.order`
+defaults to `0` and the model has **no `createdAt`**, so multiple rows sharing
+`order = 0` would make "top 3" **non-deterministic per request** — the band
+could reshuffle on every revalidation and the "team curates via `order`"
+guarantee would silently fail.
+
+**Fix:** change the `orderBy` in `getTestimonials()` to a stable compound sort:
+
+```ts
+orderBy: [{ order: "asc" }, { id: "asc" }]
+```
+
+`id` is a `cuid` (unique, immutable) so it is a guaranteed tiebreaker. This is a
+safe, backwards-compatible change to the shared `getTestimonials()` (the
+`/media/testimonials` page only benefits from stable ordering too). Admins should
+still set **distinct** `order` values on the 3 they want featured; the tiebreaker
+just guarantees determinism when they don't.
 
 2. **`src/components/sections/impact/ImpactStories.tsx`**
    - Accepts a `stories: ImpactStoryCard[]` prop instead of the hardcoded
@@ -99,7 +126,12 @@ Each card keeps today's structure: media area on top, then name, role, quote,
 accent bar; hover lift + image zoom unchanged.
 
 - **Media area**
-  - When `imageUrl` is non-empty → `next/image` cover (as today).
+  - When `imageUrl` is non-empty → `next/image` cover (as today). Testimonial
+    photos are typically **portraits of a person**, not the scene photos used by
+    the old hardcoded cards, so a 16:10 landscape crop can clip faces. **Use
+    `object-cover object-top`** (instead of plain `object-cover`) so the crop
+    favors the head/face. Aspect stays `aspect-[16/10]` for layout consistency
+    with the rest of the page.
   - When empty → **initials-avatar fallback**: a soft brand-gradient block
     (`from-brand-blue/15 to-emerald-400/15`) with the person's initials in
     `font-serif`, mirroring `MemberCard.tsx` (`initials()` helper, first two
@@ -109,7 +141,12 @@ accent bar; hover lift + image zoom unchanged.
   - Name: `nameEn/Ar`.
   - **Role** (new vs. today): `roleEn/Ar`, rendered only when non-empty, in the
     existing small uppercase-accent label style.
-  - Quote: `quoteEn/Ar`, italic, as today.
+  - Quote: `quoteEn/Ar`, italic. Unlike the old short hardcoded teasers,
+    `Testimonial.quoteEn/Ar` is `@db.Text` and can be a full paragraph, so the
+    quote **must be clamped** (`line-clamp-4`) to keep the three cards at uniform
+    height; the full quote lives on `/media/testimonials`. Wrap the clamped quote
+    in typographic quotation marks (localized: `“…”` / `«…»`) for first-person
+    voice, consistent with the section's existing pull-quote treatment.
 - **Role label style**: reuse the section's existing small uppercase-accent
   label treatment (the `text-[11px] font-bold uppercase tracking-[...]` eyebrow
   style already in this component / `MemberCard`'s `accent.text`), colored with
@@ -144,11 +181,13 @@ accent bar; hover lift + image zoom unchanged.
 
 | File | Change |
 | --- | --- |
-| `src/app/[locale]/impact/page.tsx` | `force-dynamic`; fetch `getTestimonials()`, slice 3, map, pass as prop |
-| `src/components/sections/impact/ImpactStories.tsx` | Prop-based; image-led card with initials fallback; role label; index-cycled accents; section CTA; auto-hide |
-| `src/lib/data/testimonials.ts` | **No change** — `getTestimonials()` reused as-is |
+| `src/app/[locale]/impact/page.tsx` | `export const revalidate = 60` (ISR); fetch `getTestimonials()`, slice 3, map, pass as prop |
+| `src/components/sections/impact/ImpactStories.tsx` | Prop-based; image-led card with initials fallback (`object-top` crop); role label; clamped quote with quotation marks; index-cycled accents; section CTA; auto-hide |
+| `src/lib/data/testimonials.ts` | One-line `orderBy` tiebreaker → `[{ order: "asc" }, { id: "asc" }]` for deterministic ordering |
 
-No schema migration, no admin changes, no new API routes.
+No schema migration, no admin changes, no new API routes. The `impact/loading.tsx`
+skeleton is unaffected by ISR (the page is still statically generated and served;
+revalidation happens in the background), so no loading-state change is needed.
 
 ## Testing / verification
 
@@ -157,8 +196,12 @@ No schema migration, no admin changes, no new API routes.
   - Cards render real testimonial names/quotes from the DB.
   - A testimonial with a photo shows the photo; one without shows initials.
   - "See all stories →" links to `/media/testimonials` in both locales.
+  - A long (paragraph-length) quote is clamped to ~4 lines and cards stay
+    uniform height; quotation marks wrap the quote in both locales.
   - Reorder testimonials in `/admin/testimonials` → top 3 on impact change after
-    reload (force-dynamic).
+    revalidation (ISR; ≤60s, or immediately in dev where every request rebuilds).
+  - Two testimonials sharing the same `order` always render in the same sequence
+    across reloads (deterministic tiebreaker).
   - Temporarily reduce active testimonials to 0 (e.g. via admin `isActive`) →
     section disappears; restore afterward (the dev DB is the live prod DB —
     revert any test edits).
