@@ -8,6 +8,11 @@ import { ImpactJourney } from "@/components/sections/impact/ImpactJourney";
 import { ImpactStories } from "@/components/sections/impact/ImpactStories";
 import { ImpactLessons } from "@/components/sections/impact/ImpactLessons";
 import { ImpactDownloads } from "@/components/sections/impact/ImpactDownloads";
+import { getTestimonials } from "@/lib/data/testimonials";
+
+// ISR: keep the (heavy, mostly-static) impact page statically served while
+// refreshing the dynamic Impact Stories band at most once a minute.
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -29,6 +34,19 @@ export default async function ImpactPage({
   const { locale } = await params;
   const tNav = await getTranslations({ locale, namespace: "nav" });
 
+  // Top 3 active testimonials (admin-ordered, deterministic) feed the
+  // Impact Stories band. getTestimonials() already filters isActive + orders.
+  const stories = (await getTestimonials()).slice(0, 3).map((t) => ({
+    id: t.id,
+    nameEn: t.nameEn,
+    nameAr: t.nameAr,
+    roleEn: t.roleEn,
+    roleAr: t.roleAr,
+    quoteEn: t.quoteEn,
+    quoteAr: t.quoteAr,
+    imageUrl: t.imageUrl,
+  }));
+
   return (
     <>
       <PageHeader
@@ -45,7 +63,7 @@ export default async function ImpactPage({
       <CaseStudies />
       <MenaMap />
       <ImpactJourney />
-      <ImpactStories />
+      <ImpactStories stories={stories} />
       <ImpactLessons />
       <ImpactDownloads />
     </>

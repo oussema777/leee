@@ -6,7 +6,6 @@ import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { downloads } from "./impactData";
 import { Download, FileText, BarChart3, ClipboardList } from "lucide-react";
-import Image from "next/image";
 
 const cardConfig = [
   { iconBg: "bg-brand-blue/10", iconText: "text-brand-blue", ring: "border-brand-blue/15", accent: "bg-brand-blue", Icon: FileText },
@@ -64,12 +63,6 @@ export function ImpactDownloads() {
           <p className="text-text-secondary text-[15px] max-w-2xl mx-auto leading-relaxed">
             {isAr ? "تقارير وملفات حقائق ومنهجيات بحثية" : "Reports, factsheets, and research methodologies"}
           </p>
-        </div>
-
-        {/* Full-width image */}
-        <div className={cn("relative aspect-[4/1] rounded-xl overflow-hidden mb-14 transition-all duration-700", sectionAnim.visible ? "opacity-100 scale-100" : "opacity-0 scale-95")} style={{ transitionDelay: "100ms" }}>
-          <Image src="/images/new/intl-professionals.jpg" alt="" fill className="object-cover" sizes="100vw" />
-          <div className="absolute inset-0 bg-accent-navy/10" />
         </div>
 
         {/* Download cards */}

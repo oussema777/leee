@@ -44,7 +44,9 @@ function toListItem(t: Testimonial): TestimonialListItem {
 export async function getTestimonials(): Promise<TestimonialListItem[]> {
   const testimonials = await db.testimonial.findMany({
     where: { isActive: true },
-    orderBy: { order: "asc" },
+    // `id` (a cuid) is a stable tiebreaker so "top N" stays deterministic
+    // across requests even when several rows share the default order = 0.
+    orderBy: [{ order: "asc" }, { id: "asc" }],
   });
   return testimonials.map(toListItem);
 }
