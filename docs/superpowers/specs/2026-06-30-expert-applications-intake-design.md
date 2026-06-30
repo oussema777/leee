@@ -157,10 +157,10 @@ Pure, unit-tested logic lives in a new `src/lib/experts/` module; route handlers
 ### 5.2 Form: `src/components/sections/expert-apply/ExpertApplyForm.tsx`
 - `"use client"`. Five visual sections matching the source form (Personal, Academic,
   Experience, Expertise, Consent & Availability).
-- Field types: text inputs, multi-select checkbox groups (countries, degrees, years),
-  long-text areas (bio, certifications, notable work, degree details), single-select
-  (daily rate), Yes/No (availability), consent checkboxes, and a photo upload (reusing the
-  testimonial form's upload pattern → `POST /api/public/upload`).
+- Field types: text inputs, multi-select checkbox groups (countries, degrees), long-text
+  areas (bio, certifications, notable work, degree details), single-select (years of
+  experience, daily rate), Yes/No (availability), consent checkboxes, and a photo upload
+  (reusing the testimonial form's upload pattern → `POST /api/public/upload`).
 - A hidden **honeypot** field (mirrors `JoinUs`/testimonial anti-spam).
 - On submit → `POST /api/public/expert-submissions`. Success → inline confirmation; the form
   is replaced by the thank-you state. Inline field-level errors on validation failure.
