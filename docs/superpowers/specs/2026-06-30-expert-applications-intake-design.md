@@ -221,7 +221,9 @@ the closest precedent, not the team-submissions routes.
 
 ### 6.5 CSV export: `GET /api/admin/expert-submissions/export`
 - `withAdmin`; returns `text/csv` with `Content-Disposition: attachment`. Body produced by
-  the pure `buildExpertCsv`. Columns cover all stored fields; arrays joined with `"; "`.
+  the pure `buildExpertCsv`. Columns cover all submitted application fields plus `status`,
+  `adminNotes`, and `createdAt` (the `isRead`/`reviewedAt` metadata is omitted); arrays joined
+  with `"; "`.
 
 ### 6.6 Sidebar
 - Add "Expert Applications" under the "Submissions" group, visible to **all** admins (do NOT
@@ -234,7 +236,13 @@ the closest precedent, not the team-submissions routes.
   `phone`, `email` (valid email), `photoUrl` + `photoConsent = true`, `degrees` (≥1),
   `degreeDetails`, `majorFieldOfStudy`, `yearsExperience` (a non-empty single value),
   `certifications`, `shortBio`, `expertiseKeywords`, `languages`, `availableForEngagements`,
-  `dailyRate`, `publishConsent`.
+  `dailyRate`.
+- **Consent fields differ:** `photoConsent` must be `true` (you cannot submit a photo without
+  agreeing to its publication — the source form's Q8 only offers "Yes"). `publishConsent` is a
+  required *choice* on the form (Q21: "Yes, I agree" / "No, internal review only") but is
+  stored as a boolean and a `false` ("internal review only") is a **valid, accepted**
+  submission — the validator does NOT reject it. (Nothing auto-publishes regardless; the flag
+  is recorded for the team to respect when manually featuring someone.)
 - On the first failed required field the validator returns `{ ok:false, field, error }` so the
   route can surface it inline (see §4.3, §5.4).
 - **Optional:** `linkedinUrl` (valid URL if present), `licensesMemberships`, `notableWork`.
@@ -263,9 +271,10 @@ the closest precedent, not the team-submissions routes.
 
 **Pure-function unit tests (`src/lib/experts/*.test.ts`):**
 - `validateExpertSubmission`: accepts a complete valid payload; rejects each missing required
-  field; rejects empty `countries`/`degrees`/`yearsExperience`; rejects bad email; rejects
-  malformed `linkedinUrl`; rejects over-length text; rejects a `photoUrl` outside our host;
-  accepts a Supabase-host photo URL; requires `photoConsent` and `publishConsent`; ignores
+  field (returning that field name); rejects empty `countries`/`degrees` arrays and an empty
+  `yearsExperience`; rejects bad email; rejects malformed `linkedinUrl`; rejects over-length
+  text; rejects a `photoUrl` outside our host; accepts a Supabase-host photo URL; requires
+  `photoConsent = true`; **accepts a submission with `publishConsent = false`**; ignores
   unknown fields.
 - `buildExpertCsv`: stable column order; escapes quotes/commas/newlines; joins arrays with
   `"; "`; handles empty optional fields; one row per submission + header.

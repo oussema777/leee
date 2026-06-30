@@ -154,6 +154,11 @@ describe("validateExpertSubmission", () => {
     expect(validateExpertSubmission({ ...base, photoUrl: "" }, HOST).ok).toBe(false);
     expect(validateExpertSubmission({ ...base, photoConsent: false }, HOST).ok).toBe(false);
   });
+  it("accepts a submission that declines publishing (publishConsent false is valid)", () => {
+    const r = validateExpertSubmission({ ...base, publishConsent: false }, HOST);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value.publishConsent).toBe(false);
+  });
   it("rejects bad email and bad linkedin URL", () => {
     expect(validateExpertSubmission({ ...base, email: "nope" }, HOST).ok).toBe(false);
     expect(validateExpertSubmission({ ...base, linkedinUrl: "not a url" }, HOST).ok).toBe(false);
@@ -250,7 +255,7 @@ export function validateExpertSubmission(
   const email = String(input.email ?? "").trim();
   if (!email) return fail("email", "Email is required");
   if (email.length > 200 || !isEmail(email)) return fail("email", "Valid email required");
-  out.email = email;
+  out.email = email.toLowerCase();
 
   // Arrays (>=1)
   const countries = cleanArray(input.countries);
@@ -347,7 +352,7 @@ describe("buildExpertCsv", () => {
 type CsvRow = Record<string, unknown>;
 
 const COLUMNS: string[] = [
-  "createdAt", "status", "fullName", "professionalTitle", "countries", "phone", "email",
+  "createdAt", "status", "adminNotes", "fullName", "professionalTitle", "countries", "phone", "email",
   "linkedinUrl", "degrees", "degreeDetails", "majorFieldOfStudy", "yearsExperience",
   "certifications", "licensesMemberships", "shortBio", "expertiseKeywords", "notableWork",
   "languages", "availableForEngagements", "dailyRate", "photoConsent", "publishConsent",
@@ -471,8 +476,6 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ExpertApplyForm } from "@/components/sections/expert-apply/ExpertApplyForm";
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const isAr = locale === "ar";
@@ -530,7 +533,7 @@ git commit -m "feat(experts): public apply page, form, i18n, and CTA rewire"
 
 - [ ] **Step 3: List page** — mirror `testimonial-submissions/page.tsx`: `AdminDataTable` with columns photo thumb, name, title, primary country (`countries[0]`), expertise keywords, status badge, date; a status filter `<select>`; unread indicator; rows link to `/admin/expert-submissions/[id]`. Use `adminGet` + `PaginatedResponse`.
 
-- [ ] **Step 4: Sidebar** — add `{ label: "Expert Applications", href: "/admin/expert-submissions", icon: <pick a lucide icon e.g. UserСog/Award>, }` under the "Submissions" group. Wire the unread badge to `/expert-submissions/unread-count` exactly like the testimonial item. **Do NOT set `superAdminOnly`** — this is visible to all admins.
+- [ ] **Step 4: Sidebar** — under the "Submissions" group add the nav item using a **bare lucide component reference** (the Sidebar renders `<item.icon size={20} />`, so pass `icon: Award`, NOT JSX): `{ label: "Expert Applications", href: "/admin/expert-submissions", icon: Award }`. Add `Award` (or `UserCog`) to the existing `lucide-react` import line. **Do NOT set `superAdminOnly`** — visible to all admins. To wire the unread badge exactly like the "Testimonials Inbox" item, make three edits mirroring it: (a) add an `expertInboxCount` state; (b) add a `useEffect` that calls `adminGet("/expert-submissions/unread-count")` and stores `count`; (c) add a branch in the badge-count lookup so this item shows `expertInboxCount`. Copy the testimonial item's badge JSX/branch verbatim, swapping the names.
 
 - [ ] **Step 5: Verify** — `npx tsc --noEmit` (0). Manual: list renders, status filter works, unread badge shows.
 
