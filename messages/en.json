@@ -290,5 +290,20 @@
   "unsubscribe": {
     "title": "You're unsubscribed",
     "body": "You've been removed from The LEE Experience newsletter and won't receive further emails. If this was a mistake, contact us at info@theleeexperience.com."
+  },
+  "joinTeam": {
+    "title": "Join Our Team",
+    "intro": "Fill in the details below to submit your team profile.",
+    "name": "Full Name",
+    "role": "Role / Title",
+    "photo": "Profile Photo (Optional)",
+    "linkedin": "LinkedIn URL",
+    "x": "X (Twitter) URL",
+    "instagram": "Instagram URL",
+    "website": "Website URL",
+    "submit": "Submit Profile",
+    "success": "Your profile has been submitted! We'll review it and add you to the team page soon.",
+    "inactiveTitle": "This link is no longer active",
+    "inactiveBody": "The invite link has expired or is invalid. Please contact the team for a new link."
   }
 }
