@@ -9,6 +9,7 @@ import StatusBadge from "../../components/StatusBadge";
 import AdminModal from "../../components/AdminModal";
 import { useToast } from "../../components/AdminToast";
 import { adminGet, adminDelete, type PaginatedResponse } from "@/lib/admin-api";
+import TeamInviteLinkPanel from "@/components/admin/TeamInviteLinkPanel";
 
 interface Member {
   id: string;
@@ -73,6 +74,7 @@ export default function MembersPage() {
   return (
     <div>
       <AdminPageHeader title="Board & Team" actionLabel="Add Member" actionHref="/admin/members/new" />
+      <TeamInviteLinkPanel />
       <div className="flex gap-2 mb-4">
         {["", "BOARD", "TEAM", "EXPERT", "MENTOR"].map((t) => (
           <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
