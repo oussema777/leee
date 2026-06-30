@@ -581,6 +581,44 @@ model TestimonialSubmission {
 }
 
 // ─────────────────────────────────────────
+// TEAM SELF-SERVICE ONBOARDING
+// ─────────────────────────────────────────
+
+model TeamSubmission {
+  id           String  @id @default(cuid())
+
+  // What the member submits (single language)
+  name         String
+  title        String
+  locale       String   // "en" | "ar" — language they wrote in
+  photoUrl     String?
+  linkedinUrl  String?
+  twitterUrl   String?
+  instagramUrl String?
+  websiteUrl   String?
+
+  // Moderation
+  status           TeamSubmissionStatus @default(PENDING)
+  approvedMemberId String?              // BoardMember.id once approved
+  isRead           Boolean   @default(false)
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+}
+
+enum TeamSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model TeamInviteLink {
+  id        String   @id            // always "singleton" — enforces one row
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
 // NEWSLETTER
 // ─────────────────────────────────────────
 
