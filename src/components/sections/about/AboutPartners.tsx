@@ -62,33 +62,17 @@ export function AboutPartners({ partners }: { partners: PartnerItem[] }) {
         >
           <span className="inline-flex items-center gap-3 text-brand-blue text-[11px] font-bold uppercase tracking-[0.3em] mb-4">
             <span className="w-6 h-[1.5px] bg-brand-blue" />
-            {isAr ? "موثوق من قبل" : "Trusted By"}
+            {isAr ? "شركاؤنا" : "Our Partners"}
             <span className="w-6 h-[1.5px] bg-brand-blue" />
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-primary tracking-tight mb-4">
-            {isAr ? "موثوق من قبل" : "Trusted By"}
+            {isAr ? "شركاؤنا" : "Our Partners"}
           </h2>
           <p className="text-text-secondary text-[15px] max-w-2xl mx-auto leading-relaxed">
             {isAr
               ? "نتعاون مع مؤسسات دولية رائدة لتعظيم أثرنا في منطقة الشرق الأوسط وأفريقيا."
               : "We collaborate with leading international organizations to maximize our impact across MENA and Africa."}
           </p>
-        </div>
-
-        {/* Image banner */}
-        <div
-          className={cn(
-            "grid grid-cols-3 gap-2 mb-12 transition-all duration-700",
-            sectionAnim.visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          )}
-          style={{ transitionDelay: "100ms" }}
-        >
-          {["/images/new/group-photo.jpg", "/images/new/intl-professionals.jpg", "/images/new/award-winner.jpg"].map((src, i) => (
-            <div key={i} className="relative aspect-[3/1] rounded-xl overflow-hidden group">
-              <Image src={src} alt="" fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="33vw" />
-              <div className="absolute inset-0 bg-accent-navy/10 group-hover:bg-transparent transition-colors" />
-            </div>
-          ))}
         </div>
 
         {/* Partner logo grid — staggered scale in */}
@@ -111,9 +95,19 @@ export function AboutPartners({ partners }: { partners: PartnerItem[] }) {
                 )}
                 style={{ transitionDelay: `${200 + i * 35}ms` }}
               >
-                <span className="text-text-muted text-xs font-semibold text-center leading-tight">
-                  {isAr ? partner.nameAr : partner.nameEn}
-                </span>
+                {partner.logoUrl ? (
+                  <Image
+                    src={partner.logoUrl}
+                    alt={isAr ? partner.nameAr : partner.nameEn}
+                    width={200}
+                    height={80}
+                    className="max-h-12 w-auto object-contain"
+                  />
+                ) : (
+                  <span className="text-text-muted text-xs font-semibold text-center leading-tight">
+                    {isAr ? partner.nameAr : partner.nameEn}
+                  </span>
+                )}
               </div>
             );
           })}

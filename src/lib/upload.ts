@@ -9,6 +9,22 @@ function getStorageClient() {
 
 const BUCKET = "uploads";
 
+// Supabase Storage object keys only allow a limited set of characters.
+// Strip accents/smart-quotes/spaces and anything non-safe so uploads of
+// human-named files (e.g. "34 MSMEs … "LEE Incubator".jpg") don't fail.
+function sanitizeFileName(name: string): string {
+  const dot = name.lastIndexOf(".");
+  const hasExt = dot > 0 && dot < name.length - 1;
+  const ext = hasExt ? name.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const base = (hasExt ? name.slice(0, dot) : name)
+    .normalize("NFKD")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase()
+    .slice(0, 80) || "file";
+  return ext ? `${base}.${ext}` : base;
+}
+
 export async function uploadFile(
   file: Buffer,
   fileName: string,
@@ -16,7 +32,7 @@ export async function uploadFile(
   folder: string = "uploads"
 ): Promise<string> {
   const supabase = getStorageClient();
-  const path = `${folder}/${Date.now()}-${fileName}`;
+  const path = `${folder}/${Date.now()}-${sanitizeFileName(fileName)}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)

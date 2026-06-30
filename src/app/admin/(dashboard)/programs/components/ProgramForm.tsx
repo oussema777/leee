@@ -105,9 +105,17 @@ export default function ProgramForm({ initial }: { initial?: any }) {
         beneficiaries: form.beneficiaries || null,
         year: form.year || null,
       };
-      if (form.id) { await adminPut(`/programs/${form.id}`, payload); toast.success("Updated"); }
-      else { await adminPost("/programs", payload); toast.success("Created"); }
-      router.push("/admin/programs");
+      if (form.id) {
+        await adminPut(`/programs/${form.id}`, payload);
+        toast.success("Saved");
+        router.refresh(); // revalidate server data, stay on the edit screen
+      } else {
+        const created = await adminPost<{ id: string }>("/programs", payload);
+        toast.success("Created");
+        // Switch into the new program's edit screen so it stays open
+        // and re-saving updates instead of creating a duplicate.
+        router.replace(`/admin/programs/${created.id}/edit`);
+      }
     } catch { toast.error("Failed to save"); }
     finally { setLoading(false); }
   };
