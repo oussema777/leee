@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isValidInviteToken } from "@/lib/team/inviteLink";
 import { validateSubmission } from "@/lib/team/validation";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  if (!rateLimit(`pub-team:${clientIp(request)}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
   try {
     const body = await request.json();
     const token = String(body.token ?? "");

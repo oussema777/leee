@@ -18,6 +18,14 @@ describe("validateSubmission", () => {
   it("rejects malformed social URLs", () => {
     expect(validateSubmission({ ...base, linkedinUrl: "not a url" }).ok).toBe(false);
   });
+  it("rejects oversized name/title", () => {
+    expect(validateSubmission({ ...base, name: "x".repeat(121) }).ok).toBe(false);
+    expect(validateSubmission({ ...base, title: "x".repeat(201) }).ok).toBe(false);
+  });
+  it("rejects an oversized URL", () => {
+    const longUrl = "https://example.com/" + "a".repeat(500);
+    expect(validateSubmission({ ...base, websiteUrl: longUrl }).ok).toBe(false);
+  });
   it("rejects a photoUrl outside our domain", () => {
     const host = "wqphvlzndbwqgcojipvn.supabase.co";
     expect(validateSubmission({ ...base, photoUrl: "https://evil.com/x.jpg" }, host).ok).toBe(false);

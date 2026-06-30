@@ -37,8 +37,8 @@ export function MemberCard({
 }) {
   const locale = useLocale();
   const isAr = locale === "ar";
-  const name = isAr ? member.nameAr || member.nameEn : member.nameEn;
-  const title = isAr ? member.titleAr || member.titleEn : member.titleEn;
+  const name = isAr ? member.nameAr || member.nameEn : member.nameEn || member.nameAr;
+  const title = isAr ? member.titleAr || member.titleEn : member.titleEn || member.titleAr;
   const bio = isAr ? member.bioAr : member.bioEn;
   const accent = accents[index % accents.length];
 

@@ -39,7 +39,9 @@ export function validateSubmission(
   const title = String(input.title ?? "").trim();
   const locale = String(input.locale ?? "");
   if (!name) return { ok: false, error: "Name is required" };
+  if (name.length > 120) return { ok: false, error: "Name is too long" };
   if (!title) return { ok: false, error: "Role/title is required" };
+  if (title.length > 200) return { ok: false, error: "Role/title is too long" };
   if (!LOCALES.includes(locale as any)) return { ok: false, error: "Invalid locale" };
 
   const socials: Record<string, string | undefined> = {};
@@ -47,14 +49,14 @@ export function validateSubmission(
     const raw = input[key];
     if (raw == null || raw === "") continue;
     const s = String(raw).trim();
-    if (!isValidUrl(s)) return { ok: false, error: `Invalid ${key}` };
+    if (s.length > 500 || !isValidUrl(s)) return { ok: false, error: `Invalid ${key}` };
     socials[key] = s;
   }
 
   let photoUrl: string | undefined;
   if (input.photoUrl != null && input.photoUrl !== "") {
     const p = String(input.photoUrl).trim();
-    if (!isOwnPhoto(p, allowedHost)) return { ok: false, error: "Invalid photo URL" };
+    if (p.length > 500 || !isOwnPhoto(p, allowedHost)) return { ok: false, error: "Invalid photo URL" };
     photoUrl = p;
   }
 
