@@ -7,17 +7,6 @@ export interface TimelineItem {
   imageUrl: string;
 }
 
-export interface TeamMember {
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  roleEn: string;
-  roleAr: string;
-  quoteEn: string;
-  quoteAr: string;
-  imageUrl: string;
-}
-
 export interface CoreValue {
   id: string;
   nameEn: string;
@@ -148,69 +137,6 @@ export const timelineData: TimelineItem[] = [
     descriptionEn: "32 strategic projects implemented. 38,790+ lives touched. Operating in 10 countries. A movement, not just an organization.",
     descriptionAr: "32 مشروعاً استراتيجياً. أكثر من 38,790 حياة تأثرت. نعمل في 10 دول.",
     imageUrl: "/images/new/award-winner.jpg",
-  },
-];
-
-export const teamMembers: TeamMember[] = [
-  {
-    id: "1",
-    nameEn: "Rana",
-    nameAr: "رنا",
-    roleEn: "Bekaa Hub Lead",
-    roleAr: "مديرة مركز البقاع",
-    quoteEn: "I grew up here. I know what works.",
-    quoteAr: "نشأت هنا. أعرف ما ينجح.",
-    imageUrl: "/images/new/mena-women.jpg",
-  },
-  {
-    id: "2",
-    nameEn: "Karim",
-    nameAr: "كريم",
-    roleEn: "Digital Lead",
-    roleAr: "المدير الرقمي",
-    quoteEn: "Offline-first isn't a feature—it's respect.",
-    quoteAr: "العمل بدون إنترنت ليس ميزة—إنه احترام.",
-    imageUrl: "/images/new/workshop-notes.jpg",
-  },
-  {
-    id: "3",
-    nameEn: "Nour",
-    nameAr: "نور",
-    roleEn: "Programs Director",
-    roleAr: "مديرة البرامج",
-    quoteEn: "We don't deliver projects. We deliver pathways.",
-    quoteAr: "لا نقدم مشاريع. نقدم مسارات.",
-    imageUrl: "/images/new/women-thumbsup.jpg",
-  },
-  {
-    id: "4",
-    nameEn: "Ahmad",
-    nameAr: "أحمد",
-    roleEn: "Impact & M&E Lead",
-    roleAr: "مسؤول الأثر والمتابعة",
-    quoteEn: "Every dollar must earn its place. We measure what matters.",
-    quoteAr: "كل دولار يجب أن يستحق مكانه. نقيس ما يهم.",
-    imageUrl: "/images/new/hands-on-work.jpg",
-  },
-  {
-    id: "5",
-    nameEn: "Lama",
-    nameAr: "لمى",
-    roleEn: "Academy Coordinator",
-    roleAr: "منسقة الأكاديمية",
-    quoteEn: "Skills that stick. Knowledge that transforms.",
-    quoteAr: "مهارات تبقى. معرفة تحول.",
-    imageUrl: "/images/new/classroom.jpg",
-  },
-  {
-    id: "6",
-    nameEn: "Sara",
-    nameAr: "سارة",
-    roleEn: "Partnerships Manager",
-    roleAr: "مديرة الشراكات",
-    quoteEn: "No one wins alone. We connect, collaborate, and co-create.",
-    quoteAr: "لا أحد يفوز وحده. نتواصل ونتعاون ونبتكر معاً.",
-    imageUrl: "/images/new/pitch-winner.jpg",
   },
 ];
 

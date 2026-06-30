@@ -14,6 +14,16 @@ export async function withAdmin(request: NextRequest) {
   return { session: payload };
 }
 
+// Authenticate AND require SUPER_ADMIN role
+export async function withSuperAdmin(request: NextRequest) {
+  const auth = await withAdmin(request);
+  if ("error" in auth) return auth;
+  if (auth.session.role !== "SUPER_ADMIN") {
+    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  return auth;
+}
+
 // Extract pagination & search params from URL
 export function getPaginationParams(request: NextRequest) {
   const url = new URL(request.url);
