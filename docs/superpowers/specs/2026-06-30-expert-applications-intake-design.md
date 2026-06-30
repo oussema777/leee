@@ -80,7 +80,7 @@ model ExpertSubmission {
   majorFieldOfStudy  String              // Q11
 
   // Section 3 — Professional experience & credentials
-  yearsExperience    String[]            // Q12 — bucket(s)
+  yearsExperience    String              // Q12 — single bucket, e.g. "6-10 years"
   certifications     String  @db.Text    // Q13
   licensesMemberships String? @db.Text   // Q14 — optional
 
@@ -113,13 +113,20 @@ enum ExpertSubmissionStatus {
 ```
 
 **Notes:**
-- Multi-value fields (`countries`, `degrees`, `yearsExperience`) use Postgres scalar arrays
-  (`String[]`), which Prisma + the Supabase Postgres datasource support.
+- The genuine multi-selects (`countries`, `degrees`) use Postgres scalar arrays (`String[]`),
+  which the Supabase Postgres datasource + Prisma support (already used elsewhere in the
+  schema). `yearsExperience` is a **single** mutually-exclusive bucket → stored as `String`.
+- **"Other" free-text:** when an applicant types an "Other" value for `countries` or
+  `degrees`, that string is appended verbatim as an additional array element. For
+  `dailyRate "Other"`, the typed value is stored as the `dailyRate` string.
 - `availableForEngagements` is stored as a string (`"Yes"`/`"No"`) to faithfully capture the
   form; consumers treat it as a label.
 - `dailyRate` is a string because the form mixes numeric tiers with `"Case by Case"`/`"Other"`.
 - `publishConsent` / `photoConsent` are recorded so the team respects them when manually
   publishing; they do not drive any automated behavior.
+- **Schema-nullable vs app-required:** `photoUrl` is `String?` in the schema but required at
+  the app/validation layer (same pattern as `TestimonialSubmission.photoUrl`). `degreeDetails`
+  and `majorFieldOfStudy` are non-null in the schema and required in validation (consistent).
 
 ### 4.2 Reused infrastructure (no changes)
 - `withAdmin` (`src/lib/api-utils.ts`), session shape `{ userId, email, role }`.
@@ -130,11 +137,15 @@ enum ExpertSubmissionStatus {
 
 ### 4.3 Code organization (for testability)
 Pure, unit-tested logic lives in a new `src/lib/experts/` module; route handlers stay thin:
-- `validateExpertSubmission(input, allowedHost?) → { ok: true; value: CleanExpert } | { ok: false; error }`
+- `validateExpertSubmission(input, allowedHost?) → { ok: true; value: CleanExpert } | { ok: false; field?: string; error: string }`
   — required-field checks, length caps, email shape, URL shape, photo-domain check, ignores
-  unknown fields, normalizes arrays.
-- `buildExpertCsv(rows) → string` — deterministic CSV with proper escaping (quotes, commas,
-  newlines); arrays joined with `"; "`.
+  unknown fields, normalizes arrays. On failure it returns the first offending `field`
+  (when attributable) plus a human message, so the route can build a field-level error
+  envelope (see §5.4).
+- `buildExpertCsv(rows) → string` — **net-new** deterministic CSV builder (there is no
+  existing CSV-builder to reuse; `src/lib/newsletter/csv.ts` is an import *parser*). Proper
+  escaping (quotes, commas, newlines); arrays joined with `"; "`; stable column order; header
+  row + one row per submission.
 
 ## 5. Public Form & API
 
@@ -158,14 +169,17 @@ Pure, unit-tested logic lives in a new `src/lib/experts/` module; route handlers
 
 ### 5.3 CTA rewire
 In `src/app/[locale]/get-involved/expert/page.tsx`, the "Apply to Join Our Expert Pool →"
-link changes from `/get-involved/join-us?role=expert` to `/get-involved/expert/apply`.
+link changes from `/${locale}/get-involved/join-us?role=expert` to
+`/${locale}/get-involved/expert/apply` (keep the locale prefix, matching the codebase
+convention).
 
 ### 5.4 API: `POST /api/public/expert-submissions`
 - **Rate-limit** per IP (e.g. `expert-apply:{ip}`, 5 / hour) → 429 when exceeded.
 - **Honeypot**: if the hidden field is filled, return `{ ok: true }` and write nothing.
-- Parse + validate via `validateExpertSubmission` (required fields, length caps, email/URL
-  shape, photo-domain check). Reject invalid with field-level errors (mirrors testimonial
-  error envelope).
+- Parse + validate via `validateExpertSubmission`. On failure, return the testimonial-style
+  envelope `{ ok: false, error: "validation", fields }`, where `fields` is
+  `{ [field]: message }` built from the validator's returned `field` + `error` (empty object
+  if the failure isn't field-attributable). The form renders `fields` inline.
 - Create `ExpertSubmission` (status `NEW`).
 - Send a notification email summarizing key triage fields (name, title, email, phone,
   country, expertise keywords, years, daily rate, availability).
@@ -176,7 +190,11 @@ link changes from `/get-involved/join-us?role=expert` to `/get-involved/expert/a
 
 ## 6. Admin: Inbox, Detail, Status, Notes, Export
 
-All admin endpoints require `withAdmin` (any admin role).
+All admin endpoints require `withAdmin` (any admin role). **Note for implementers:** although
+this feature mirrors the recently-built Team Submissions inbox, it deliberately uses
+`withAdmin` (NOT `withSuperAdmin`), and its sidebar item omits the `superAdminOnly` flag —
+unlike Team Submissions. Copy the testimonial-submissions routes (which use `withAdmin`) as
+the closest precedent, not the team-submissions routes.
 
 ### 6.1 List: `GET /api/admin/expert-submissions` + page `/admin/expert-submissions`
 - List newest-first; optional `?status=` filter and `?search=` (name/title/keywords);
@@ -191,8 +209,11 @@ All admin endpoints require `withAdmin` (any admin role).
   **internal notes** textarea (saved via PATCH), and a **delete** action.
 
 ### 6.3 Mutations
-- `PATCH /api/admin/expert-submissions/[id]` — update `status` and/or `adminNotes`; sets
-  `reviewedAt` when status changes from `NEW`.
+- `PATCH /api/admin/expert-submissions/[id]` — update `status` and/or `adminNotes`. The
+  handler validates an incoming `status` against the `ExpertSubmissionStatus` enum and
+  rejects unknown values (400). `reviewedAt` is set the first time the status moves off `NEW`
+  to any other value; notes-only edits and staying on/returning to `NEW` leave `reviewedAt`
+  untouched.
 - `DELETE /api/admin/expert-submissions/[id]` — remove a submission.
 
 ### 6.4 Unread count: `GET /api/admin/expert-submissions/unread-count`
@@ -203,15 +224,19 @@ All admin endpoints require `withAdmin` (any admin role).
   the pure `buildExpertCsv`. Columns cover all stored fields; arrays joined with `"; "`.
 
 ### 6.6 Sidebar
-- Add "Expert Applications" under the "Submissions" group, visible to **all** admins (no
-  super-admin gate), with the unread badge.
+- Add "Expert Applications" under the "Submissions" group, visible to **all** admins (do NOT
+  set the `superAdminOnly` flag the Team Submissions item uses), with the unread badge wired
+  to `unread-count`.
 
 ## 7. Validation Rules (`validateExpertSubmission`)
 
 - **Required** (per the source form's `*`): `fullName`, `professionalTitle`, `countries` (≥1),
   `phone`, `email` (valid email), `photoUrl` + `photoConsent = true`, `degrees` (≥1),
-  `degreeDetails`, `majorFieldOfStudy`, `yearsExperience` (≥1), `certifications`, `shortBio`,
-  `expertiseKeywords`, `languages`, `availableForEngagements`, `dailyRate`, `publishConsent`.
+  `degreeDetails`, `majorFieldOfStudy`, `yearsExperience` (a non-empty single value),
+  `certifications`, `shortBio`, `expertiseKeywords`, `languages`, `availableForEngagements`,
+  `dailyRate`, `publishConsent`.
+- On the first failed required field the validator returns `{ ok:false, field, error }` so the
+  route can surface it inline (see §4.3, §5.4).
 - **Optional:** `linkedinUrl` (valid URL if present), `licensesMemberships`, `notableWork`.
 - **Length caps** (reject over-length): names/titles ≤120/200, phone ≤40, email ≤200,
   majorFieldOfStudy ≤200, expertiseKeywords/languages ≤300, shortBio ≤1000, long-text fields
