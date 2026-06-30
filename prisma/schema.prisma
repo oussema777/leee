@@ -590,3 +590,113 @@ model NewsletterSubscriber {
   locale    String   @default("en")
   createdAt DateTime @default(now())
 }
+
+// ─────────────────────────────────────────
+// NEWSLETTER TOOL (Campaigns)
+// ─────────────────────────────────────────
+
+enum ContactStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+  COMPLAINED
+}
+
+enum SuppressionReason {
+  UNSUBSCRIBED
+  HARD_BOUNCE
+  COMPLAINED
+}
+
+enum CampaignLocale {
+  EN
+  AR
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+enum RecipientStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum CampaignEventType {
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+}
+
+model Contact {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  tags      String[]
+  status    ContactStatus @default(SUBSCRIBED)
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Suppression {
+  id        String            @id @default(cuid())
+  email     String            @unique
+  reason    SuppressionReason
+  createdAt DateTime          @default(now())
+}
+
+model Campaign {
+  id             String              @id @default(cuid())
+  subject        String
+  html           String              @db.Text
+  locale         CampaignLocale      @default(EN)
+  targetTags     String[]
+  recipientCount Int                 @default(0)
+  status         CampaignStatus      @default(DRAFT)
+  lastTestedAt   DateTime?
+  enqueuedAt     DateTime?
+  sentAt         DateTime?
+  createdAt      DateTime            @default(now())
+  recipients     CampaignRecipient[]
+  events         CampaignEvent[]
+}
+
+model CampaignRecipient {
+  id                String          @id @default(cuid())
+  campaignId        String
+  campaign          Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email             String
+  name              String?
+  unsubToken        String          @unique
+  batchIndex        Int
+  status            RecipientStatus @default(PENDING)
+  attempts          Int             @default(0)
+  error             String?
+  providerMessageId String?
+  sentAt            DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@unique([campaignId, email])
+  @@index([campaignId, status])
+}
+
+model CampaignEvent {
+  id              String            @id @default(cuid())
+  campaignId      String
+  campaign        Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type            CampaignEventType
+  email           String
+  providerEventId String?           @unique
+  occurredAt      DateTime
+  createdAt       DateTime          @default(now())
+
+  @@index([campaignId, type])
+}

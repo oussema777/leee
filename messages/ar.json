@@ -286,5 +286,9 @@
     "donateTitle": "تبرع الآن",
     "interventionTitle": "مجالات التدخل",
     "partnerWithUs": "شاركنا"
+  },
+  "unsubscribe": {
+    "title": "تم إلغاء اشتراكك",
+    "body": "لقد تمت إزالتك من النشرة الإخبارية لمنصة The LEE Experience ولن تتلقى أي رسائل بريد إلكتروني أخرى. إذا حدث ذلك عن طريق الخطأ، يرجى التواصل معنا على info@theleeexperience.com."
   }
 }

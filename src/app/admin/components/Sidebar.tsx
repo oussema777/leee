@@ -21,6 +21,9 @@ import {
   BarChart3,
   Layers,
   Quote,
+  Contact,
+  Send,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -61,6 +64,14 @@ const navGroups = [
       { label: "Join Us", href: "/admin/join-us", icon: UserPlus },
       { label: "Service Requests", href: "/admin/services", icon: Briefcase },
       { label: "Testimonials Inbox", href: "/admin/testimonial-submissions", icon: Quote },
+    ],
+  },
+  {
+    label: "Newsletter",
+    items: [
+      { label: "Contacts", href: "/admin/newsletter/contacts", icon: Contact },
+      { label: "Compose", href: "/admin/newsletter/compose", icon: Send },
+      { label: "Campaigns", href: "/admin/newsletter/campaigns", icon: Megaphone },
     ],
   },
   {

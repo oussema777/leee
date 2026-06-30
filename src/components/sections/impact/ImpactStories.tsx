@@ -8,41 +8,33 @@ import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-const previewStories = [
-  {
-    nameEn: "Rima's Journey with NAWARA",
-    nameAr: "رحلة ريما مع نورة",
-    quoteEn: "From a single mother sewing at home to employing 12 women in sustainable fashion.",
-    quoteAr: "من أم عزباء تخيط في المنزل إلى توظيف 12 امرأة في الأزياء المستدامة.",
-    slug: "rima-story-from-idea-to-fashion-brand",
-    imageUrl: "/images/new/coaching-session.jpg",
-    color: "bg-brand-blue",
-    iconBg: "bg-brand-blue/10",
-    borderColor: "border-brand-blue/15",
-  },
-  {
-    nameEn: "Houla Green Fashion Factory",
-    nameAr: "مصنع حولا للأزياء الخضراء",
-    quoteEn: "50+ women building economic empowerment through sustainable fashion production.",
-    quoteAr: "أكثر من 50 امرأة يبنين التمكين الاقتصادي من خلال إنتاج الأزياء المستدامة.",
-    slug: "houla-factory-one-year-milestone",
-    imageUrl: "/images/new/greenhouse-visit.jpg",
-    color: "bg-emerald-500",
-    iconBg: "bg-emerald-50",
-    borderColor: "border-emerald-400/15",
-  },
-  {
-    nameEn: "Community Kitchens: More Than Meals",
-    nameAr: "المطابخ المجتمعية: أكثر من وجبات",
-    quoteEn: "Building social cohesion between host communities and displaced families through food.",
-    quoteAr: "بناء التماسك الاجتماعي بين المجتمعات المضيفة والعائلات النازحة من خلال الطعام.",
-    slug: "community-kitchens-social-cohesion",
-    imageUrl: "/images/new/community-table.jpg",
-    color: "bg-amber-500",
-    iconBg: "bg-amber-50",
-    borderColor: "border-amber-400/15",
-  },
+export type ImpactStoryCard = {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  roleEn: string;
+  roleAr: string;
+  quoteEn: string;
+  quoteAr: string;
+  imageUrl: string; // "" → initials fallback
+};
+
+// Cycled per-card accent. color = accent bar bg; borderColor = card + ring border.
+// Mirrors the trio used by the previous hardcoded cards.
+const accents = [
+  { color: "bg-brand-blue", borderColor: "border-brand-blue/15", text: "text-brand-blue" },
+  { color: "bg-emerald-500", borderColor: "border-emerald-400/15", text: "text-emerald-600" },
+  { color: "bg-amber-500", borderColor: "border-amber-400/15", text: "text-amber-600" },
 ];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -60,10 +52,15 @@ function useInView(threshold = 0.1) {
   return { ref, visible };
 }
 
-export function ImpactStories() {
+export function ImpactStories({ stories }: { stories: ImpactStoryCard[] }) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const sectionAnim = useInView(0.08);
+
+  // Auto-hide: never render an empty band.
+  if (stories.length === 0) return null;
+
+  const quoteMark = (q: string) => (isAr ? `«${q}»` : `“${q}”`);
 
   return (
     <section ref={sectionAnim.ref} className="py-20 md:py-28 bg-surface-primary relative overflow-hidden">
@@ -110,15 +107,19 @@ export function ImpactStories() {
 
         {/* Story cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {previewStories.map((story, i) => {
+          {stories.map((story, i) => {
+            const accent = accents[i % accents.length];
+            const name = isAr ? story.nameAr : story.nameEn;
+            const role = isAr ? story.roleAr : story.roleEn;
+            const quote = isAr ? story.quoteAr : story.quoteEn;
             const fromLeft = i === 0;
             const fromRight = i === 2;
             return (
               <div
-                key={story.slug}
+                key={story.id}
                 className={cn(
                   "group relative bg-surface-secondary rounded-2xl overflow-hidden border border-surface-tertiary transition-all duration-700 ease-out hover:shadow-xl hover:-translate-y-1.5",
-                  story.borderColor,
+                  accent.borderColor,
                   sectionAnim.visible
                     ? "opacity-100 translate-x-0 translate-y-0"
                     : fromLeft
@@ -129,41 +130,57 @@ export function ImpactStories() {
                 )}
                 style={{ transitionDelay: `${250 + i * 120}ms` }}
               >
-                {/* Image */}
+                {/* Media */}
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
-                    src={story.imageUrl}
-                    alt={isAr ? story.nameAr : story.nameEn}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
+                  {story.imageUrl ? (
+                    <Image
+                      src={story.imageUrl}
+                      alt={name}
+                      fill
+                      // object-top: testimonial photos are portraits — bias the crop to the face.
+                      className="object-cover object-top group-hover:scale-110 transition-transform duration-700"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-blue/15 to-emerald-400/15">
+                      <span className="font-serif text-5xl text-brand-blue/55">{initials(name)}</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                   {/* Color accent bar */}
-                  <div className={cn("absolute bottom-0 inset-x-0 h-1 transition-all duration-500 group-hover:h-1.5", story.color)} />
+                  <div className={cn("absolute bottom-0 inset-x-0 h-1 transition-all duration-500 group-hover:h-1.5", accent.color)} />
                 </div>
 
                 <div className="p-6">
                   {/* Abstract ring */}
-                  <div className={cn("absolute -top-3 -end-3 w-12 h-12 rounded-full border-2 opacity-30 group-hover:scale-110 transition-transform duration-500", story.borderColor)} />
+                  <div className={cn("absolute -top-3 -end-3 w-12 h-12 rounded-full border-2 opacity-30 group-hover:scale-110 transition-transform duration-500", accent.borderColor)} />
 
-                  <h3 className="font-serif text-lg text-text-primary mb-2 tracking-tight">
-                    {isAr ? story.nameAr : story.nameEn}
+                  <h3 className="font-serif text-lg text-text-primary mb-1.5 tracking-tight">
+                    {name}
                   </h3>
-                  <p className="text-text-secondary text-sm leading-relaxed mb-5 italic">
-                    {isAr ? story.quoteAr : story.quoteEn}
+                  {role && (
+                    <p className={cn("text-[11px] font-bold uppercase tracking-[0.18em] mb-3", accent.text)}>
+                      {role}
+                    </p>
+                  )}
+                  <p className="text-text-secondary text-sm leading-relaxed italic line-clamp-4">
+                    {quoteMark(quote)}
                   </p>
-                  <Link
-                    href={`/media/blog/${story.slug}`}
-                    className="inline-flex items-center gap-2 text-brand-blue text-sm font-semibold group-hover:gap-3 transition-all duration-300"
-                  >
-                    {isAr ? "اقرأ القصة كاملة" : "Read full story"}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* See all stories CTA */}
+        <div className={cn("mt-12 text-center transition-all duration-700", sectionAnim.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")} style={{ transitionDelay: "600ms" }}>
+          <Link
+            href="/media/testimonials"
+            className="inline-flex items-center gap-2 text-brand-blue text-sm font-semibold hover:gap-3 transition-all duration-300"
+          >
+            {isAr ? "شاهد كل القصص" : "See all stories"}
+            <ArrowRight className={cn("w-4 h-4", isAr && "rotate-180")} />
+          </Link>
         </div>
       </Container>
     </section>

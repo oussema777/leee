@@ -5,7 +5,6 @@ import { useLocale } from "next-intl";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { journeyMilestones } from "./impactData";
-import Image from "next/image";
 
 const yearColors = [
   { bg: "bg-brand-blue", ring: "border-brand-blue/20", text: "text-brand-blue", glow: "bg-brand-blue/10" },
@@ -66,16 +65,6 @@ export function ImpactJourney() {
           <p className="text-text-secondary text-[15px] max-w-2xl mx-auto leading-relaxed">
             {isAr ? "محطات بارزة في رحلتنا" : "Key milestones in our journey"}
           </p>
-        </div>
-
-        {/* Image banner */}
-        <div className={cn("grid grid-cols-3 gap-2 mb-14 transition-all duration-700", sectionAnim.visible ? "opacity-100 scale-100" : "opacity-0 scale-95")} style={{ transitionDelay: "100ms" }}>
-          {["/images/new/stage-group.jpg", "/images/new/intl-professionals.jpg", "/images/new/award-winner.jpg"].map((src, i) => (
-            <div key={i} className="relative aspect-[3/1] rounded-xl overflow-hidden group">
-              <Image src={src} alt="" fill className="object-cover group-hover:scale-110 transition-transform duration-700" sizes="33vw" />
-              <div className="absolute inset-0 bg-accent-navy/10 group-hover:bg-transparent transition-colors" />
-            </div>
-          ))}
         </div>
 
         {/* Timeline */}
