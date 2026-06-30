@@ -1,7 +1,10 @@
 import type { CleanSubmission } from "./validation";
 
 type SecondLang = { name: string; title: string };
-type SubmissionLike = CleanSubmission & {
+type SubmissionLike = Omit<
+  CleanSubmission,
+  "linkedinUrl" | "twitterUrl" | "instagramUrl" | "websiteUrl"
+> & {
   twitterUrl?: string | null; instagramUrl?: string | null;
   websiteUrl?: string | null; linkedinUrl?: string | null;
 };
