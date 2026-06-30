@@ -49,7 +49,7 @@ export function Navbar() {
       href: "/get-involved",
       children: [
         { label: locale === "ar" ? "رواد الأعمال" : "Entrepreneurs", href: "/get-involved/entrepreneur" },
-        { label: locale === "ar" ? "موثوق من قبل" : "Trusted By", href: "/get-involved/partner" },
+        { label: locale === "ar" ? "كن شريكاً معنا" : "Partner with us", href: "/get-involved/partner" },
         { label: locale === "ar" ? "الخبراء" : "Experts", href: "/get-involved/expert" },
         { label: locale === "ar" ? "المناصرة" : "Advocates", href: "/get-involved/advocate" },
         { label: locale === "ar" ? "شارك قصتك" : "Share Your Story", href: "/get-involved/share-your-story" },
