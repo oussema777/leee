@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Download } from "lucide-react";
 import AdminPageHeader from "../../components/AdminPageHeader";
 import AdminDataTable, { type Column } from "../../components/AdminDataTable";
 import StatusBadge from "../../components/StatusBadge";
@@ -110,7 +111,7 @@ export default function ExpertSubmissionsPage() {
   return (
     <div>
       <AdminPageHeader title="Expert Applications" />
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <select
           value={statusFilter}
           onChange={(e) => {
@@ -126,6 +127,12 @@ export default function ExpertSubmissionsPage() {
           <option value="ARCHIVED">Archived</option>
           <option value="REJECTED">Rejected</option>
         </select>
+        <a
+          href="/api/admin/expert-submissions/export"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-white text-sm font-medium rounded-xl transition-colors whitespace-nowrap"
+        >
+          <Download size={16} /> Export CSV
+        </a>
       </div>
       <AdminDataTable
         columns={columns}
