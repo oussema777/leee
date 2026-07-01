@@ -619,6 +619,60 @@ model TeamInviteLink {
 }
 
 // ─────────────────────────────────────────
+// EXPERT APPLICATIONS (intake — internal data collection only)
+// ─────────────────────────────────────────
+
+model ExpertSubmission {
+  id                 String  @id @default(cuid())
+
+  // Section 1 — Personal information
+  fullName           String
+  professionalTitle  String
+  countries          String[]
+  phone              String
+  email              String
+  linkedinUrl        String?
+  photoUrl           String?
+  photoConsent       Boolean @default(false)
+
+  // Section 2 — Academic degrees
+  degrees            String[]
+  degreeDetails      String  @db.Text
+  majorFieldOfStudy  String
+
+  // Section 3 — Professional experience & credentials
+  yearsExperience    String
+  certifications     String  @db.Text
+  licensesMemberships String? @db.Text
+
+  // Section 4 — Area of expertise
+  shortBio           String  @db.Text
+  expertiseKeywords  String
+  notableWork        String? @db.Text
+  languages          String
+
+  // Section 5 — Publishing consent & availability
+  availableForEngagements String
+  dailyRate          String
+  publishConsent     Boolean @default(false)
+
+  // Moderation / management
+  status             ExpertSubmissionStatus @default(NEW)
+  isRead             Boolean   @default(false)
+  adminNotes         String?   @db.Text
+  reviewedAt         DateTime?
+  createdAt          DateTime  @default(now())
+}
+
+enum ExpertSubmissionStatus {
+  NEW
+  SHORTLISTED
+  CONTACTED
+  ARCHIVED
+  REJECTED
+}
+
+// ─────────────────────────────────────────
 // NEWSLETTER
 // ─────────────────────────────────────────
 
