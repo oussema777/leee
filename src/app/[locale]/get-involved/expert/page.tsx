@@ -189,7 +189,7 @@ export default async function ExpertPage({
               {isAr ? "مستعد للمشاركة؟" : "Ready to contribute?"}
             </h2>
             <Link
-              href={`/${locale}/get-involved/join-us?role=expert`}
+              href={`/${locale}/get-involved/expert/apply`}
               className="inline-flex items-center gap-2 bg-white text-brand-blue font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors shadow-md hover:shadow-lg"
             >
               {isAr
