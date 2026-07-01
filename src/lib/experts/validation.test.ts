@@ -54,6 +54,10 @@ describe("validateExpertSubmission", () => {
     expect(validateExpertSubmission({ ...base, email: "nope" }, HOST).ok).toBe(false);
     expect(validateExpertSubmission({ ...base, linkedinUrl: "not a url" }, HOST).ok).toBe(false);
   });
+  it("rejects non-http(s) URL schemes for linkedinUrl (XSS guard)", () => {
+    expect(validateExpertSubmission({ ...base, linkedinUrl: "javascript:alert(1)" }, HOST).ok).toBe(false);
+    expect(validateExpertSubmission({ ...base, linkedinUrl: "data:text/html,x" }, HOST).ok).toBe(false);
+  });
   it("rejects a photoUrl outside our host", () => {
     expect(validateExpertSubmission({ ...base, photoUrl: "https://evil.com/x.jpg" }, HOST).ok).toBe(false);
   });

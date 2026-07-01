@@ -31,7 +31,10 @@ type Result =
 function supabaseHost(): string | null {
   try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").host; } catch { return null; }
 }
-function isValidUrl(v: string): boolean { try { new URL(v); return true; } catch { return false; } }
+function isValidUrl(v: string): boolean {
+  try { const u = new URL(v); return u.protocol === "http:" || u.protocol === "https:"; }
+  catch { return false; }
+}
 function isEmail(v: string): boolean { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 function isOwnPhoto(url: string, host: string | null): boolean {
   if (url.startsWith("/")) return true;

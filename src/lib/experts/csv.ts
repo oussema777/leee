@@ -14,7 +14,9 @@ function cell(value: unknown): string {
   else if (Array.isArray(value)) s = value.join("; ");
   else if (value instanceof Date) s = value.toISOString();
   else s = String(value);
-  if (/[",\n]/.test(s)) s = `"${s.replace(/"/g, '""')}"`;
+  // Neutralize spreadsheet formula injection (attacker-controlled free text).
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  if (/[",\n\r]/.test(s)) s = `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 

@@ -34,6 +34,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { id } = await params;
   try {
     const body = await request.json().catch(() => ({}));
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return errorResponse("Invalid body", 400);
+    }
 
     if ("status" in body && !VALID_STATUSES.includes(body.status)) {
       return errorResponse("Invalid status", 400);
@@ -46,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     } = {};
 
     if ("status" in body) data.status = body.status as ExpertSubmissionStatus;
-    if ("adminNotes" in body) data.adminNotes = body.adminNotes;
+    if ("adminNotes" in body) data.adminNotes = String(body.adminNotes ?? "").slice(0, 5000);
 
     if (Object.keys(data).length === 0) return errorResponse("Nothing to update", 400);
 

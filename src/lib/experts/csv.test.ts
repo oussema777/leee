@@ -24,4 +24,10 @@ describe("buildExpertCsv", () => {
   it("handles empty list (header only)", () => {
     expect(buildExpertCsv([]).split("\n")[0]).toContain("email");
   });
+  it("neutralizes spreadsheet formula injection", () => {
+    const evil = { ...row, fullName: "=HYPERLINK(1)", expertiseKeywords: "@SUM(1)" } as any;
+    const csv = buildExpertCsv([evil]);
+    expect(csv).toContain("'=HYPERLINK(1)");
+    expect(csv).toContain("'@SUM(1)");
+  });
 });
