@@ -99,6 +99,7 @@ interface FormState {
   dailyRate: string;
   dailyRateOther: string;
   publishConsent: string;
+  website: string;
 }
 
 const INITIAL: FormState = {
@@ -126,6 +127,7 @@ const INITIAL: FormState = {
   dailyRate: "",
   dailyRateOther: "",
   publishConsent: "",
+  website: "",
 };
 
 type ErrorMap = Record<string, string>;
@@ -331,7 +333,7 @@ export function ExpertApplyForm({ locale }: { locale: string }) {
       availableForEngagements: form.availableForEngagements,
       dailyRate,
       publishConsent: form.publishConsent === "yes",
-      website: "", // honeypot
+      website: form.website, // honeypot
     };
   };
 
@@ -942,12 +944,12 @@ export function ExpertApplyForm({ locale }: { locale: string }) {
         <input
           type="text"
           name="website"
-          value={form.publishConsent ? "" : ""}
+          value={form.website}
+          onChange={(e) => setField("website", e.target.value)}
           tabIndex={-1}
           autoComplete="off"
           aria-hidden="true"
           className="hidden"
-          onChange={() => {}}
         />
 
         {/* ── Error banner ──────────────────────────────────────────────── */}
