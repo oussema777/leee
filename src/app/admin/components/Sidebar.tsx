@@ -25,6 +25,7 @@ import {
   Send,
   Megaphone,
   UserCheck,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -78,6 +79,7 @@ const navGroups: NavGroup[] = [
       { label: "Service Requests", href: "/admin/services", icon: Briefcase },
       { label: "Testimonials Inbox", href: "/admin/testimonial-submissions", icon: Quote },
       { label: "Team Submissions", href: "/admin/team-submissions", icon: UserCheck, superAdminOnly: true },
+      { label: "Expert Applications", href: "/admin/expert-submissions", icon: Award },
     ],
   },
   {
@@ -101,6 +103,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [inboxCount, setInboxCount] = useState(0);
   const [teamInboxCount, setTeamInboxCount] = useState(0);
+  const [expertInboxCount, setExpertInboxCount] = useState(0);
   const [role, setRole] = useState("");
 
   useEffect(() => {
@@ -121,6 +124,12 @@ export default function Sidebar() {
       .then((d) => setTeamInboxCount(d.count))
       .catch(() => {});
   }, [pathname, role]); // refetch on navigation so it clears after reading
+
+  useEffect(() => {
+    adminGet<{ count: number }>("/expert-submissions/unread-count")
+      .then((d) => setExpertInboxCount(d.count))
+      .catch(() => {});
+  }, [pathname]); // refetch on navigation so it clears after reading
 
   return (
     <aside
@@ -176,6 +185,8 @@ export default function Sidebar() {
                       ? inboxCount
                       : item.href === "/admin/team-submissions"
                       ? teamInboxCount
+                      : item.href === "/admin/expert-submissions"
+                      ? expertInboxCount
                       : 0;
 
                   return (
