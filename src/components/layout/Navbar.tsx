@@ -53,6 +53,7 @@ export function Navbar() {
         { label: locale === "ar" ? "الخبراء" : "Experts", href: "/get-involved/expert" },
         { label: locale === "ar" ? "المناصرة" : "Advocates", href: "/get-involved/advocate" },
         { label: locale === "ar" ? "شارك قصتك" : "Share Your Story", href: "/get-involved/share-your-story" },
+        { label: locale === "ar" ? "تبرّع بالكتب" : "Donate Books", href: "/book-restore" },
         { label: locale === "ar" ? "الوظائف" : "Careers", href: "/get-involved/careers" },
       ],
     },
