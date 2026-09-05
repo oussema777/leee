@@ -580,6 +580,53 @@ model TestimonialSubmission {
   createdAt              DateTime  @default(now())
 }
 
+enum BookDonationStatus {
+  NEW
+  NEEDS_FOLLOW_UP
+  DROP_OFF_EXPECTED
+  PICKUP_TO_SCHEDULE
+  SCHEDULED
+  COLLECTED
+  RECEIVED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  CLOSED
+}
+
+model BookDonationSubmission {
+  id                     String             @id @default(cuid())
+  reference              String             @unique
+  fullName               String
+  phone                  String
+  email                  String?
+  governorate            String
+  area                   String
+  detailedAddress        String?
+  estimatedQuantity      String
+  bookCategories         String[]
+  otherCategory          String?
+  bookLanguages          String[]
+  overallCondition       String
+  handoverMethod         String
+  photoUrls              String[]
+  notes                  String?            @db.Text
+  locale                 String
+  donationConsent        Boolean            @default(false)
+  privacyConsent         Boolean            @default(false)
+  acceptanceAcknowledged Boolean            @default(false)
+  consentTextVersion     String
+  status                 BookDonationStatus @default(NEW)
+  isRead                 Boolean            @default(false)
+  adminNotes             String?            @db.Text
+  reviewedAt             DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
 // ─────────────────────────────────────────
 // TEAM SELF-SERVICE ONBOARDING
 // ─────────────────────────────────────────
