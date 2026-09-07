@@ -99,23 +99,23 @@ model CoreValue {
 }
 
 model BoardMember {
-  id          String     @id @default(cuid())
-  nameEn      String
-  nameAr      String
-  titleEn     String
-  titleAr     String
-  bioEn       String?    @db.Text
-  bioAr       String?    @db.Text
-  quoteEn     String?    @db.Text
-  quoteAr     String?    @db.Text
-  imageUrl    String?
-  linkedinUrl String?
-  twitterUrl  String?
+  id           String     @id @default(cuid())
+  nameEn       String
+  nameAr       String
+  titleEn      String
+  titleAr      String
+  bioEn        String?    @db.Text
+  bioAr        String?    @db.Text
+  quoteEn      String?    @db.Text
+  quoteAr      String?    @db.Text
+  imageUrl     String?
+  linkedinUrl  String?
+  twitterUrl   String?
   instagramUrl String?
-  websiteUrl  String?
-  order       Int        @default(0)
-  isActive    Boolean    @default(true)
-  memberType  MemberType @default(BOARD)
+  websiteUrl   String?
+  order        Int        @default(0)
+  isActive     Boolean    @default(true)
+  memberType   MemberType @default(BOARD)
 }
 
 enum MemberType {
@@ -184,19 +184,19 @@ model PillarInfo {
 // ─────────────────────────────────────────
 
 model Program {
-  id            String         @id @default(cuid())
-  slug          String         @unique
+  id            String              @id @default(cuid())
+  slug          String              @unique
   titleEn       String
   titleAr       String
-  summaryEn     String         @db.Text
-  summaryAr     String         @db.Text
-  bodyEn        String         @db.Text
-  bodyAr        String         @db.Text
+  summaryEn     String              @db.Text
+  summaryAr     String              @db.Text
+  bodyEn        String              @db.Text
+  bodyAr        String              @db.Text
   coverImageUrl String?
-  status        ProgramStatus  @default(ACTIVE)
+  status        ProgramStatus       @default(ACTIVE)
   category      String?
   pillarId      String?
-  pillar        Pillar?        @relation(fields: [pillarId], references: [id])
+  pillar        Pillar?             @relation(fields: [pillarId], references: [id])
   donorEn       String?
   donorAr       String?
   locationEn    String?
@@ -207,17 +207,17 @@ model Program {
   endYear       Int?
   startDate     DateTime?
   endDate       DateTime?
-  objectivesEn  String?        @db.Text
-  objectivesAr  String?        @db.Text
+  objectivesEn  String?             @db.Text
+  objectivesAr  String?             @db.Text
   images        ProgramImage[]
   teamMembers   ProgramTeamMember[]
   partners      ProgramPartner[]
   stats         ProgramStat[]
   videos        ProgramVideo[]
-  isActive      Boolean        @default(true)
-  isFeatured    Boolean        @default(false)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  isActive      Boolean             @default(true)
+  isFeatured    Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model ProgramImage {
@@ -287,14 +287,14 @@ enum ProgramStatus {
 // ─────────────────────────────────────────
 
 model Event {
-  id              String   @id @default(cuid())
-  slug            String   @unique
+  id              String    @id @default(cuid())
+  slug            String    @unique
   titleEn         String
   titleAr         String
-  summaryEn       String?  @db.Text
-  summaryAr       String?  @db.Text
-  descriptionEn   String   @db.Text
-  descriptionAr   String   @db.Text
+  summaryEn       String?   @db.Text
+  summaryAr       String?   @db.Text
+  descriptionEn   String    @db.Text
+  descriptionAr   String    @db.Text
   imageUrl        String?
   location        String?
   locationAr      String?
@@ -303,10 +303,10 @@ model Event {
   startDate       DateTime
   endDate         DateTime?
   registrationUrl String?
-  isActive        Boolean  @default(true)
-  isFeatured      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isActive        Boolean   @default(true)
+  isFeatured      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model GalleryImage {
@@ -323,17 +323,17 @@ model GalleryImage {
 }
 
 model Video {
-  id           String   @id @default(cuid())
-  titleEn      String
-  titleAr      String
-  descriptionEn String? @db.Text
-  descriptionAr String? @db.Text
-  youtubeUrl   String
-  thumbnailUrl String?
-  category     String?
-  order        Int      @default(0)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String?  @db.Text
+  descriptionAr String?  @db.Text
+  youtubeUrl    String
+  thumbnailUrl  String?
+  category      String?
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
 }
 
 model Report {
@@ -351,44 +351,44 @@ model Report {
 }
 
 model Testimonial {
-  id       String  @id @default(cuid())
-  nameEn   String
-  nameAr   String
-  titleEn  String?
-  titleAr  String?
-  quoteEn  String  @db.Text
-  quoteAr  String  @db.Text
-  imageUrl String?
-  programEn String?
-  programAr String?
-  category String?
-  year     Int?
+  id             String  @id @default(cuid())
+  nameEn         String
+  nameAr         String
+  titleEn        String?
+  titleAr        String?
+  quoteEn        String  @db.Text
+  quoteAr        String  @db.Text
+  imageUrl       String?
+  programEn      String?
+  programAr      String?
+  category       String?
+  year           Int?
   isOriginalCard Boolean @default(false)
-  order    Int     @default(0)
-  isActive Boolean @default(true)
+  order          Int     @default(0)
+  isActive       Boolean @default(true)
 }
 
 model BlogPost {
-  id            String    @id @default(cuid())
-  slug          String    @unique
-  titleEn       String
-  titleAr       String
-  summaryEn     String    @db.Text
-  summaryAr     String    @db.Text
-  bodyEn        String    @db.Text
-  bodyAr        String    @db.Text
-  coverImageUrl String?
-  authorName    String?
-  authorNameAr  String?
-  authorRole    String?
+  id             String    @id @default(cuid())
+  slug           String    @unique
+  titleEn        String
+  titleAr        String
+  summaryEn      String    @db.Text
+  summaryAr      String    @db.Text
+  bodyEn         String    @db.Text
+  bodyAr         String    @db.Text
+  coverImageUrl  String?
+  authorName     String?
+  authorNameAr   String?
+  authorRole     String?
   authorImageUrl String?
-  readTimeMin   Int?
-  isFeatured    Boolean   @default(false)
-  category      String?
-  isPublished   Boolean   @default(false)
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  readTimeMin    Int?
+  isFeatured     Boolean   @default(false)
+  category       String?
+  isPublished    Boolean   @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 // ─────────────────────────────────────────
@@ -396,19 +396,19 @@ model BlogPost {
 // ─────────────────────────────────────────
 
 model Career {
-  id            String   @id @default(cuid())
-  slug          String   @unique
+  id            String              @id @default(cuid())
+  slug          String              @unique
   titleEn       String
   titleAr       String
-  descriptionEn String   @db.Text
-  descriptionAr String   @db.Text
+  descriptionEn String              @db.Text
+  descriptionAr String              @db.Text
   locationEn    String?
   locationAr    String?
-  type          JobType  @default(FULL_TIME)
+  type          JobType             @default(FULL_TIME)
   deadline      DateTime?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   applications  CareerApplication[]
 }
 
@@ -433,6 +433,78 @@ model CareerApplication {
 
   @@index([careerId])
   @@index([createdAt])
+}
+
+enum BookInventoryStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  ARCHIVED
+}
+
+enum BookCondition {
+  EXCELLENT
+  GOOD
+  ACCEPTABLE
+}
+
+enum BookLanguage {
+  ARABIC
+  ENGLISH
+  FRENCH
+  OTHER
+}
+
+enum BookCategory {
+  FICTION
+  CHILDREN
+  EDUCATION
+  UNIVERSITY
+  BUSINESS
+  SELF_DEVELOPMENT
+  RELIGION
+  HISTORY
+  OTHER
+}
+
+enum BookCurrency {
+  USD
+  LBP
+}
+
+model BookInventoryItem {
+  id               String                  @id @default(cuid())
+  sku              String                  @unique
+  slug             String                  @unique
+  title            String
+  titleAr          String?
+  author           String
+  authorAr         String?
+  descriptionEn    String?                 @db.Text
+  descriptionAr    String?                 @db.Text
+  isbn             String?
+  publisher        String?
+  publicationYear  Int?
+  category         BookCategory
+  language         BookLanguage
+  condition        BookCondition
+  priceCents       Int
+  currency         BookCurrency            @default(USD)
+  stockQuantity    Int                     @default(1)
+  shelfLocation    String?
+  coverImageUrl    String?
+  status           BookInventoryStatus     @default(AVAILABLE)
+  isPublished      Boolean                 @default(false)
+  publishedAt      DateTime?
+  internalNotes    String?                 @db.Text
+  sourceDonationId String?
+  sourceDonation   BookDonationSubmission? @relation(fields: [sourceDonationId], references: [id], onDelete: SetNull)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@index([status, isPublished, updatedAt])
+  @@index([category, language])
+  @@index([sourceDonationId])
 }
 
 // ─────────────────────────────────────────
@@ -483,13 +555,13 @@ model CrisisStat {
 }
 
 model CrisisIntervention {
-  id            String @id @default(cuid())
+  id            String  @id @default(cuid())
   titleEn       String
   titleAr       String
-  descriptionEn String @db.Text
-  descriptionAr String @db.Text
+  descriptionEn String  @db.Text
+  descriptionAr String  @db.Text
   icon          String?
-  order         Int    @default(0)
+  order         Int     @default(0)
 }
 
 // ─────────────────────────────────────────
@@ -526,17 +598,17 @@ model JoinUsSubmission {
 }
 
 model ServiceRequest {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  phone       String?
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
   organization String?
-  serviceType String?
-  description String   @db.Text
-  budget      String?
-  timeline    String?
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  serviceType  String?
+  description  String   @db.Text
+  budget       String?
+  timeline     String?
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
 }
 
 enum TestimonialSubmissionStatus {
@@ -546,20 +618,20 @@ enum TestimonialSubmissionStatus {
 }
 
 model TestimonialSubmission {
-  id           String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // Step 1 — publishable testimonial
-  fullName     String
-  email        String   // internal only — never published
-  phone        String?  // internal only — never published
-  businessName String?
-  governorate  String?
-  program      String?
-  quote        String  @db.Text
-  locale       String   // "en" | "ar" — language the beneficiary wrote in
-  consent      Boolean @default(false)
+  fullName           String
+  email              String // internal only — never published
+  phone              String? // internal only — never published
+  businessName       String?
+  governorate        String?
+  program            String?
+  quote              String  @db.Text
+  locale             String // "en" | "ar" — language the beneficiary wrote in
+  consent            Boolean @default(false)
   consentTextVersion String?
-  photoUrl     String?
+  photoUrl           String?
 
   // Step 2 — internal impact survey (all optional)
   motivation         String? @db.Text
@@ -575,9 +647,9 @@ model TestimonialSubmission {
   // Moderation
   status                 TestimonialSubmissionStatus @default(PENDING)
   publishedTestimonialId String?
-  isRead                 Boolean   @default(false)
+  isRead                 Boolean                     @default(false)
   reviewedAt             DateTime?
-  createdAt              DateTime  @default(now())
+  createdAt              DateTime                    @default(now())
 }
 
 enum BookDonationStatus {
@@ -595,8 +667,8 @@ enum BookDonationStatus {
 }
 
 model BookDonationSubmission {
-  id                     String             @id @default(cuid())
-  reference              String             @unique
+  id                     String              @id @default(cuid())
+  reference              String              @unique
   fullName               String
   phone                  String
   email                  String?
@@ -610,18 +682,20 @@ model BookDonationSubmission {
   overallCondition       String
   handoverMethod         String
   photoUrls              String[]
-  notes                  String?            @db.Text
+  books                  Json?
+  notes                  String?             @db.Text
   locale                 String
-  donationConsent        Boolean            @default(false)
-  privacyConsent         Boolean            @default(false)
-  acceptanceAcknowledged Boolean            @default(false)
+  donationConsent        Boolean             @default(false)
+  privacyConsent         Boolean             @default(false)
+  acceptanceAcknowledged Boolean             @default(false)
   consentTextVersion     String
-  status                 BookDonationStatus @default(NEW)
-  isRead                 Boolean            @default(false)
-  adminNotes             String?            @db.Text
+  status                 BookDonationStatus  @default(NEW)
+  isRead                 Boolean             @default(false)
+  adminNotes             String?             @db.Text
   reviewedAt             DateTime?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  inventoryItems         BookInventoryItem[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 
   @@index([status, createdAt])
   @@index([createdAt])
@@ -632,12 +706,12 @@ model BookDonationSubmission {
 // ─────────────────────────────────────────
 
 model TeamSubmission {
-  id           String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // What the member submits (single language)
   name         String
   title        String
-  locale       String   // "en" | "ar" — language they wrote in
+  locale       String // "en" | "ar" — language they wrote in
   photoUrl     String?
   linkedinUrl  String?
   twitterUrl   String?
@@ -646,10 +720,10 @@ model TeamSubmission {
 
   // Moderation
   status           TeamSubmissionStatus @default(PENDING)
-  approvedMemberId String?              // BoardMember.id once approved
-  isRead           Boolean   @default(false)
+  approvedMemberId String? // BoardMember.id once approved
+  isRead           Boolean              @default(false)
   reviewedAt       DateTime?
-  createdAt        DateTime  @default(now())
+  createdAt        DateTime             @default(now())
 }
 
 enum TeamSubmissionStatus {
@@ -659,7 +733,7 @@ enum TeamSubmissionStatus {
 }
 
 model TeamInviteLink {
-  id        String   @id            // always "singleton" — enforces one row
+  id        String   @id // always "singleton" — enforces one row
   token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -670,45 +744,45 @@ model TeamInviteLink {
 // ─────────────────────────────────────────
 
 model ExpertSubmission {
-  id                 String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // Section 1 — Personal information
-  fullName           String
-  professionalTitle  String
-  countries          String[]
-  phone              String
-  email              String
-  linkedinUrl        String?
-  photoUrl           String?
-  photoConsent       Boolean @default(false)
+  fullName          String
+  professionalTitle String
+  countries         String[]
+  phone             String
+  email             String
+  linkedinUrl       String?
+  photoUrl          String?
+  photoConsent      Boolean  @default(false)
 
   // Section 2 — Academic degrees
-  degrees            String[]
-  degreeDetails      String  @db.Text
-  majorFieldOfStudy  String
+  degrees           String[]
+  degreeDetails     String   @db.Text
+  majorFieldOfStudy String
 
   // Section 3 — Professional experience & credentials
-  yearsExperience    String
-  certifications     String  @db.Text
+  yearsExperience     String
+  certifications      String  @db.Text
   licensesMemberships String? @db.Text
 
   // Section 4 — Area of expertise
-  shortBio           String  @db.Text
-  expertiseKeywords  String
-  notableWork        String? @db.Text
-  languages          String
+  shortBio          String  @db.Text
+  expertiseKeywords String
+  notableWork       String? @db.Text
+  languages         String
 
   // Section 5 — Publishing consent & availability
   availableForEngagements String
-  dailyRate          String
-  publishConsent     Boolean @default(false)
+  dailyRate               String
+  publishConsent          Boolean @default(false)
 
   // Moderation / management
-  status             ExpertSubmissionStatus @default(NEW)
-  isRead             Boolean   @default(false)
-  adminNotes         String?   @db.Text
-  reviewedAt         DateTime?
-  createdAt          DateTime  @default(now())
+  status     ExpertSubmissionStatus @default(NEW)
+  isRead     Boolean                @default(false)
+  adminNotes String?                @db.Text
+  reviewedAt DateTime?
+  createdAt  DateTime               @default(now())
 }
 
 enum ExpertSubmissionStatus {

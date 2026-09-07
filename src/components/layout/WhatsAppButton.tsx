@@ -1,11 +1,13 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import { usePathname } from "@/i18n/navigation";
 
-const DEFAULT_WHATSAPP_NUMBER = "96103600747";
+const DEFAULT_WHATSAPP_NUMBER = "9613600747";
 
 export function WhatsAppButton({ whatsappNumber }: { whatsappNumber?: string } = {}) {
   const locale = useLocale();
+  const pathname = usePathname();
   const isAr = locale === "ar";
   const number = whatsappNumber?.trim() || DEFAULT_WHATSAPP_NUMBER;
   const message = isAr
@@ -14,6 +16,8 @@ export function WhatsAppButton({ whatsappNumber }: { whatsappNumber?: string } =
 
   const label = isAr ? "تحدث معنا" : "Chat with us";
   const href = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
+  if (pathname.startsWith("/books")) return null;
 
   return (
     <a

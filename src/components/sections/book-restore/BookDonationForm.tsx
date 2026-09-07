@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   BOOK_CATEGORIES,
@@ -9,10 +9,18 @@ import {
   BOOK_LANGUAGES,
   GOVERNORATES,
   HANDOVER_METHODS,
-  QUANTITY_RANGES,
 } from "@/lib/book-restore/validation";
 
 type Locale = "en" | "ar";
+type BookState = {
+  title: string;
+  author: string;
+  category: string;
+  language: string;
+  condition: string;
+  frontCoverUrl: string;
+  backCoverUrl: string;
+};
 type FormState = {
   fullName: string;
   phone: string;
@@ -20,11 +28,7 @@ type FormState = {
   governorate: string;
   area: string;
   detailedAddress: string;
-  estimatedQuantity: string;
-  bookCategories: string[];
-  otherCategory: string;
-  bookLanguages: string[];
-  overallCondition: string;
+  books: BookState[];
   handoverMethod: string;
   notes: string;
   donationConsent: boolean;
@@ -33,6 +37,16 @@ type FormState = {
   website: string;
 };
 
+const emptyBook = (): BookState => ({
+  title: "",
+  author: "",
+  category: "",
+  language: "",
+  condition: "",
+  frontCoverUrl: "",
+  backCoverUrl: "",
+});
+
 const initialForm: FormState = {
   fullName: "",
   phone: "",
@@ -40,11 +54,7 @@ const initialForm: FormState = {
   governorate: "",
   area: "",
   detailedAddress: "",
-  estimatedQuantity: "",
-  bookCategories: [],
-  otherCategory: "",
-  bookLanguages: [],
-  overallCondition: "",
+  books: [emptyBook()],
   handoverMethod: "",
   notes: "",
   donationConsent: false,
@@ -55,66 +65,74 @@ const initialForm: FormState = {
 
 const labels = {
   governorates: {
-    AKKAR: ["Akkar", "عكار"], NORTH_LEBANON: ["North Lebanon", "الشمال"], SOUTH_LEBANON: ["South Lebanon", "الجنوب"],
-    BEIRUT: ["Beirut", "بيروت"], MOUNT_LEBANON: ["Mount Lebanon", "جبل لبنان"], NABATIEH: ["Nabatieh", "النبطية"],
-    BEKAA: ["Bekaa", "البقاع"], BAALBEK_HERMEL: ["Baalbek-Hermel", "بعلبك الهرمل"],
-  },
-  quantities: {
-    UNDER_10: ["Fewer than 10", "أقل من 10"], FROM_10_TO_25: ["10–25 books", "10–25 كتاباً"],
-    FROM_26_TO_50: ["26–50 books", "26–50 كتاباً"], FROM_51_TO_100: ["51–100 books", "51–100 كتاب"],
-    OVER_100: ["More than 100", "أكثر من 100"],
+    AKKAR: ["Akkar", "Ø¹ÙƒØ§Ø±"], NORTH_LEBANON: ["North Lebanon", "Ø§Ù„Ø´Ù…Ø§Ù„"], SOUTH_LEBANON: ["South Lebanon", "Ø§Ù„Ø¬Ù†ÙˆØ¨"],
+    BEIRUT: ["Beirut", "Ø¨ÙŠØ±ÙˆØª"], MOUNT_LEBANON: ["Mount Lebanon", "Ø¬Ø¨Ù„ Ù„Ø¨Ù†Ø§Ù†"], NABATIEH: ["Nabatieh", "Ø§Ù„Ù†Ø¨Ø·ÙŠØ©"],
+    BEKAA: ["Bekaa", "Ø§Ù„Ø¨Ù‚Ø§Ø¹"], BAALBEK_HERMEL: ["Baalbek-Hermel", "Ø¨Ø¹Ù„Ø¨Ùƒ Ø§Ù„Ù‡Ø±Ù…Ù„"],
   },
   categories: {
-    FICTION: ["Fiction", "روايات وقصص"], CHILDREN: ["Children", "أطفال"], EDUCATIONAL: ["School & educational", "مدرسية وتعليمية"],
-    UNIVERSITY: ["University", "جامعية"], BUSINESS: ["Business", "أعمال"], SELF_DEVELOPMENT: ["Self-development", "تطوير ذاتي"], OTHER: ["Other", "أخرى"],
+    FICTION: ["Fiction", "Ø±ÙˆØ§ÙŠØ§Øª ÙˆÙ‚ØµØµ"], CHILDREN: ["Children", "Ø£Ø·ÙØ§Ù„"],
+    UNIVERSITY: ["University", "Ø¬Ø§Ù…Ø¹ÙŠØ©"], BUSINESS: ["Business", "Ø£Ø¹Ù…Ø§Ù„"], SELF_DEVELOPMENT: ["Self-development", "ØªØ·ÙˆÙŠØ± Ø°Ø§ØªÙŠ"], OTHER: ["Other", "Ø£Ø®Ø±Ù‰"],
   },
-  languages: { ARABIC: ["Arabic", "العربية"], ENGLISH: ["English", "الإنجليزية"], FRENCH: ["French", "الفرنسية"], OTHER: ["Other", "أخرى"] },
-  conditions: { EXCELLENT: ["Excellent", "ممتازة"], GOOD: ["Good", "جيدة"], ACCEPTABLE: ["Acceptable", "مقبولة"], MIXED: ["Mixed", "متنوعة"] },
-  handover: { DROP_OFF: ["I can drop them off", "يمكنني تسليمها"], PICKUP: ["I need pickup", "أحتاج إلى الاستلام من موقعي"] },
+  languages: { ARABIC: ["Arabic", "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©"], ENGLISH: ["English", "Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©"], FRENCH: ["French", "Ø§Ù„ÙØ±Ù†Ø³ÙŠØ©"], OTHER: ["Other", "Ø£Ø®Ø±Ù‰"] },
+  conditions: { EXCELLENT: ["Excellent", "Ù…Ù…ØªØ§Ø²Ø©"], GOOD: ["Good", "Ø¬ÙŠØ¯Ø©"], ACCEPTABLE: ["Acceptable", "Ù…Ù‚Ø¨ÙˆÙ„Ø©"] },
+  handover: { DROP_OFF: ["I can drop them off", "ÙŠÙ…ÙƒÙ†Ù†ÙŠ ØªØ³Ù„ÙŠÙ…Ù‡Ø§"], PICKUP: ["I need pickup", "Ø£Ø­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ù…Ù† Ù…ÙˆÙ‚Ø¹ÙŠ"] },
 } as const;
 
 const copy = {
   en: {
     formTitle: "Register a book donation", formIntro: "Estimates are fine. Required fields are marked with an asterisk.",
     steps: ["Your details", "The books", "Handover"], step: "Step", of: "of",
-    fullName: "Full name", phone: "Phone / WhatsApp", email: "Email", optional: "Optional", governorate: "Governorate",
+    fullName: "Full name", phone: "Phone / WhatsApp", email: "Email", optional: "Optional", governorate: "Governorate", chooseGovernorate: "Choose your governorate",
     area: "Area or locality", address: "Detailed pickup address", addressHint: "Required only when pickup is selected.",
-    quantity: "Estimated quantity", categories: "Book categories", categoryHint: "Select all that apply.", otherCategory: "Other category",
-    languages: "Book languages", languageHint: "Optional — select all that apply.", condition: "Overall condition",
+    book: "Book", title: "Book title", author: "Author", category: "Category", language: "Language", condition: "Condition",
+    frontCover: "Front cover", backCover: "Back cover", addBook: "Add Book", removeBook: "Remove Book",
+    photoInstruction: "Photograph only the book. Keep people, identity documents, addresses, labels, and other personal information out of the image.",
+    uploadImage: "Upload image", replaceImage: "Replace image", uploadingImage: "Uploadingâ€¦", imageFormats: "JPEG, PNG, or WebP, up to 5 MB.",
     handover: "Preferred handover", notes: "Notes for the team", notesHint: "Access details, preferred contact time, or anything else we should know.",
     donationConsent: "I confirm that I am donating these books free of charge and have the right to give them.",
     privacyConsent: "I agree that LEE may use these details to review and coordinate this donation.",
     acceptance: "I understand that submitting this form does not guarantee that every book will be accepted.",
     acceptanceAcknowledged: "I understand that submitting this form does not guarantee that every book will be accepted.",
     routing: "Books are reviewed and may be routed for resale, community use, or responsible recycling under the approved policy.",
-    next: "Continue", back: "Back", submit: "Register donation", submitting: "Registering…",
-    required: "Please complete this field.", invalidEmail: "Enter a valid email address or leave it blank.", chooseOne: "Select at least one option.",
-    addressRequired: "Add the address where the books should be collected.", otherRequired: "Describe the other category.", consentRequired: "Please confirm this acknowledgement.",
+    next: "Continue", back: "Back", submit: "Register donation", submitting: "Registeringâ€¦",
+    required: "Please complete this field.", invalidEmail: "Enter a valid email address or leave it blank.",
+    addressRequired: "Add the address where the books should be collected.", consentRequired: "Please confirm this acknowledgement.",
+    imageRequired: "Upload this cover image.", imageType: "Choose a JPEG, PNG, or WebP image.", imageSize: "The image must be 5 MB or smaller.", imageUploadFailed: "The image could not be uploaded. Please try again.",
     server: "We could not register the donation. Please try again.", rate: "Too many attempts were made from this connection. Please try again later.",
     validation: "Please review the highlighted fields.", successTitle: "Your donation is registered", successBody: "Keep this reference. Our team will review your details and contact you to confirm the next step.", reference: "Donation reference", another: "Register another donation",
   },
   ar: {
-    formTitle: "سجّل تبرعاً بالكتب", formIntro: "المعلومات التقديرية كافية. الحقول المطلوبة مميزة بنجمة.",
-    steps: ["بياناتك", "الكتب", "التسليم"], step: "الخطوة", of: "من",
-    fullName: "الاسم الكامل", phone: "الهاتف / واتساب", email: "البريد الإلكتروني", optional: "اختياري", governorate: "المحافظة",
-    area: "المنطقة أو البلدة", address: "عنوان الاستلام بالتفصيل", addressHint: "مطلوب فقط عند اختيار الاستلام من موقعك.",
-    quantity: "العدد التقريبي", categories: "فئات الكتب", categoryHint: "اختر كل ما ينطبق.", otherCategory: "الفئة الأخرى",
-    languages: "لغات الكتب", languageHint: "اختياري — اختر كل ما ينطبق.", condition: "الحالة العامة",
-    handover: "طريقة التسليم المفضلة", notes: "ملاحظات للفريق", notesHint: "تفاصيل الوصول أو وقت الاتصال المناسب أو أي معلومة مفيدة.",
-    donationConsent: "أؤكد أنني أتبرع بهذه الكتب مجاناً وأن لدي الحق في تقديمها.",
-    privacyConsent: "أوافق على استخدام LEE لهذه البيانات لمراجعة التبرع والتنسيق بشأنه.",
-    acceptance: "أفهم أن إرسال الطلب لا يضمن قبول جميع الكتب.",
-    acceptanceAcknowledged: "أفهم أن إرسال الطلب لا يضمن قبول جميع الكتب.",
-    routing: "تُراجع الكتب وقد تُوجّه لإعادة البيع أو الاستخدام المجتمعي أو التدوير المسؤول وفق السياسة المعتمدة.",
-    next: "متابعة", back: "السابق", submit: "تسجيل التبرع", submitting: "جارٍ التسجيل…",
-    required: "يرجى إكمال هذا الحقل.", invalidEmail: "أدخل بريداً إلكترونياً صحيحاً أو اترك الحقل فارغاً.", chooseOne: "اختر خياراً واحداً على الأقل.",
-    addressRequired: "أضف العنوان الذي يجب استلام الكتب منه.", otherRequired: "صِف الفئة الأخرى.", consentRequired: "يرجى تأكيد هذا الإقرار.",
-    server: "تعذّر تسجيل التبرع. يرجى المحاولة مجدداً.", rate: "تم إرسال محاولات كثيرة من هذا الاتصال. يرجى المحاولة لاحقاً.",
-    validation: "يرجى مراجعة الحقول المميزة.", successTitle: "تم تسجيل تبرعك", successBody: "احتفظ بهذا المرجع. سيراجع الفريق المعلومات ويتواصل معك لتأكيد الخطوة التالية.", reference: "مرجع التبرع", another: "تسجيل تبرع آخر",
+    chooseGovernorate: "\u0627\u062e\u062a\u0631 \u0645\u062d\u0627\u0641\u0638\u062a\u0643",
+    formTitle: "Ø³Ø¬Ù‘Ù„ ØªØ¨Ø±Ø¹Ø§Ù‹ Ø¨Ø§Ù„ÙƒØªØ¨", formIntro: "Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙ‚Ø¯ÙŠØ±ÙŠØ© ÙƒØ§ÙÙŠØ©. Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø© Ù…Ù…ÙŠØ²Ø© Ø¨Ù†Ø¬Ù…Ø©.",
+    steps: ["Ø¨ÙŠØ§Ù†Ø§ØªÙƒ", "Ø§Ù„ÙƒØªØ¨", "Ø§Ù„ØªØ³Ù„ÙŠÙ…"], step: "Ø§Ù„Ø®Ø·ÙˆØ©", of: "Ù…Ù†",
+    fullName: "Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„", phone: "Ø§Ù„Ù‡Ø§ØªÙ / ÙˆØ§ØªØ³Ø§Ø¨", email: "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", optional: "Ø§Ø®ØªÙŠØ§Ø±ÙŠ", governorate: "Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©",
+    area: "Ø§Ù„Ù…Ù†Ø·Ù‚Ø© Ø£Ùˆ Ø§Ù„Ø¨Ù„Ø¯Ø©", address: "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ø¨Ø§Ù„ØªÙØµÙŠÙ„", addressHint: "Ù…Ø·Ù„ÙˆØ¨ ÙÙ‚Ø· Ø¹Ù†Ø¯ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ù…Ù† Ù…ÙˆÙ‚Ø¹Ùƒ.",
+    book: "Ø§Ù„ÙƒØªØ§Ø¨", title: "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ÙƒØªØ§Ø¨", author: "Ø§Ø³Ù… Ø§Ù„Ù…Ø¤Ù„Ù", category: "Ø§Ù„ÙØ¦Ø©", language: "Ø§Ù„Ù„ØºØ©", condition: "Ø§Ù„Ø­Ø§Ù„Ø©",
+    frontCover: "Ø§Ù„ØºÙ„Ø§Ù Ø§Ù„Ø£Ù…Ø§Ù…ÙŠ", backCover: "Ø§Ù„ØºÙ„Ø§Ù Ø§Ù„Ø®Ù„ÙÙŠ", addBook: "Ø¥Ø¶Ø§ÙØ© ÙƒØªØ§Ø¨", removeBook: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„ÙƒØªØ§Ø¨",
+    photoInstruction: "ØµÙˆÙ‘Ø± Ø§Ù„ÙƒØªØ§Ø¨ ÙÙ‚Ø·. Ù„Ø§ ØªÙØ¸Ù‡Ø± Ø£Ø´Ø®Ø§ØµØ§Ù‹ Ø£Ùˆ ÙˆØ«Ø§Ø¦Ù‚ Ù‡ÙˆÙŠØ© Ø£Ùˆ Ø¹Ù†Ø§ÙˆÙŠÙ† Ø£Ùˆ Ù…Ù„ØµÙ‚Ø§Øª Ø£Ùˆ Ø£ÙŠ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø´Ø®ØµÙŠØ© Ø£Ø®Ø±Ù‰ ÙÙŠ Ø§Ù„ØµÙˆØ±Ø©.",
+    uploadImage: "Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©", replaceImage: "Ø§Ø³ØªØ¨Ø¯Ø§Ù„ Ø§Ù„ØµÙˆØ±Ø©", uploadingImage: "Ø¬Ø§Ø±Ù Ø§Ù„Ø±ÙØ¹â€¦", imageFormats: "JPEG Ø£Ùˆ PNG Ø£Ùˆ WebPØŒ Ø¨Ø­Ø¬Ù… Ø£Ù‚ØµÙ‰ 5 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª.",
+    handover: "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù…ÙØ¶Ù„Ø©", notes: "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù„Ù„ÙØ±ÙŠÙ‚", notesHint: "ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙˆØµÙˆÙ„ Ø£Ùˆ ÙˆÙ‚Øª Ø§Ù„Ø§ØªØµØ§Ù„ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ø£Ùˆ Ø£ÙŠ Ù…Ø¹Ù„ÙˆÙ…Ø© Ù…ÙÙŠØ¯Ø©.",
+    donationConsent: "Ø£Ø¤ÙƒØ¯ Ø£Ù†Ù†ÙŠ Ø£ØªØ¨Ø±Ø¹ Ø¨Ù‡Ø°Ù‡ Ø§Ù„ÙƒØªØ¨ Ù…Ø¬Ø§Ù†Ø§Ù‹ ÙˆØ£Ù† Ù„Ø¯ÙŠ Ø§Ù„Ø­Ù‚ ÙÙŠ ØªÙ‚Ø¯ÙŠÙ…Ù‡Ø§.",
+    privacyConsent: "Ø£ÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰ Ø§Ø³ØªØ®Ø¯Ø§Ù… LEE Ù„Ù‡Ø°Ù‡ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„ØªØ¨Ø±Ø¹ ÙˆØ§Ù„ØªÙ†Ø³ÙŠÙ‚ Ø¨Ø´Ø£Ù†Ù‡.",
+    acceptance: "Ø£ÙÙ‡Ù… Ø£Ù† Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù„Ø§ ÙŠØ¶Ù…Ù† Ù‚Ø¨ÙˆÙ„ Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙƒØªØ¨.",
+    acceptanceAcknowledged: "Ø£ÙÙ‡Ù… Ø£Ù† Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù„Ø§ ÙŠØ¶Ù…Ù† Ù‚Ø¨ÙˆÙ„ Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙƒØªØ¨.",
+    routing: "ØªÙØ±Ø§Ø¬Ø¹ Ø§Ù„ÙƒØªØ¨ ÙˆÙ‚Ø¯ ØªÙÙˆØ¬Ù‘Ù‡ Ù„Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø¨ÙŠØ¹ Ø£Ùˆ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù…Ø¬ØªÙ…Ø¹ÙŠ Ø£Ùˆ Ø§Ù„ØªØ¯ÙˆÙŠØ± Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ ÙˆÙÙ‚ Ø§Ù„Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø©.",
+    next: "Ù…ØªØ§Ø¨Ø¹Ø©", back: "Ø§Ù„Ø³Ø§Ø¨Ù‚", submit: "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ØªØ¨Ø±Ø¹", submitting: "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ³Ø¬ÙŠÙ„â€¦",
+    required: "ÙŠØ±Ø¬Ù‰ Ø¥ÙƒÙ…Ø§Ù„ Ù‡Ø°Ø§ Ø§Ù„Ø­Ù‚Ù„.", invalidEmail: "Ø£Ø¯Ø®Ù„ Ø¨Ø±ÙŠØ¯Ø§Ù‹ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Ù‹ ØµØ­ÙŠØ­Ø§Ù‹ Ø£Ùˆ Ø§ØªØ±Ùƒ Ø§Ù„Ø­Ù‚Ù„ ÙØ§Ø±ØºØ§Ù‹.",
+    addressRequired: "Ø£Ø¶Ù Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø°ÙŠ ÙŠØ¬Ø¨ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„ÙƒØªØ¨ Ù…Ù†Ù‡.", consentRequired: "ÙŠØ±Ø¬Ù‰ ØªØ£ÙƒÙŠØ¯ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ù‚Ø±Ø§Ø±.",
+    imageRequired: "ÙŠØ±Ø¬Ù‰ Ø±ÙØ¹ ØµÙˆØ±Ø© Ù‡Ø°Ø§ Ø§Ù„ØºÙ„Ø§Ù.", imageType: "Ø§Ø®ØªØ± ØµÙˆØ±Ø© Ø¨ØµÙŠØºØ© JPEG Ø£Ùˆ PNG Ø£Ùˆ WebP.", imageSize: "ÙŠØ¬Ø¨ Ø£Ù„Ø§ ÙŠØªØ¬Ø§ÙˆØ² Ø­Ø¬Ù… Ø§Ù„ØµÙˆØ±Ø© 5 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª.", imageUploadFailed: "ØªØ¹Ø°Ù‘Ø± Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.",
+    server: "ØªØ¹Ø°Ù‘Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ØªØ¨Ø±Ø¹. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.", rate: "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ù…Ø­Ø§ÙˆÙ„Ø§Øª ÙƒØ«ÙŠØ±Ø© Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„Ø§ØªØµØ§Ù„. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹.",
+    validation: "ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ù…ÙŠØ²Ø©.", successTitle: "ØªÙ… ØªØ³Ø¬ÙŠÙ„ ØªØ¨Ø±Ø¹Ùƒ", successBody: "Ø§Ø­ØªÙØ¸ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ù…Ø±Ø¬Ø¹. Ø³ÙŠØ±Ø§Ø¬Ø¹ Ø§Ù„ÙØ±ÙŠÙ‚ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙˆÙŠØªÙˆØ§ØµÙ„ Ù…Ø¹Ùƒ Ù„ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø®Ø·ÙˆØ© Ø§Ù„ØªØ§Ù„ÙŠØ©.", reference: "Ù…Ø±Ø¬Ø¹ Ø§Ù„ØªØ¨Ø±Ø¹", another: "ØªØ³Ø¬ÙŠÙ„ ØªØ¨Ø±Ø¹ Ø¢Ø®Ø±",
   },
 } as const;
 
 const inputClass = "mt-2 w-full rounded-sm border border-surface-tertiary bg-white px-3.5 py-3 text-text-primary outline-none transition-colors placeholder:text-gray-400 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 aria-[invalid=true]:border-red-500 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-100";
+
+type CoverUploadProps = { id: string; label: string; instruction: string; formats: string; uploadLabel: string; replaceLabel: string; uploadingLabel: string; url: string; uploading: boolean; error?: string; onFile: (file?: File) => void };
+
+function CoverUpload(props: CoverUploadProps) {
+  return <div><p className="text-sm font-semibold text-text-primary">{props.label} <span className="text-red-600">*</span></p><p className="mt-1 text-xs leading-5 text-text-secondary">{props.instruction}</p><div className={cn("mt-3 overflow-hidden rounded-xl border bg-surface-primary", props.error ? "border-red-500" : "border-surface-tertiary")}>{props.url ? <img src={props.url} alt="" className="aspect-[4/3] w-full bg-white object-contain" /> : <div className="flex aspect-[4/3] items-center justify-center text-brand-blue"><ImagePlus className="size-9" aria-hidden="true" /></div>}<div className="border-t border-surface-tertiary bg-white p-3"><label htmlFor={props.id} className={cn("inline-flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm font-semibold", props.uploading ? "cursor-wait bg-surface-secondary text-text-muted" : "bg-accent-navy text-white hover:bg-accent-slate")}>{props.uploading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}{props.uploading ? props.uploadingLabel : props.url ? props.replaceLabel : props.uploadLabel}</label><input id={props.id} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={props.uploading} onChange={(event) => { props.onFile(event.target.files?.[0]); event.target.value = ""; }} /><p className="mt-2 text-xs text-text-muted">{props.formats}</p></div></div>{props.error && <p className="mt-1.5 text-sm text-red-600">{props.error}</p>}</div>;
+}
 
 export function BookDonationForm({ locale }: { locale: Locale }) {
   const t = copy[locale];
@@ -124,6 +142,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [requestError, setRequestError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [reference, setReference] = useState<string | null>(null);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -136,9 +155,58 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
     });
   };
 
-  const toggle = (field: "bookCategories" | "bookLanguages", value: string) => {
-    const values = form[field];
-    update(field, values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
+  const updateBook = <K extends keyof BookState>(index: number, key: K, value: BookState[K]) => {
+    setForm((current) => ({
+      ...current,
+      books: current.books.map((book, bookIndex) => bookIndex === index ? { ...book, [key]: value } : book),
+    }));
+    setErrors((current) => {
+      const errorKey = `book-${index}-${key}`;
+      if (!current[errorKey] && !current.books) return current;
+      const next = { ...current };
+      delete next[errorKey];
+      delete next.books;
+      return next;
+    });
+  };
+
+  const addBook = () => {
+    if (form.books.length >= 25) return;
+    setForm((current) => ({ ...current, books: [...current.books, emptyBook()] }));
+  };
+
+  const removeBook = (index: number) => {
+    if (form.books.length === 1) return;
+    setForm((current) => ({ ...current, books: current.books.filter((_, bookIndex) => bookIndex !== index) }));
+    setErrors({});
+  };
+
+  const uploadCover = async (index: number, side: "frontCoverUrl" | "backCoverUrl", file?: File) => {
+    if (!file) return;
+    const field = `book-${index}-${side}`;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setErrors((current) => ({ ...current, [field]: t.imageType }));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((current) => ({ ...current, [field]: t.imageSize }));
+      return;
+    }
+
+    setUploading((current) => ({ ...current, [field]: true }));
+    setErrors((current) => { const next = { ...current }; delete next[field]; return next; });
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/public/book-restore/uploads", { method: "POST", body });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || typeof result.url !== "string") throw new Error("upload_failed");
+      updateBook(index, side, result.url);
+    } catch {
+      setErrors((current) => ({ ...current, [field]: t.imageUploadFailed }));
+    } finally {
+      setUploading((current) => ({ ...current, [field]: false }));
+    }
   };
 
   const focusFirstError = (nextErrors: Record<string, string>) => {
@@ -146,7 +214,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
     if (first) requestAnimationFrame(() => document.getElementById(first)?.focus());
   };
 
-  const validateStep = (currentStep: number) => {
+  const getStepErrors = (currentStep: number) => {
     const nextErrors: Record<string, string> = {};
     if (currentStep === 0) {
       if (form.fullName.trim().length < 2) nextErrors.fullName = t.required;
@@ -156,10 +224,14 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
       if (form.area.trim().length < 2) nextErrors.area = t.required;
     }
     if (currentStep === 1) {
-      if (!form.estimatedQuantity) nextErrors.estimatedQuantity = t.required;
-      if (!form.bookCategories.length) nextErrors.bookCategories = t.chooseOne;
-      if (form.bookCategories.includes("OTHER") && !form.otherCategory.trim()) nextErrors.otherCategory = t.otherRequired;
-      if (!form.overallCondition) nextErrors.overallCondition = t.required;
+      form.books.forEach((book, index) => {
+        if (!book.title.trim()) nextErrors[`book-${index}-title`] = t.required;
+        if (!book.category) nextErrors[`book-${index}-category`] = t.required;
+        if (!book.language) nextErrors[`book-${index}-language`] = t.required;
+        if (!book.condition) nextErrors[`book-${index}-condition`] = t.required;
+        if (!book.frontCoverUrl) nextErrors[`book-${index}-frontCoverUrl`] = t.imageRequired;
+        if (!book.backCoverUrl) nextErrors[`book-${index}-backCoverUrl`] = t.imageRequired;
+      });
     }
     if (currentStep === 2) {
       if (!form.handoverMethod) nextErrors.handoverMethod = t.required;
@@ -168,6 +240,11 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
         if (!form[key]) nextErrors[key] = t.consentRequired;
       }
     }
+    return nextErrors;
+  };
+
+  const validateStep = (currentStep: number) => {
+    const nextErrors = getStepErrors(currentStep);
     setErrors(nextErrors);
     focusFirstError(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -199,7 +276,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
           setErrors(fieldErrors);
           const firstField = Object.keys(fieldErrors)[0];
           if (["fullName", "phone", "email", "governorate", "area"].includes(firstField)) setStep(0);
-          else if (["estimatedQuantity", "bookCategories", "otherCategory", "bookLanguages", "overallCondition"].includes(firstField)) setStep(1);
+          else if (firstField === "books") setStep(1);
           focusFirstError(fieldErrors);
           throw new Error(t.validation);
         }
@@ -236,6 +313,8 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
   const errorText = (field: string) => errors[field] ? <p id={`${field}-error`} className="mt-1.5 text-sm text-red-600">{errors[field]}</p> : null;
   const describedBy = (field: string, hint?: boolean) => [hint ? `${field}-hint` : "", errors[field] ? `${field}-error` : ""].filter(Boolean).join(" ") || undefined;
   const optionLabel = (group: keyof typeof labels, value: string) => (labels[group] as Record<string, readonly [string, string]>)[value][labelIndex];
+  const hasActiveUpload = Object.values(uploading).some(Boolean);
+  const canContinue = Object.keys(getStepErrors(step)).length === 0 && !hasActiveUpload;
 
   return (
     <div>
@@ -275,19 +354,28 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
               <div><label htmlFor="email" className="text-sm font-semibold text-text-primary">{t.email} <span className="font-normal text-text-secondary">({t.optional})</span></label><input id="email" type="email" className={inputClass} value={form.email} onChange={(e) => update("email", e.target.value)} autoComplete="email" dir="ltr" aria-invalid={!!errors.email} aria-describedby={describedBy("email")} />{errorText("email")}</div>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <div><label htmlFor="governorate" className="text-sm font-semibold text-text-primary">{t.governorate} <span className="text-red-600">*</span></label><select id="governorate" className={inputClass} value={form.governorate} onChange={(e) => update("governorate", e.target.value)} aria-invalid={!!errors.governorate} aria-describedby={describedBy("governorate")}><option value="">—</option>{GOVERNORATES.map((value) => <option key={value} value={value}>{optionLabel("governorates", value)}</option>)}</select>{errorText("governorate")}</div>
+              <div><label htmlFor="governorate" className="text-sm font-semibold text-text-primary">{t.governorate} <span className="text-red-600">*</span></label><select id="governorate" className={inputClass} value={form.governorate} onChange={(e) => update("governorate", e.target.value)} aria-invalid={!!errors.governorate} aria-describedby={describedBy("governorate")}><option value="">{t.chooseGovernorate}</option>{GOVERNORATES.map((value) => <option key={value} value={value}>{optionLabel("governorates", value)}</option>)}</select>{errorText("governorate")}</div>
               <div><label htmlFor="area" className="text-sm font-semibold text-text-primary">{t.area} <span className="text-red-600">*</span></label><input id="area" className={inputClass} value={form.area} onChange={(e) => update("area", e.target.value)} autoComplete="address-level2" aria-invalid={!!errors.area} aria-describedby={describedBy("area")} />{errorText("area")}</div>
             </div>
           </fieldset>
         )}
-
         {step === 1 && (
           <div className="space-y-7">
-            <div><label htmlFor="estimatedQuantity" className="text-sm font-semibold text-text-primary">{t.quantity} <span className="text-red-600">*</span></label><select id="estimatedQuantity" className={inputClass} value={form.estimatedQuantity} onChange={(e) => update("estimatedQuantity", e.target.value)} aria-invalid={!!errors.estimatedQuantity} aria-describedby={describedBy("estimatedQuantity")}><option value="">—</option>{QUANTITY_RANGES.map((value) => <option key={value} value={value}>{optionLabel("quantities", value)}</option>)}</select>{errorText("estimatedQuantity")}</div>
-            <fieldset><legend className="text-sm font-semibold text-text-primary">{t.categories} <span className="text-red-600">*</span></legend><p id="bookCategories-hint" className="mt-1 text-sm text-text-secondary">{t.categoryHint}</p><div className="mt-3 grid gap-2 sm:grid-cols-2">{BOOK_CATEGORIES.map((value) => <label key={value} className={cn("flex cursor-pointer items-center gap-3 rounded-sm border px-3.5 py-3 text-sm transition-colors", form.bookCategories.includes(value) ? "border-brand-blue bg-brand-blue-light text-accent-navy" : "border-surface-tertiary hover:border-brand-blue/60")}><input id={value === BOOK_CATEGORIES[0] ? "bookCategories" : undefined} type="checkbox" checked={form.bookCategories.includes(value)} onChange={() => toggle("bookCategories", value)} className="size-4 accent-[#5895D0]" aria-invalid={!!errors.bookCategories} aria-describedby={describedBy("bookCategories", true)} />{optionLabel("categories", value)}</label>)}</div>{errorText("bookCategories")}</fieldset>
-            {form.bookCategories.includes("OTHER") && <div><label htmlFor="otherCategory" className="text-sm font-semibold text-text-primary">{t.otherCategory} <span className="text-red-600">*</span></label><input id="otherCategory" className={inputClass} value={form.otherCategory} onChange={(e) => update("otherCategory", e.target.value)} aria-invalid={!!errors.otherCategory} aria-describedby={describedBy("otherCategory")} />{errorText("otherCategory")}</div>}
-            <fieldset><legend className="text-sm font-semibold text-text-primary">{t.languages}</legend><p className="mt-1 text-sm text-text-secondary">{t.languageHint}</p><div className="mt-3 flex flex-wrap gap-2">{BOOK_LANGUAGES.map((value) => <label key={value} className={cn("cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors", form.bookLanguages.includes(value) ? "border-accent-navy bg-accent-navy text-white" : "border-surface-tertiary hover:border-brand-blue")}><input type="checkbox" checked={form.bookLanguages.includes(value)} onChange={() => toggle("bookLanguages", value)} className="sr-only" />{optionLabel("languages", value)}</label>)}</div></fieldset>
-            <fieldset><legend className="text-sm font-semibold text-text-primary">{t.condition} <span className="text-red-600">*</span></legend><div className="mt-3 grid grid-cols-2 gap-2">{BOOK_CONDITIONS.map((value) => <label key={value} className={cn("cursor-pointer rounded-sm border px-3.5 py-3 text-center text-sm transition-colors", form.overallCondition === value ? "border-brand-blue bg-brand-blue-light font-semibold text-accent-navy" : "border-surface-tertiary hover:border-brand-blue/60")}><input id={value === BOOK_CONDITIONS[0] ? "overallCondition" : undefined} type="radio" name="condition" value={value} checked={form.overallCondition === value} onChange={() => update("overallCondition", value)} className="sr-only" aria-invalid={!!errors.overallCondition} />{optionLabel("conditions", value)}</label>)}</div>{errorText("overallCondition")}</fieldset>
+            {form.books.map((book, index) => <section key={index} className="rounded-xl border border-surface-tertiary bg-surface-primary p-4 sm:p-6">
+              <div className="mb-5 flex items-center justify-between gap-4"><h3 className="font-serif text-xl text-accent-navy">{t.book} {index + 1}</h3>{form.books.length > 1 && <button type="button" onClick={() => removeBook(index)} className="inline-flex items-center gap-2 text-sm font-semibold text-red-700 hover:text-red-800"><Trash2 className="size-4" aria-hidden="true" />{t.removeBook}</button>}</div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div><label htmlFor={`book-${index}-title`} className="text-sm font-semibold text-text-primary">{t.title} <span className="text-red-600">*</span></label><input id={`book-${index}-title`} className={inputClass} value={book.title} onChange={(event) => updateBook(index, "title", event.target.value)} aria-invalid={!!errors[`book-${index}-title`]} />{errorText(`book-${index}-title`)}</div>
+                <div><label htmlFor={`book-${index}-author`} className="text-sm font-semibold text-text-primary">{t.author} <span className="font-normal text-text-secondary">({t.optional})</span></label><input id={`book-${index}-author`} className={inputClass} value={book.author} onChange={(event) => updateBook(index, "author", event.target.value)} /></div>
+                <div><label htmlFor={`book-${index}-category`} className="text-sm font-semibold text-text-primary">{t.category} <span className="text-red-600">*</span></label><select id={`book-${index}-category`} className={inputClass} value={book.category} onChange={(event) => updateBook(index, "category", event.target.value)} aria-invalid={!!errors[`book-${index}-category`]}><option value="">—</option>{BOOK_CATEGORIES.map((value) => <option key={value} value={value}>{optionLabel("categories", value)}</option>)}</select>{errorText(`book-${index}-category`)}</div>
+                <div><label htmlFor={`book-${index}-language`} className="text-sm font-semibold text-text-primary">{t.language} <span className="text-red-600">*</span></label><select id={`book-${index}-language`} className={inputClass} value={book.language} onChange={(event) => updateBook(index, "language", event.target.value)} aria-invalid={!!errors[`book-${index}-language`]}><option value="">—</option>{BOOK_LANGUAGES.map((value) => <option key={value} value={value}>{optionLabel("languages", value)}</option>)}</select>{errorText(`book-${index}-language`)}</div>
+                <div className="sm:col-span-2"><label htmlFor={`book-${index}-condition`} className="text-sm font-semibold text-text-primary">{t.condition} <span className="text-red-600">*</span></label><select id={`book-${index}-condition`} className={inputClass} value={book.condition} onChange={(event) => updateBook(index, "condition", event.target.value)} aria-invalid={!!errors[`book-${index}-condition`]}><option value="">—</option>{BOOK_CONDITIONS.map((value) => <option key={value} value={value}>{optionLabel("conditions", value)}</option>)}</select>{errorText(`book-${index}-condition`)}</div>
+              </div>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <CoverUpload id={`book-${index}-frontCoverUrl`} label={t.frontCover} instruction={t.photoInstruction} formats={t.imageFormats} uploadLabel={t.uploadImage} replaceLabel={t.replaceImage} uploadingLabel={t.uploadingImage} url={book.frontCoverUrl} uploading={!!uploading[`book-${index}-frontCoverUrl`]} error={errors[`book-${index}-frontCoverUrl`]} onFile={(file) => uploadCover(index, "frontCoverUrl", file)} />
+                <CoverUpload id={`book-${index}-backCoverUrl`} label={t.backCover} instruction={t.photoInstruction} formats={t.imageFormats} uploadLabel={t.uploadImage} replaceLabel={t.replaceImage} uploadingLabel={t.uploadingImage} url={book.backCoverUrl} uploading={!!uploading[`book-${index}-backCoverUrl`]} error={errors[`book-${index}-backCoverUrl`]} onFile={(file) => uploadCover(index, "backCoverUrl", file)} />
+              </div>
+            </section>)}
+            <button type="button" onClick={addBook} disabled={form.books.length >= 25} className="inline-flex items-center gap-2 rounded-sm border-2 border-brand-blue px-5 py-2.5 text-sm font-semibold text-brand-blue hover:bg-brand-blue hover:text-white disabled:cursor-not-allowed disabled:border-surface-tertiary disabled:text-text-muted"><Plus className="size-4" aria-hidden="true" />{t.addBook}</button>
           </div>
         )}
 
@@ -303,7 +391,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
         <div className="mt-8 min-h-6" aria-live="assertive">{requestError && <p role="alert" className="rounded-sm bg-red-50 px-4 py-3 text-sm text-red-700">{requestError}</p>}</div>
         <div className="mt-4 flex items-center justify-between border-t border-surface-secondary pt-6">
           {step > 0 ? <button type="button" onClick={() => { setErrors({}); setRequestError(""); setStep((current) => current - 1); }} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-text-secondary hover:text-accent-navy"><ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />{t.back}</button> : <span />}
-          {step < 2 ? <button type="button" onClick={nextStep} className="inline-flex items-center gap-2 rounded-sm bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-brand-blue-dark">{t.next}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" /></button> : <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-sm bg-brand-blue px-6 py-3 text-sm font-semibold text-white hover:bg-brand-blue-dark disabled:cursor-not-allowed disabled:opacity-55">{submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}{submitting ? t.submitting : t.submit}</button>}
+          {step < 2 ? <button type="button" onClick={nextStep} disabled={!canContinue} className={cn("inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold", canContinue ? "bg-brand-blue-dark text-white hover:bg-brand-blue-deeper" : "cursor-not-allowed bg-surface-secondary text-text-muted")}>{t.next}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" /></button> : <button type="submit" disabled={submitting || !canContinue} className={cn("inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold", canContinue && !submitting ? "bg-brand-blue-dark text-white hover:bg-brand-blue-deeper" : "cursor-not-allowed bg-surface-secondary text-text-muted")}>{submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}{submitting ? t.submitting : t.submit}</button>}
         </div>
       </form>
     </div>

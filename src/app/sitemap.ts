@@ -38,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Top-level pages
     ...localized("about", 0.9, "monthly"),
     ...localized("programs", 0.9, "weekly"),
+    ...localized("books", 0.8, "daily"),
     ...localized("impact", 0.9, "monthly"),
     // Media pages
     ...localized("media", 0.8, "monthly"),

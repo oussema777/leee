@@ -22,7 +22,7 @@ export function ContactSection({ phone, email, address, mapUrl }: ContactSection
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   // Fall back to current hardcoded values if a DB-provided prop is missing.
-  const phoneValue = phone?.trim() || "+961 3 002 430";
+  const phoneValue = phone?.trim() || "00961 3 600 747";
   const emailValue = email?.trim() || "info@theleeexperience.com";
   const addressValue =
     address?.trim() ||
@@ -118,6 +118,7 @@ export function ContactSection({ phone, email, address, mapUrl }: ContactSection
                 icon={<Phone className="w-5 h-5" />}
                 label={t("common.phone")}
                 value={phoneValue}
+                href="tel:+9613600747"
               />
               <ContactItem
                 icon={<Mail className="w-5 h-5" />}

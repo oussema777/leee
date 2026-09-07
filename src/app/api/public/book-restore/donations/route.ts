@@ -17,6 +17,16 @@ type ErrorEnvelope = {
 
 const clean = (value?: string) => (value?.trim() ? value.trim() : null);
 
+function quantityRange(count: number) {
+  if (count < 10) return "UNDER_10";
+  if (count <= 25) return "FROM_10_TO_25";
+  if (count <= 50) return "FROM_26_TO_50";
+  if (count <= 100) return "FROM_51_TO_100";
+  return "OVER_100";
+}
+
+const unique = (values: string[]) => Array.from(new Set(values));
+
 export async function POST(request: NextRequest) {
   if (!rateLimit(`pub-book-donation:${clientIp(request)}`, 5, 60 * 60 * 1000)) {
     return NextResponse.json<ErrorEnvelope>({ ok: false, error: "rate_limited" }, { status: 429 });
@@ -53,13 +63,16 @@ export async function POST(request: NextRequest) {
             governorate: data.governorate,
             area: data.area,
             detailedAddress: clean(data.detailedAddress),
-            estimatedQuantity: data.estimatedQuantity,
-            bookCategories: data.bookCategories,
-            otherCategory: clean(data.otherCategory),
-            bookLanguages: data.bookLanguages,
-            overallCondition: data.overallCondition,
+            estimatedQuantity: quantityRange(data.books.length),
+            bookCategories: unique(data.books.map((book) => book.category)),
+            otherCategory: null,
+            bookLanguages: unique(data.books.map((book) => book.language)),
+            overallCondition: new Set(data.books.map((book) => book.condition)).size === 1
+              ? data.books[0].condition
+              : "MIXED",
             handoverMethod: data.handoverMethod,
-            photoUrls: [],
+            photoUrls: data.books.flatMap((book) => [book.frontCoverUrl, book.backCoverUrl]),
+            books: data.books as Prisma.InputJsonValue,
             notes: clean(data.notes),
             locale: data.locale,
             donationConsent: data.donationConsent,
@@ -91,8 +104,8 @@ export async function POST(request: NextRequest) {
           { label: "Phone / WhatsApp", value: data.phone },
           { label: "Email", value: data.email },
           { label: "Location", value: `${data.area}, ${data.governorate}` },
-          { label: "Quantity", value: data.estimatedQuantity },
-          { label: "Categories", value: data.bookCategories.join(", ") },
+          { label: "Books", value: String(data.books.length) },
+          { label: "Categories", value: unique(data.books.map((book) => book.category)).join(", ") },
           { label: "Handover", value: data.handoverMethod },
         ],
       ),

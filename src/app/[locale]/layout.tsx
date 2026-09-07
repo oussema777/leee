@@ -74,7 +74,7 @@ export default async function LocaleLayout({
   // Live contact details from the ContactInfo table (admin Settings → Contact).
   // Each read falls back to the current hardcoded value if the key is missing.
   const contact = await getContactInfo();
-  const phone = contactValue(contact, "phone", locale, "+961 3 002 430");
+  const phone = contactValue(contact, "phone", locale, "00961 3 600 747");
   const email = contactValue(contact, "email", locale, "info@theleeexperience.com");
   const address = contactValue(
     contact,
@@ -82,9 +82,8 @@ export default async function LocaleLayout({
     locale,
     locale === "ar" ? "بيروت، لبنان | القاهرة، مصر" : "Beirut, Lebanon | Cairo, Egypt"
   );
-  const whatsapp = contactValue(contact, "whatsapp", locale, "96103600747");
-  // JSON-LD telephone uses E.164-ish digits/plus only.
-  const phoneTel = phone.replace(/[^+\d]/g, "");
+  const whatsapp = contactValue(contact, "whatsapp", locale, "9613600747");
+  const phoneTel = "+9613600747";
 
   return (
     <html

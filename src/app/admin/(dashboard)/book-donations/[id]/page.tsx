@@ -9,17 +9,20 @@ import { BOOK_DONATION_STATUSES } from "@/lib/book-restore/validation";
 import { useToast } from "../../../components/AdminToast";
 
 type Status = (typeof BOOK_DONATION_STATUSES)[number];
+interface DonationBook { title: string; author?: string; category: string; language: string; condition: string; frontCoverUrl: string; backCoverUrl: string; }
 interface Donation {
   id: string; reference: string; fullName: string; phone: string; email: string | null;
   governorate: string; area: string; detailedAddress: string | null; estimatedQuantity: string;
   bookCategories: string[]; otherCategory: string | null; bookLanguages: string[]; overallCondition: string;
   handoverMethod: string; photoUrls: string[]; notes: string | null; locale: string;
+  books: DonationBook[] | null;
   donationConsent: boolean; privacyConsent: boolean; acceptanceAcknowledged: boolean;
   consentTextVersion: string; status: Status; adminNotes: string | null; reviewedAt: string | null;
   createdAt: string; updatedAt: string;
 }
 
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
+const isDonationBook = (value: unknown): value is DonationBook => Boolean(value && typeof value === "object" && "title" in value && "frontCoverUrl" in value && "backCoverUrl" in value);
 
 function Detail({ label, children, dir }: { label: string; children: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return <div><dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</dt><dd className="mt-1 text-sm leading-6 text-gray-200" dir={dir}>{children || "—"}</dd></div>;
@@ -54,6 +57,7 @@ export default function BookDonationDetailPage() {
   if (loading) return <div className="flex min-h-64 items-center justify-center"><Loader2 className="size-7 animate-spin text-brand-blue" /></div>;
   if (!donation) return <div className="rounded-xl bg-[#1e293b] p-8 text-center text-gray-400">Book donation not found.</div>;
   const textDirection = donation.locale === "ar" ? "rtl" : "ltr";
+  const individualBooks = Array.isArray(donation.books) ? donation.books.filter(isDonationBook) : [];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -75,9 +79,10 @@ export default function BookDonationDetailPage() {
             <Detail label="Estimated quantity">{humanize(donation.estimatedQuantity)}</Detail><Detail label="Overall condition">{humanize(donation.overallCondition)}</Detail>
             <Detail label="Categories">{donation.bookCategories.map(humanize).join(", ")}{donation.otherCategory ? ` — ${donation.otherCategory}` : ""}</Detail>
             <Detail label="Languages">{donation.bookLanguages.length ? donation.bookLanguages.map(humanize).join(", ") : "Not provided"}</Detail>
-            <Detail label="Handover method">{humanize(donation.handoverMethod)}</Detail><Detail label="Photos">Not enabled for this release</Detail>
+            <Detail label="Handover method">{humanize(donation.handoverMethod)}</Detail><Detail label="Individual books">{individualBooks.length ? `${individualBooks.length} recorded below` : "Legacy summary only"}</Detail>
             {donation.notes && <div className="sm:col-span-2"><Detail label="Donor notes" dir={textDirection}><span className="whitespace-pre-wrap">{donation.notes}</span></Detail></div>}
           </dl></section>
+          {individualBooks.length > 0 && <section className="rounded-xl bg-[#1e293b] p-6"><h2 className="mb-5 text-base font-semibold text-white">Individual books</h2><div className="space-y-5">{individualBooks.map((book, index) => <article key={`${book.title}-${index}`} className="rounded-xl border border-gray-700 bg-[#0f172a] p-4"><div className="mb-4"><p className="text-xs font-semibold uppercase tracking-wide text-brand-blue">Book {index + 1}</p><h3 className="mt-1 text-lg font-semibold text-white" dir={textDirection}>{book.title}</h3>{book.author && <p className="mt-1 text-sm text-gray-400" dir={textDirection}>by {book.author}</p>}</div><dl className="mb-4 grid gap-4 sm:grid-cols-3"><Detail label="Category">{humanize(book.category)}</Detail><Detail label="Language">{humanize(book.language)}</Detail><Detail label="Condition">{humanize(book.condition)}</Detail></dl><div className="grid gap-4 sm:grid-cols-2">{[["Front cover", book.frontCoverUrl], ["Back cover", book.backCoverUrl]].map(([label, url]) => <a key={label} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border border-gray-700 bg-[#1e293b]"><img src={url} alt={`${label} of ${book.title}`} className="aspect-[4/3] w-full object-contain" /><span className="block border-t border-gray-700 px-3 py-2 text-xs font-semibold text-gray-300">{label}</span></a>)}</div></article>)}</div></section>}
           <section className="rounded-xl bg-[#1e293b] p-6"><h2 className="mb-5 text-base font-semibold text-white">Consent record</h2><dl className="grid gap-5 sm:grid-cols-2">
             <Detail label="Free donation confirmed">{donation.donationConsent ? "Yes" : "No"}</Detail><Detail label="Privacy acknowledged">{donation.privacyConsent ? "Yes" : "No"}</Detail>
             <Detail label="Acceptance acknowledged">{donation.acceptanceAcknowledged ? "Yes" : "No"}</Detail><Detail label="Consent version"><span className="break-all text-xs">{donation.consentTextVersion}</span></Detail>

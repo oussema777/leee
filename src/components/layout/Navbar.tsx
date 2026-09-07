@@ -45,6 +45,10 @@ export function Navbar() {
       ],
     },
     {
+      label: locale === "ar" ? "الكتب" : "Books",
+      href: "/books",
+    },
+    {
       label: t("getInvolved"),
       href: "/get-involved",
       children: [
@@ -173,14 +177,24 @@ export function Navbar() {
             </Link>
 
             {/* Search */}
-            <button className="p-2 text-white/60 hover:text-white transition-colors">
+            <button
+              type="button"
+              aria-label={locale === "ar" ? "البحث" : "Search"}
+              className="p-2 text-white/60 hover:text-white transition-colors"
+            >
               <Search className="w-4 h-4" />
             </button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen
+              ? locale === "ar" ? "إغلاق القائمة" : "Close menu"
+              : locale === "ar" ? "فتح القائمة" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
             className="lg:hidden p-2 text-white"
           >
             {mobileOpen ? (
@@ -193,7 +207,7 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {mobileOpen && (
-          <div className="lg:hidden pb-6 border-t border-white/10">
+          <div id="mobile-navigation" className="lg:hidden pb-6 border-t border-white/10">
             <div className="pt-4 space-y-1">
               {navItems.map((item) => (
                 <div key={item.href}>
@@ -212,11 +226,15 @@ export function Navbar() {
                     </Link>
                     {item.children && (
                       <button
+                        type="button"
                         onClick={() =>
                           setOpenDropdown(
                             openDropdown === item.href ? null : item.href
                           )
                         }
+                        aria-label={locale === "ar" ? `عرض قائمة ${item.label}` : `Show ${item.label} menu`}
+                        aria-expanded={openDropdown === item.href}
+                        aria-controls={`mobile-submenu-${item.href.slice(1).replaceAll("/", "-")}`}
                         className="p-2"
                       >
                         <ChevronDown
@@ -230,7 +248,7 @@ export function Navbar() {
                   </div>
 
                   {item.children && openDropdown === item.href && (
-                    <div className="ms-4 space-y-1">
+                    <div id={`mobile-submenu-${item.href.slice(1).replaceAll("/", "-")}`} className="ms-4 space-y-1">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}

@@ -20,8 +20,8 @@ export function Footer({ phone, email, address }: FooterProps = {}) {
   const currentYear = new Date().getFullYear();
 
   // Fall back to current hardcoded values if a DB-provided prop is missing.
-  const phoneValue = phone?.trim() || "+961 3 002 430";
-  const phoneHref = `tel:${phoneValue.replace(/[^+\d]/g, "")}`;
+  const phoneValue = phone?.trim() || "00961 3 600 747";
+  const phoneHref = "tel:+9613600747";
   const emailValue = email?.trim() || "info@theleeexperience.com";
   const addressValue =
     address?.trim() ||
