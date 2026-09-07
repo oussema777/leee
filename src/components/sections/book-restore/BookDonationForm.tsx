@@ -65,17 +65,17 @@ const initialForm: FormState = {
 
 const labels = {
   governorates: {
-    AKKAR: ["Akkar", "Ø¹ÙƒØ§Ø±"], NORTH_LEBANON: ["North Lebanon", "Ø§Ù„Ø´Ù…Ø§Ù„"], SOUTH_LEBANON: ["South Lebanon", "Ø§Ù„Ø¬Ù†ÙˆØ¨"],
-    BEIRUT: ["Beirut", "Ø¨ÙŠØ±ÙˆØª"], MOUNT_LEBANON: ["Mount Lebanon", "Ø¬Ø¨Ù„ Ù„Ø¨Ù†Ø§Ù†"], NABATIEH: ["Nabatieh", "Ø§Ù„Ù†Ø¨Ø·ÙŠØ©"],
-    BEKAA: ["Bekaa", "Ø§Ù„Ø¨Ù‚Ø§Ø¹"], BAALBEK_HERMEL: ["Baalbek-Hermel", "Ø¨Ø¹Ù„Ø¨Ùƒ Ø§Ù„Ù‡Ø±Ù…Ù„"],
+    AKKAR: ["Akkar", "عكار"], NORTH_LEBANON: ["North Lebanon", "الشمال"], SOUTH_LEBANON: ["South Lebanon", "الجنوب"],
+    BEIRUT: ["Beirut", "بيروت"], MOUNT_LEBANON: ["Mount Lebanon", "جبل لبنان"], NABATIEH: ["Nabatieh", "النبطية"],
+    BEKAA: ["Bekaa", "البقاع"], BAALBEK_HERMEL: ["Baalbek-Hermel", "بعلبك الهرمل"],
   },
   categories: {
-    FICTION: ["Fiction", "Ø±ÙˆØ§ÙŠØ§Øª ÙˆÙ‚ØµØµ"], CHILDREN: ["Children", "Ø£Ø·ÙØ§Ù„"],
-    UNIVERSITY: ["University", "Ø¬Ø§Ù…Ø¹ÙŠØ©"], BUSINESS: ["Business", "Ø£Ø¹Ù…Ø§Ù„"], SELF_DEVELOPMENT: ["Self-development", "ØªØ·ÙˆÙŠØ± Ø°Ø§ØªÙŠ"], OTHER: ["Other", "Ø£Ø®Ø±Ù‰"],
+    FICTION: ["Fiction", "روايات وقصص"], CHILDREN: ["Children", "أطفال"],
+    UNIVERSITY: ["University", "جامعية"], BUSINESS: ["Business", "أعمال"], SELF_DEVELOPMENT: ["Self-development", "تطوير ذاتي"], OTHER: ["Other", "أخرى"],
   },
-  languages: { ARABIC: ["Arabic", "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©"], ENGLISH: ["English", "Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©"], FRENCH: ["French", "Ø§Ù„ÙØ±Ù†Ø³ÙŠØ©"], OTHER: ["Other", "Ø£Ø®Ø±Ù‰"] },
-  conditions: { EXCELLENT: ["Excellent", "Ù…Ù…ØªØ§Ø²Ø©"], GOOD: ["Good", "Ø¬ÙŠØ¯Ø©"], ACCEPTABLE: ["Acceptable", "Ù…Ù‚Ø¨ÙˆÙ„Ø©"] },
-  handover: { DROP_OFF: ["I can drop them off", "ÙŠÙ…ÙƒÙ†Ù†ÙŠ ØªØ³Ù„ÙŠÙ…Ù‡Ø§"], PICKUP: ["I need pickup", "Ø£Ø­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ù…Ù† Ù…ÙˆÙ‚Ø¹ÙŠ"] },
+  languages: { ARABIC: ["Arabic", "العربية"], ENGLISH: ["English", "الإنجليزية"], FRENCH: ["French", "الفرنسية"], OTHER: ["Other", "أخرى"] },
+  conditions: { EXCELLENT: ["Excellent", "ممتازة"], GOOD: ["Good", "جيدة"], ACCEPTABLE: ["Acceptable", "مقبولة"] },
+  handover: { DROP_OFF: ["I can drop them off", "يمكنني تسليمها"], PICKUP: ["I need pickup", "أحتاج إلى الاستلام من موقعي"] },
 } as const;
 
 const copy = {
@@ -85,16 +85,17 @@ const copy = {
     fullName: "Full name", phone: "Phone / WhatsApp", email: "Email", optional: "Optional", governorate: "Governorate", chooseGovernorate: "Choose your governorate",
     area: "Area or locality", address: "Detailed pickup address", addressHint: "Required only when pickup is selected.",
     book: "Book", title: "Book title", author: "Author", category: "Category", language: "Language", condition: "Condition",
+    chooseCategory: "Choose a category", chooseLanguage: "Choose a language", chooseCondition: "Choose a condition",
     frontCover: "Front cover", backCover: "Back cover", addBook: "Add Book", removeBook: "Remove Book",
     photoInstruction: "Photograph only the book. Keep people, identity documents, addresses, labels, and other personal information out of the image.",
-    uploadImage: "Upload image", replaceImage: "Replace image", uploadingImage: "Uploadingâ€¦", imageFormats: "JPEG, PNG, or WebP, up to 5 MB.",
+    uploadImage: "Upload image", replaceImage: "Replace image", uploadingImage: "Uploading…", imageFormats: "JPEG, PNG, or WebP, up to 5 MB.",
     handover: "Preferred handover", notes: "Notes for the team", notesHint: "Access details, preferred contact time, or anything else we should know.",
     donationConsent: "I confirm that I am donating these books free of charge and have the right to give them.",
     privacyConsent: "I agree that LEE may use these details to review and coordinate this donation.",
     acceptance: "I understand that submitting this form does not guarantee that every book will be accepted.",
     acceptanceAcknowledged: "I understand that submitting this form does not guarantee that every book will be accepted.",
     routing: "Books are reviewed and may be routed for resale, community use, or responsible recycling under the approved policy.",
-    next: "Continue", back: "Back", submit: "Register donation", submitting: "Registeringâ€¦",
+    next: "Continue", back: "Back", submit: "Register donation", submitting: "Registering…",
     required: "Please complete this field.", invalidEmail: "Enter a valid email address or leave it blank.",
     addressRequired: "Add the address where the books should be collected.", consentRequired: "Please confirm this acknowledgement.",
     imageRequired: "Upload this cover image.", imageType: "Choose a JPEG, PNG, or WebP image.", imageSize: "The image must be 5 MB or smaller.", imageUploadFailed: "The image could not be uploaded. Please try again.",
@@ -103,26 +104,27 @@ const copy = {
   },
   ar: {
     chooseGovernorate: "\u0627\u062e\u062a\u0631 \u0645\u062d\u0627\u0641\u0638\u062a\u0643",
-    formTitle: "Ø³Ø¬Ù‘Ù„ ØªØ¨Ø±Ø¹Ø§Ù‹ Ø¨Ø§Ù„ÙƒØªØ¨", formIntro: "Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙ‚Ø¯ÙŠØ±ÙŠØ© ÙƒØ§ÙÙŠØ©. Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø© Ù…Ù…ÙŠØ²Ø© Ø¨Ù†Ø¬Ù…Ø©.",
-    steps: ["Ø¨ÙŠØ§Ù†Ø§ØªÙƒ", "Ø§Ù„ÙƒØªØ¨", "Ø§Ù„ØªØ³Ù„ÙŠÙ…"], step: "Ø§Ù„Ø®Ø·ÙˆØ©", of: "Ù…Ù†",
-    fullName: "Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„", phone: "Ø§Ù„Ù‡Ø§ØªÙ / ÙˆØ§ØªØ³Ø§Ø¨", email: "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", optional: "Ø§Ø®ØªÙŠØ§Ø±ÙŠ", governorate: "Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©",
-    area: "Ø§Ù„Ù…Ù†Ø·Ù‚Ø© Ø£Ùˆ Ø§Ù„Ø¨Ù„Ø¯Ø©", address: "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ø¨Ø§Ù„ØªÙØµÙŠÙ„", addressHint: "Ù…Ø·Ù„ÙˆØ¨ ÙÙ‚Ø· Ø¹Ù†Ø¯ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù… Ù…Ù† Ù…ÙˆÙ‚Ø¹Ùƒ.",
-    book: "Ø§Ù„ÙƒØªØ§Ø¨", title: "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ÙƒØªØ§Ø¨", author: "Ø§Ø³Ù… Ø§Ù„Ù…Ø¤Ù„Ù", category: "Ø§Ù„ÙØ¦Ø©", language: "Ø§Ù„Ù„ØºØ©", condition: "Ø§Ù„Ø­Ø§Ù„Ø©",
-    frontCover: "Ø§Ù„ØºÙ„Ø§Ù Ø§Ù„Ø£Ù…Ø§Ù…ÙŠ", backCover: "Ø§Ù„ØºÙ„Ø§Ù Ø§Ù„Ø®Ù„ÙÙŠ", addBook: "Ø¥Ø¶Ø§ÙØ© ÙƒØªØ§Ø¨", removeBook: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„ÙƒØªØ§Ø¨",
-    photoInstruction: "ØµÙˆÙ‘Ø± Ø§Ù„ÙƒØªØ§Ø¨ ÙÙ‚Ø·. Ù„Ø§ ØªÙØ¸Ù‡Ø± Ø£Ø´Ø®Ø§ØµØ§Ù‹ Ø£Ùˆ ÙˆØ«Ø§Ø¦Ù‚ Ù‡ÙˆÙŠØ© Ø£Ùˆ Ø¹Ù†Ø§ÙˆÙŠÙ† Ø£Ùˆ Ù…Ù„ØµÙ‚Ø§Øª Ø£Ùˆ Ø£ÙŠ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø´Ø®ØµÙŠØ© Ø£Ø®Ø±Ù‰ ÙÙŠ Ø§Ù„ØµÙˆØ±Ø©.",
-    uploadImage: "Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©", replaceImage: "Ø§Ø³ØªØ¨Ø¯Ø§Ù„ Ø§Ù„ØµÙˆØ±Ø©", uploadingImage: "Ø¬Ø§Ø±Ù Ø§Ù„Ø±ÙØ¹â€¦", imageFormats: "JPEG Ø£Ùˆ PNG Ø£Ùˆ WebPØŒ Ø¨Ø­Ø¬Ù… Ø£Ù‚ØµÙ‰ 5 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª.",
-    handover: "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù…ÙØ¶Ù„Ø©", notes: "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù„Ù„ÙØ±ÙŠÙ‚", notesHint: "ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙˆØµÙˆÙ„ Ø£Ùˆ ÙˆÙ‚Øª Ø§Ù„Ø§ØªØµØ§Ù„ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ø£Ùˆ Ø£ÙŠ Ù…Ø¹Ù„ÙˆÙ…Ø© Ù…ÙÙŠØ¯Ø©.",
-    donationConsent: "Ø£Ø¤ÙƒØ¯ Ø£Ù†Ù†ÙŠ Ø£ØªØ¨Ø±Ø¹ Ø¨Ù‡Ø°Ù‡ Ø§Ù„ÙƒØªØ¨ Ù…Ø¬Ø§Ù†Ø§Ù‹ ÙˆØ£Ù† Ù„Ø¯ÙŠ Ø§Ù„Ø­Ù‚ ÙÙŠ ØªÙ‚Ø¯ÙŠÙ…Ù‡Ø§.",
-    privacyConsent: "Ø£ÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰ Ø§Ø³ØªØ®Ø¯Ø§Ù… LEE Ù„Ù‡Ø°Ù‡ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„ØªØ¨Ø±Ø¹ ÙˆØ§Ù„ØªÙ†Ø³ÙŠÙ‚ Ø¨Ø´Ø£Ù†Ù‡.",
-    acceptance: "Ø£ÙÙ‡Ù… Ø£Ù† Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù„Ø§ ÙŠØ¶Ù…Ù† Ù‚Ø¨ÙˆÙ„ Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙƒØªØ¨.",
-    acceptanceAcknowledged: "Ø£ÙÙ‡Ù… Ø£Ù† Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ù„Ø§ ÙŠØ¶Ù…Ù† Ù‚Ø¨ÙˆÙ„ Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙƒØªØ¨.",
-    routing: "ØªÙØ±Ø§Ø¬Ø¹ Ø§Ù„ÙƒØªØ¨ ÙˆÙ‚Ø¯ ØªÙÙˆØ¬Ù‘Ù‡ Ù„Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø¨ÙŠØ¹ Ø£Ùˆ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù…Ø¬ØªÙ…Ø¹ÙŠ Ø£Ùˆ Ø§Ù„ØªØ¯ÙˆÙŠØ± Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ ÙˆÙÙ‚ Ø§Ù„Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø©.",
-    next: "Ù…ØªØ§Ø¨Ø¹Ø©", back: "Ø§Ù„Ø³Ø§Ø¨Ù‚", submit: "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ØªØ¨Ø±Ø¹", submitting: "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ³Ø¬ÙŠÙ„â€¦",
-    required: "ÙŠØ±Ø¬Ù‰ Ø¥ÙƒÙ…Ø§Ù„ Ù‡Ø°Ø§ Ø§Ù„Ø­Ù‚Ù„.", invalidEmail: "Ø£Ø¯Ø®Ù„ Ø¨Ø±ÙŠØ¯Ø§Ù‹ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠØ§Ù‹ ØµØ­ÙŠØ­Ø§Ù‹ Ø£Ùˆ Ø§ØªØ±Ùƒ Ø§Ù„Ø­Ù‚Ù„ ÙØ§Ø±ØºØ§Ù‹.",
-    addressRequired: "Ø£Ø¶Ù Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø°ÙŠ ÙŠØ¬Ø¨ Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„ÙƒØªØ¨ Ù…Ù†Ù‡.", consentRequired: "ÙŠØ±Ø¬Ù‰ ØªØ£ÙƒÙŠØ¯ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ù‚Ø±Ø§Ø±.",
-    imageRequired: "ÙŠØ±Ø¬Ù‰ Ø±ÙØ¹ ØµÙˆØ±Ø© Ù‡Ø°Ø§ Ø§Ù„ØºÙ„Ø§Ù.", imageType: "Ø§Ø®ØªØ± ØµÙˆØ±Ø© Ø¨ØµÙŠØºØ© JPEG Ø£Ùˆ PNG Ø£Ùˆ WebP.", imageSize: "ÙŠØ¬Ø¨ Ø£Ù„Ø§ ÙŠØªØ¬Ø§ÙˆØ² Ø­Ø¬Ù… Ø§Ù„ØµÙˆØ±Ø© 5 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª.", imageUploadFailed: "ØªØ¹Ø°Ù‘Ø± Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±Ø©. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.",
-    server: "ØªØ¹Ø°Ù‘Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ØªØ¨Ø±Ø¹. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø¬Ø¯Ø¯Ø§Ù‹.", rate: "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ù…Ø­Ø§ÙˆÙ„Ø§Øª ÙƒØ«ÙŠØ±Ø© Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„Ø§ØªØµØ§Ù„. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹.",
-    validation: "ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ù…ÙŠØ²Ø©.", successTitle: "ØªÙ… ØªØ³Ø¬ÙŠÙ„ ØªØ¨Ø±Ø¹Ùƒ", successBody: "Ø§Ø­ØªÙØ¸ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ù…Ø±Ø¬Ø¹. Ø³ÙŠØ±Ø§Ø¬Ø¹ Ø§Ù„ÙØ±ÙŠÙ‚ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙˆÙŠØªÙˆØ§ØµÙ„ Ù…Ø¹Ùƒ Ù„ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø®Ø·ÙˆØ© Ø§Ù„ØªØ§Ù„ÙŠØ©.", reference: "Ù…Ø±Ø¬Ø¹ Ø§Ù„ØªØ¨Ø±Ø¹", another: "ØªØ³Ø¬ÙŠÙ„ ØªØ¨Ø±Ø¹ Ø¢Ø®Ø±",
+    formTitle: "سجّل تبرعاً بالكتب", formIntro: "المعلومات التقديرية كافية. الحقول المطلوبة مميزة بنجمة.",
+    steps: ["بياناتك", "الكتب", "التسليم"], step: "الخطوة", of: "من",
+    fullName: "الاسم الكامل", phone: "الهاتف / واتساب", email: "البريد الإلكتروني", optional: "اختياري", governorate: "المحافظة",
+    area: "المنطقة أو البلدة", address: "عنوان الاستلام بالتفصيل", addressHint: "مطلوب فقط عند اختيار الاستلام من موقعك.",
+    book: "الكتاب", title: "عنوان الكتاب", author: "اسم المؤلف", category: "الفئة", language: "اللغة", condition: "الحالة",
+    chooseCategory: "اختر الفئة", chooseLanguage: "اختر اللغة", chooseCondition: "اختر الحالة",
+    frontCover: "الغلاف الأمامي", backCover: "الغلاف الخلفي", addBook: "إضافة كتاب", removeBook: "إزالة الكتاب",
+    photoInstruction: "صوّر الكتاب فقط. لا تُظهر أشخاصاً أو وثائق هوية أو عناوين أو ملصقات أو أي معلومات شخصية أخرى في الصورة.",
+    uploadImage: "رفع الصورة", replaceImage: "استبدال الصورة", uploadingImage: "جارٍ الرفع…", imageFormats: "JPEG أو PNG أو WebP، بحجم أقصى 5 ميغابايت.",
+    handover: "طريقة التسليم المفضلة", notes: "ملاحظات للفريق", notesHint: "تفاصيل الوصول أو وقت الاتصال المناسب أو أي معلومة مفيدة.",
+    donationConsent: "أؤكد أنني أتبرع بهذه الكتب مجاناً وأن لدي الحق في تقديمها.",
+    privacyConsent: "أوافق على استخدام LEE لهذه البيانات لمراجعة التبرع والتنسيق بشأنه.",
+    acceptance: "أفهم أن إرسال الطلب لا يضمن قبول جميع الكتب.",
+    acceptanceAcknowledged: "أفهم أن إرسال الطلب لا يضمن قبول جميع الكتب.",
+    routing: "تُراجع الكتب وقد تُوجّه لإعادة البيع أو الاستخدام المجتمعي أو التدوير المسؤول وفق السياسة المعتمدة.",
+    next: "متابعة", back: "السابق", submit: "تسجيل التبرع", submitting: "جارٍ التسجيل…",
+    required: "يرجى إكمال هذا الحقل.", invalidEmail: "أدخل بريداً إلكترونياً صحيحاً أو اترك الحقل فارغاً.",
+    addressRequired: "أضف العنوان الذي يجب استلام الكتب منه.", consentRequired: "يرجى تأكيد هذا الإقرار.",
+    imageRequired: "يرجى رفع صورة هذا الغلاف.", imageType: "اختر صورة بصيغة JPEG أو PNG أو WebP.", imageSize: "يجب ألا يتجاوز حجم الصورة 5 ميغابايت.", imageUploadFailed: "تعذّر رفع الصورة. يرجى المحاولة مجدداً.",
+    server: "تعذّر تسجيل التبرع. يرجى المحاولة مجدداً.", rate: "تم إرسال محاولات كثيرة من هذا الاتصال. يرجى المحاولة لاحقاً.",
+    validation: "يرجى مراجعة الحقول المميزة.", successTitle: "تم تسجيل تبرعك", successBody: "احتفظ بهذا المرجع. سيراجع الفريق المعلومات ويتواصل معك لتأكيد الخطوة التالية.", reference: "مرجع التبرع", another: "تسجيل تبرع آخر",
   },
 } as const;
 
@@ -366,9 +368,9 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div><label htmlFor={`book-${index}-title`} className="text-sm font-semibold text-text-primary">{t.title} <span className="text-red-600">*</span></label><input id={`book-${index}-title`} className={inputClass} value={book.title} onChange={(event) => updateBook(index, "title", event.target.value)} aria-invalid={!!errors[`book-${index}-title`]} />{errorText(`book-${index}-title`)}</div>
                 <div><label htmlFor={`book-${index}-author`} className="text-sm font-semibold text-text-primary">{t.author} <span className="font-normal text-text-secondary">({t.optional})</span></label><input id={`book-${index}-author`} className={inputClass} value={book.author} onChange={(event) => updateBook(index, "author", event.target.value)} /></div>
-                <div><label htmlFor={`book-${index}-category`} className="text-sm font-semibold text-text-primary">{t.category} <span className="text-red-600">*</span></label><select id={`book-${index}-category`} className={inputClass} value={book.category} onChange={(event) => updateBook(index, "category", event.target.value)} aria-invalid={!!errors[`book-${index}-category`]}><option value="">—</option>{BOOK_CATEGORIES.map((value) => <option key={value} value={value}>{optionLabel("categories", value)}</option>)}</select>{errorText(`book-${index}-category`)}</div>
-                <div><label htmlFor={`book-${index}-language`} className="text-sm font-semibold text-text-primary">{t.language} <span className="text-red-600">*</span></label><select id={`book-${index}-language`} className={inputClass} value={book.language} onChange={(event) => updateBook(index, "language", event.target.value)} aria-invalid={!!errors[`book-${index}-language`]}><option value="">—</option>{BOOK_LANGUAGES.map((value) => <option key={value} value={value}>{optionLabel("languages", value)}</option>)}</select>{errorText(`book-${index}-language`)}</div>
-                <div className="sm:col-span-2"><label htmlFor={`book-${index}-condition`} className="text-sm font-semibold text-text-primary">{t.condition} <span className="text-red-600">*</span></label><select id={`book-${index}-condition`} className={inputClass} value={book.condition} onChange={(event) => updateBook(index, "condition", event.target.value)} aria-invalid={!!errors[`book-${index}-condition`]}><option value="">—</option>{BOOK_CONDITIONS.map((value) => <option key={value} value={value}>{optionLabel("conditions", value)}</option>)}</select>{errorText(`book-${index}-condition`)}</div>
+                <div><label htmlFor={`book-${index}-category`} className="text-sm font-semibold text-text-primary">{t.category} <span className="text-red-600">*</span></label><select id={`book-${index}-category`} className={inputClass} value={book.category} onChange={(event) => updateBook(index, "category", event.target.value)} aria-invalid={!!errors[`book-${index}-category`]}><option value="">{t.chooseCategory}</option>{BOOK_CATEGORIES.map((value) => <option key={value} value={value}>{optionLabel("categories", value)}</option>)}</select>{errorText(`book-${index}-category`)}</div>
+                <div><label htmlFor={`book-${index}-language`} className="text-sm font-semibold text-text-primary">{t.language} <span className="text-red-600">*</span></label><select id={`book-${index}-language`} className={inputClass} value={book.language} onChange={(event) => updateBook(index, "language", event.target.value)} aria-invalid={!!errors[`book-${index}-language`]}><option value="">{t.chooseLanguage}</option>{BOOK_LANGUAGES.map((value) => <option key={value} value={value}>{optionLabel("languages", value)}</option>)}</select>{errorText(`book-${index}-language`)}</div>
+                <div className="sm:col-span-2"><label htmlFor={`book-${index}-condition`} className="text-sm font-semibold text-text-primary">{t.condition} <span className="text-red-600">*</span></label><select id={`book-${index}-condition`} className={inputClass} value={book.condition} onChange={(event) => updateBook(index, "condition", event.target.value)} aria-invalid={!!errors[`book-${index}-condition`]}><option value="">{t.chooseCondition}</option>{BOOK_CONDITIONS.map((value) => <option key={value} value={value}>{optionLabel("conditions", value)}</option>)}</select>{errorText(`book-${index}-condition`)}</div>
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <CoverUpload id={`book-${index}-frontCoverUrl`} label={t.frontCover} instruction={t.photoInstruction} formats={t.imageFormats} uploadLabel={t.uploadImage} replaceLabel={t.replaceImage} uploadingLabel={t.uploadingImage} url={book.frontCoverUrl} uploading={!!uploading[`book-${index}-frontCoverUrl`]} error={errors[`book-${index}-frontCoverUrl`]} onFile={(file) => uploadCover(index, "frontCoverUrl", file)} />
