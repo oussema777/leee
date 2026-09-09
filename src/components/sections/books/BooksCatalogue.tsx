@@ -88,6 +88,7 @@ function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic:
           {book.coverImageUrl ? (
             <Image
               src={book.coverImageUrl}
+        unoptimized
               alt={isArabic ? `غلاف كتاب ${title}` : `Cover of ${title}`}
               fill
               sizes={featured ? "(max-width: 768px) 100vw, 380px" : "(max-width: 640px) 100vw, 280px"}
