@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import { BookOpen, Check, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
+import { ArrowUpRight, BookOpen, Check, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 
@@ -79,7 +79,7 @@ function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic:
       : "bg-amber-50 text-amber-900";
 
   return (
-    <article className={featured ? "overflow-hidden rounded-2xl bg-white sm:col-span-2 xl:col-span-2" : "overflow-hidden rounded-2xl bg-white"}>
+    <article className={featured ? "group overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:col-span-2 xl:col-span-2" : "group overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"}>
       <div className={featured ? "md:grid md:grid-cols-[minmax(240px,48%)_1fr]" : ""}>
         <div className={featured
           ? "relative aspect-[4/5] overflow-hidden bg-surface-secondary md:aspect-auto md:min-h-[410px]"
@@ -116,7 +116,9 @@ function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic:
               {localizedLabel(categoryLabels, book.category, isArabic)}
             </span>
           </div>
-          <h2 className={`${featured ? "text-3xl" : "text-xl"} font-serif leading-tight text-text-primary`}>{title}</h2>
+          <h2 className={`${featured ? "text-3xl" : "text-xl"} font-serif leading-tight text-text-primary`}>
+            <Link href={`/books/${book.slug}`} className="transition-colors hover:text-brand-blue-deeper">{title}</Link>
+          </h2>
           <p className="mt-2 text-sm font-medium text-text-secondary">{isArabic ? "بقلم" : "by"} {author}</p>
           {featured && description && <p className="mt-5 line-clamp-5 text-sm leading-7 text-text-secondary">{description}</p>}
 
@@ -136,9 +138,10 @@ function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic:
               <dd className="mt-1 text-sm font-bold tabular-nums text-brand-blue-deeper">{formatPrice(book.priceCents, book.currency, isArabic)}</dd>
             </div>
           </dl>
-          <p className="mt-5 text-xs leading-5 text-text-muted">
-            {isArabic ? "طلبات الحجز ستتوفر قريبًا." : "Reservation requests are coming soon."}
-          </p>
+          <Link href={`/books/${book.slug}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-navy px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue-deeper focus-visible:ring-2 focus-visible:ring-brand-blue">
+            {isArabic ? "عرض الكتاب وطلبه" : "View & order this book"}
+            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:rotate-[-90deg]" aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </article>

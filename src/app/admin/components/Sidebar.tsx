@@ -27,6 +27,7 @@ import {
   UserCheck,
   Award,
   BookHeart,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -83,6 +84,7 @@ const navGroups: NavGroup[] = [
       { label: "Team Submissions", href: "/admin/team-submissions", icon: UserCheck, superAdminOnly: true },
       { label: "Expert Applications", href: "/admin/expert-submissions", icon: Award },
       { label: "Book Donations", href: "/admin/book-donations", icon: BookHeart },
+      { label: "Book Orders", href: "/admin/book-orders", icon: ShoppingBag },
     ],
   },
   {

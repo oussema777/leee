@@ -499,12 +499,112 @@ model BookInventoryItem {
   internalNotes    String?                 @db.Text
   sourceDonationId String?
   sourceDonation   BookDonationSubmission? @relation(fields: [sourceDonationId], references: [id], onDelete: SetNull)
+  orderItems       BookOrderItem[]
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
 
   @@index([status, isPublished, updatedAt])
   @@index([category, language])
   @@index([sourceDonationId])
+}
+
+enum BookOrderPackage {
+  SINGLE
+  FIVE
+  TEN_PLUS_ONE
+  TWENTY_PLUS_TWO
+}
+
+enum BookOrderPurpose {
+  SELF
+  GIFT
+  DONATION
+}
+
+enum BookSelectionMode {
+  CUSTOM
+  LEE_CHOICE
+}
+
+enum BookFulfillmentMethod {
+  DELIVERY
+  PICKUP
+  LEE_DISTRIBUTION
+}
+
+enum BookPaymentMethod {
+  CASH_ON_DELIVERY
+  CASH_ARRANGEMENT
+  WHISH
+}
+
+enum BookPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum BookOrderStatus {
+  NEW
+  CONFIRMED
+  PREPARING
+  READY
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+model BookOrder {
+  id                 String                  @id @default(cuid())
+  reference          String                  @unique
+  locale             String
+  package            BookOrderPackage
+  purpose            BookOrderPurpose
+  selectionMode      BookSelectionMode       @default(CUSTOM)
+  requestedBookCount Int
+  priceCents         Int
+  currency           BookCurrency            @default(USD)
+  customerName       String
+  customerPhone      String
+  customerEmail      String?
+  fulfillmentMethod  BookFulfillmentMethod
+  governorate        String?
+  area               String?
+  detailedAddress    String?
+  recipientName      String?
+  recipientPhone     String?
+  giftMessage        String?                 @db.Text
+  showSenderName     Boolean                 @default(true)
+  paymentMethod      BookPaymentMethod
+  paymentStatus      BookPaymentStatus       @default(PENDING)
+  status             BookOrderStatus         @default(NEW)
+  termsAccepted      Boolean                 @default(false)
+  consentTextVersion String                  @default("book-order-v1")
+  isRead             Boolean                 @default(false)
+  adminNotes         String?                 @db.Text
+  reviewedAt         DateTime?
+  items              BookOrderItem[]
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@index([status, createdAt])
+  @@index([paymentStatus, createdAt])
+  @@index([createdAt])
+}
+
+model BookOrderItem {
+  id              String            @id @default(cuid())
+  orderId         String
+  order           BookOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   BookInventoryItem @relation(fields: [inventoryItemId], references: [id])
+  isFreeExtra     Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+
+  @@unique([orderId, inventoryItemId])
+  @@index([inventoryItemId])
 }
 
 // ─────────────────────────────────────────
