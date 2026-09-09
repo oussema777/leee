@@ -65,11 +65,14 @@ export const bookInventorySchema = z
     sourceDonationId: optionalText(100),
   })
   .superRefine((value, context) => {
-    if (value.isPublished && value.status !== 'AVAILABLE') {
-      context.addIssue({ code: 'custom', path: ['status'], message: 'Published books must be available.' });
+    if (value.isPublished && value.status !== 'AVAILABLE' && value.status !== 'RESERVED') {
+      context.addIssue({ code: 'custom', path: ['status'], message: 'Published books must be available or reserved.' });
     }
-    if (value.isPublished && value.stockQuantity < 1) {
-      context.addIssue({ code: 'custom', path: ['stockQuantity'], message: 'Published books need at least one copy.' });
+    if (value.status === 'AVAILABLE' && value.stockQuantity < 1) {
+      context.addIssue({ code: 'custom', path: ['stockQuantity'], message: 'Available books need at least one copy.' });
+    }
+    if (value.status === 'RESERVED' && value.stockQuantity !== 0) {
+      context.addIssue({ code: 'custom', path: ['stockQuantity'], message: 'Reserved books cannot have available copies.' });
     }
     if (value.isPublished && !value.coverImageUrl) {
       context.addIssue({ code: 'custom', path: ['coverImageUrl'], message: 'Add a cover before publishing.' });

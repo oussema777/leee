@@ -45,4 +45,27 @@ describe("bookInventorySchema", () => {
       expect(result.error.issues[0]?.message).toBe("Add a cover before publishing.");
     }
   });
+
+  it("allows a published reserved book with no available copies", () => {
+    const result = bookInventorySchema.safeParse({
+      ...validBook,
+      status: "RESERVED",
+      stockQuantity: 0,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects reserved books that still have available copies", () => {
+    const result = bookInventorySchema.safeParse({
+      ...validBook,
+      status: "RESERVED",
+      stockQuantity: 1,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe("Reserved books cannot have available copies.");
+    }
+  });
 });

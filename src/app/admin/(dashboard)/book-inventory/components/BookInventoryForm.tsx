@@ -55,7 +55,14 @@ export default function BookInventoryForm({ initial }: { initial?: Partial<BookF
       <AdminFormField type="select" label="Condition" value={form.condition} onChange={(value) => set("condition", value)} options={options(BOOK_CONDITIONS)} required />
       <AdminFormField type="number" label="Price" value={form.price} onChange={(value) => set("price", value)} required />
       <AdminFormField type="select" label="Currency" value={form.currency} onChange={(value) => set("currency", value)} options={options(BOOK_CURRENCIES)} />
-      <AdminFormField type="number" label="Copies in stock" value={form.stockQuantity} onChange={(value) => set("stockQuantity", Number(value) || 0)} required />
+      <AdminFormField type="number" label="Copies in stock" value={form.stockQuantity} onChange={(value) => {
+        const stockQuantity = Number(value) || 0;
+        setForm((current) => ({
+          ...current,
+          stockQuantity,
+          status: current.status === "RESERVED" && stockQuantity > 0 ? "AVAILABLE" : current.status,
+        }));
+      }} required />
       <AdminFormField type="text" label="Shelf location (optional)" value={form.shelfLocation} onChange={(value) => set("shelfLocation", value)} />
     </div>
     <ImageUploader value={form.coverImageUrl} onChange={(value) => set("coverImageUrl", value)} onRemove={() => set("coverImageUrl", "")} folder="book-inventory" label="Book cover" />

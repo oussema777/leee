@@ -19,11 +19,14 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ label, variant = "neutral", className }: StatusBadgeProps) {
+  const normalizedLabel = label.trim().toLowerCase();
+  const resolvedVariant = normalizedLabel === "cancelled" || normalizedLabel === "canceled" ? "danger" : variant;
+
   return (
     <span
       className={cn(
         "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-        variantStyles[variant],
+        variantStyles[resolvedVariant],
         className
       )}
     >
