@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { DELIVERY_FEE_CENTS, deliveryFeeCents } from "./config";
 
 describe("deliveryFeeCents", () => {
-  it("charges $5 for delivery of a single book", () => {
+  it("charges $4 for delivery of a single book", () => {
     expect(deliveryFeeCents("SINGLE", "DELIVERY")).toBe(DELIVERY_FEE_CENTS);
+    expect(DELIVERY_FEE_CENTS).toBe(400);
   });
 
   it("makes delivery free for every multi-book pack", () => {

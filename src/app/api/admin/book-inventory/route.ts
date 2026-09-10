@@ -82,6 +82,21 @@ export async function POST(request: NextRequest) {
     const sku = input.sku || createInventorySku();
     const { sku: _ignored, sourceDonationId, ...rest } = input;
 
+    const duplicate = await db.bookInventoryItem.findFirst({
+      where: input.isbn
+        ? {
+            OR: [
+              { title: { equals: input.title, mode: 'insensitive' } },
+              { isbn: { equals: input.isbn, mode: 'insensitive' } },
+            ],
+          }
+        : { title: { equals: input.title, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (duplicate) {
+      return errorResponse('Book already exists. A book with the same title or ISBN is already in inventory.', 409);
+    }
+
     if (sourceDonationId) {
       const donation = await db.bookDonationSubmission.findUnique({
         where: { id: sourceDonationId },

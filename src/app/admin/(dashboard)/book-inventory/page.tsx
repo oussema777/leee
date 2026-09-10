@@ -7,7 +7,7 @@ import AdminDataTable, { type Column } from "../../components/AdminDataTable";
 import StatusBadge from "../../components/StatusBadge";
 import { useToast } from "../../components/AdminToast";
 import { adminGet, type PaginatedResponse } from "@/lib/admin-api";
-import { BOOK_CATEGORIES, BOOK_INVENTORY_STATUSES } from "@/lib/book-inventory/validation";
+import { BOOK_SELECTABLE_CATEGORIES, BOOK_INVENTORY_STATUSES } from "@/lib/book-inventory/validation";
 
 interface BookInventory { id: string; sku: string; title: string; author: string; category: string; language: string; condition: string; priceCents: number; currency: string; stockQuantity: number; coverImageUrl: string | null; status: string; isPublished: boolean; updatedAt: string; }
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
@@ -41,7 +41,7 @@ export default function BookInventoryPage() {
     <AdminPageHeader title="Book Inventory" actionLabel="Add Book" actionHref="/admin/book-inventory/new" />
     <div className="mb-4 flex flex-wrap gap-3">
       <label className="sr-only" htmlFor="inventory-status">Filter by status</label><select id="inventory-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700/50 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All statuses</option>{options(BOOK_INVENTORY_STATUSES).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
-      <label className="sr-only" htmlFor="inventory-category">Filter by category</label><select id="inventory-category" value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700/50 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All categories</option>{options(BOOK_CATEGORIES).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+      <label className="sr-only" htmlFor="inventory-category">Filter by category</label><select id="inventory-category" value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700/50 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All categories</option>{options(BOOK_SELECTABLE_CATEGORIES).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
     </div>
     <AdminDataTable columns={columns} data={data} totalPages={totalPages} currentPage={page} total={total} search={search} onSearch={(value) => { setSearch(value); setPage(1); }} onPageChange={setPage} onEdit={(item) => router.push(`/admin/book-inventory/${item.id}/edit`)} loading={loading} />
   </div>;

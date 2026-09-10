@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bookInventorySchema } from "./validation";
+import { BOOK_SELECTABLE_CATEGORIES, bookInventorySchema } from "./validation";
 
 const validBook = {
   sku: "BK-260906-TEST01",
@@ -54,6 +54,10 @@ describe("bookInventorySchema", () => {
   it("accepts a named custom category", () => {
     const result = bookInventorySchema.safeParse({ ...validBook, category: "OTHER", customCategory: "Poetry" });
     expect(result.success).toBe(true);
+  });
+
+  it.each(["CHILDREN", "RELIGION"])("does not offer the removed %s category", (category) => {
+    expect(BOOK_SELECTABLE_CATEGORIES).not.toContain(category);
   });
 
   it("allows a published reserved book with no available copies", () => {

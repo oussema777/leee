@@ -37,6 +37,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const input = parsed.data;
     const { sku: _ignored, sourceDonationId, ...rest } = input;
 
+    const duplicate = await db.bookInventoryItem.findFirst({
+      where: {
+        id: { not: id },
+        ...(input.isbn
+          ? {
+              OR: [
+                { title: { equals: input.title, mode: 'insensitive' as const } },
+                { isbn: { equals: input.isbn, mode: 'insensitive' as const } },
+              ],
+            }
+          : { title: { equals: input.title, mode: 'insensitive' as const } }),
+      },
+      select: { id: true },
+    });
+    if (duplicate) {
+      return errorResponse('Book already exists. A book with the same title or ISBN is already in inventory.', 409);
+    }
+
     if (sourceDonationId) {
       const donation = await db.bookDonationSubmission.findUnique({ where: { id: sourceDonationId }, select: { id: true } });
       if (!donation) return errorResponse('Source donation not found', 400);

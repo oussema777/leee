@@ -14,6 +14,9 @@ export const BOOK_CATEGORIES = [
   'HISTORY',
   'OTHER',
 ] as const;
+export const BOOK_SELECTABLE_CATEGORIES = BOOK_CATEGORIES.filter(
+  (category) => category !== 'CHILDREN' && category !== 'RELIGION'
+);
 export const BOOK_CURRENCIES = ['USD', 'LBP'] as const;
 
 const optionalText = (maximum: number) =>
