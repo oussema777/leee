@@ -19,6 +19,7 @@ export interface CatalogueBook {
   publisher: string | null;
   publicationYear: number | null;
   category: string;
+  customCategory: string | null;
   language: string;
   condition: string;
   priceCents: number;
@@ -65,6 +66,10 @@ function formatPrice(priceCents: number, currency: string, isArabic: boolean) {
     minimumFractionDigits: currency === "LBP" ? 0 : 2,
     maximumFractionDigits: currency === "LBP" ? 0 : 2,
   }).format(priceCents / 100);
+}
+
+function displayedCategory(book: CatalogueBook, isArabic: boolean) {
+  return book.customCategory || localizedLabel(categoryLabels, book.category, isArabic);
 }
 
 function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic: boolean; featured: boolean }) {
@@ -114,7 +119,7 @@ function BookCard({ book, isArabic, featured }: { book: CatalogueBook; isArabic:
               {localizedLabel(conditionLabels, book.condition, isArabic)}
             </span>
             <span className="rounded-full bg-brand-blue-light px-3 py-1 text-xs font-semibold text-accent-navy">
-              {localizedLabel(categoryLabels, book.category, isArabic)}
+              {displayedCategory(book, isArabic)}
             </span>
           </div>
           <h2 className={`${featured ? "text-3xl" : "text-xl"} font-serif leading-tight text-text-primary`}>
@@ -154,7 +159,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("ALL");
   const [language, setLanguage] = useState("ALL");
-  const availableCategories = useMemo(() => Array.from(new Set(books.map((book) => book.category))), [books]);
+  const availableCategories = useMemo(() => Array.from(new Set(books.map((book) => book.customCategory || book.category))), [books]);
   const availableLanguages = useMemo(() => Array.from(new Set(books.map((book) => book.language))), [books]);
 
   const filteredBooks = useMemo(() => {
@@ -163,7 +168,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
       const searchable = [book.title, book.titleAr, book.author, book.authorAr, book.publisher, book.isbn]
         .filter(Boolean).join(" ").toLocaleLowerCase(locale);
       return (!normalizedQuery || searchable.includes(normalizedQuery))
-        && (category === "ALL" || book.category === category)
+        && (category === "ALL" || (book.customCategory || book.category) === category)
         && (language === "ALL" || book.language === language);
     });
   }, [books, category, language, locale, query]);
@@ -214,7 +219,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
               <SlidersHorizontal className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
               <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
                 <option value="ALL">{isArabic ? "جميع التصنيفات" : "All categories"}</option>
-                {availableCategories.map((value) => <option key={value} value={value}>{localizedLabel(categoryLabels, value, isArabic)}</option>)}
+                {availableCategories.map((value) => <option key={value} value={value}>{categoryLabels[value as keyof typeof categoryLabels] ? localizedLabel(categoryLabels, value, isArabic) : value}</option>)}
               </select>
             </label>
             <label className="relative block">

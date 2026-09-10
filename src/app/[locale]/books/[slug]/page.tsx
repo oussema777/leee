@@ -19,6 +19,7 @@ const bookSelect = {
   publisher: true,
   publicationYear: true,
   category: true,
+  customCategory: true,
   language: true,
   condition: true,
   priceCents: true,
@@ -65,4 +66,3 @@ export default async function BookPage({ params }: { params: Promise<{ locale: s
   const books = availableBooks.some((item) => item.id === book.id) ? availableBooks : [book, ...availableBooks];
   return <BookDetailExperience book={book as CatalogueBook} books={books as CatalogueBook[]} locale={locale} />;
 }
-

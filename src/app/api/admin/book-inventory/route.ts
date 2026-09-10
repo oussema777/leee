@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
               { titleAr: { contains: search, mode: 'insensitive' } },
               { author: { contains: search, mode: 'insensitive' } },
               { isbn: { contains: search, mode: 'insensitive' } },
+              { customCategory: { contains: search, mode: 'insensitive' } },
             ],
           }
         : {}),
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
         orderBy: { updatedAt: 'desc' },
         select: {
           id: true, sku: true, slug: true, title: true, titleAr: true, author: true,
-          category: true, language: true, condition: true, priceCents: true, currency: true,
+          category: true, customCategory: true, language: true, condition: true, priceCents: true, currency: true,
           stockQuantity: true, coverImageUrl: true, status: true, isPublished: true,
           sourceDonation: { select: { reference: true } }, updatedAt: true,
         },

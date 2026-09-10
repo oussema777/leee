@@ -52,6 +52,7 @@ export const bookInventorySchema = z
     publisher: optionalText(160),
     publicationYear: optionalNumber(2_100),
     category: z.enum(BOOK_CATEGORIES),
+    customCategory: optionalText(80),
     language: z.enum(BOOK_LANGUAGES),
     condition: z.enum(BOOK_CONDITIONS),
     priceCents: z.coerce.number().int().min(0).max(100_000_000),
@@ -65,6 +66,12 @@ export const bookInventorySchema = z
     sourceDonationId: optionalText(100),
   })
   .superRefine((value, context) => {
+    if (value.category === 'OTHER' && !value.customCategory) {
+      context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Enter a category name when Other is selected.' });
+    }
+    if (value.category !== 'OTHER' && value.customCategory) {
+      context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Custom categories can only be used with Other.' });
+    }
     if (value.isPublished && value.status !== 'AVAILABLE' && value.status !== 'RESERVED') {
       context.addIssue({ code: 'custom', path: ['status'], message: 'Published books must be available or reserved.' });
     }

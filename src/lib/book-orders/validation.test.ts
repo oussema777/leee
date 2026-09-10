@@ -52,6 +52,18 @@ describe("bookOrderSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("only accepts a listed Lebanese governorate for delivery", () => {
+    const deliveryOrder = {
+      ...base,
+      fulfillmentMethod: "DELIVERY",
+      governorate: "BEIRUT",
+      area: "Hamra",
+      detailedAddress: "Main Street, building 4",
+    };
+    expect(bookOrderSchema.safeParse(deliveryOrder).success).toBe(true);
+    expect(bookOrderSchema.safeParse({ ...deliveryOrder, governorate: "Somewhere" }).success).toBe(false);
+  });
+
   it("accepts null values sent by hidden optional form fields", () => {
     const result = bookOrderSchema.safeParse({
       ...base,

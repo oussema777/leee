@@ -34,7 +34,7 @@ export default async function BooksPage({ params }: { params: Promise<{ locale: 
       select: {
         id: true, slug: true, title: true, titleAr: true, author: true, authorAr: true,
         descriptionEn: true, descriptionAr: true, isbn: true, publisher: true,
-        publicationYear: true, category: true, language: true, condition: true,
+        publicationYear: true, category: true, customCategory: true, language: true, condition: true,
         priceCents: true, currency: true, stockQuantity: true, coverImageUrl: true, status: true,
       },
     });

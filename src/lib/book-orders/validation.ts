@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BOOK_PACKAGES, BOOK_PACKAGE_KEYS } from "./config";
+import { BOOK_PACKAGES, BOOK_PACKAGE_KEYS, LEBANON_GOVERNORATES } from "./config";
 
 export const BOOK_ORDER_PURPOSES = ["SELF", "GIFT", "DONATION"] as const;
 export const BOOK_SELECTION_MODES = ["CUSTOM", "LEE_CHOICE"] as const;
@@ -38,6 +38,9 @@ export const bookOrderSchema = z.object({
   paymentMethod: z.enum(BOOK_PAYMENT_METHODS),
   website: optionalText(1),
 }).superRefine((value, context) => {
+  if (value.fulfillmentMethod === 'DELIVERY' && value.governorate && !LEBANON_GOVERNORATES.includes(value.governorate as (typeof LEBANON_GOVERNORATES)[number])) {
+    context.addIssue({ code: 'custom', path: ['governorate'], message: 'Choose a Lebanese governorate' });
+  }
   const packageDetails = BOOK_PACKAGES[value.package as keyof typeof BOOK_PACKAGES];
   if (new Set(value.selectedBookIds).size !== value.selectedBookIds.length) {
     context.addIssue({ code: "custom", path: ["selectedBookIds"], message: "A book can only be selected once" });

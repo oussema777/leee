@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { renderNotification, sendNotificationEmail } from "@/lib/email";
-import { BOOK_PACKAGES, type BookPackageKey, isFreeExtraIndex } from "@/lib/book-orders/config";
+import { BOOK_PACKAGES, deliveryFeeCents, type BookPackageKey, isFreeExtraIndex } from "@/lib/book-orders/config";
 import { bookOrderSchema } from "@/lib/book-orders/validation";
 
 function orderReference() {
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
 
     const packageKey = input.package as BookPackageKey;
     const packageDetails = BOOK_PACKAGES[packageKey];
+    const deliveryFee = deliveryFeeCents(packageKey, input.fulfillmentMethod);
+    const orderTotal = packageDetails.priceCents + deliveryFee;
     const reference = orderReference();
 
     const order = await db.$transaction(async (transaction) => {
@@ -69,7 +71,8 @@ export async function POST(request: NextRequest) {
           purpose: input.purpose,
           selectionMode: input.selectionMode,
           requestedBookCount: packageDetails.totalBooks,
-          priceCents: packageDetails.priceCents,
+          priceCents: orderTotal,
+          deliveryFeeCents: deliveryFee,
           currency: "USD",
           customerName: input.customerName,
           customerPhone: input.customerPhone,
@@ -128,4 +131,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "We could not place your order. Please try again." }, { status: 500 });
   }
 }
-

@@ -8,7 +8,17 @@ export const BOOK_PACKAGES = {
 export type BookPackageKey = keyof typeof BOOK_PACKAGES;
 export const BOOK_PACKAGE_KEYS = Object.keys(BOOK_PACKAGES) as BookPackageKey[];
 
+export const DELIVERY_FEE_CENTS = 500;
+
+export const LEBANON_GOVERNORATES = [
+  "BEIRUT", "MOUNT_LEBANON", "NORTH_LEBANON", "AKKAR", "BAALBEK_HERMEL",
+  "BEQAA", "SOUTH_LEBANON", "NABATIEH", "KESERWAN_JBEIL",
+] as const;
+
+export function deliveryFeeCents(packageKey: BookPackageKey, fulfillmentMethod: string) {
+  return fulfillmentMethod === "DELIVERY" && packageKey === "SINGLE" ? DELIVERY_FEE_CENTS : 0;
+}
+
 export function isFreeExtraIndex(packageKey: BookPackageKey, index: number) {
   return index >= BOOK_PACKAGES[packageKey].paidBooks;
 }
-

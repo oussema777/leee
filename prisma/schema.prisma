@@ -486,6 +486,7 @@ model BookInventoryItem {
   publisher        String?
   publicationYear  Int?
   category         BookCategory
+  customCategory   String?
   language         BookLanguage
   condition        BookCondition
   priceCents       Int
@@ -565,6 +566,7 @@ model BookOrder {
   selectionMode      BookSelectionMode       @default(CUSTOM)
   requestedBookCount Int
   priceCents         Int
+  deliveryFeeCents   Int                     @default(0)
   currency           BookCurrency            @default(USD)
   customerName       String
   customerPhone      String

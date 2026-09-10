@@ -46,6 +46,16 @@ describe("bookInventorySchema", () => {
     }
   });
 
+  it("requires a name for an Other category", () => {
+    const result = bookInventorySchema.safeParse({ ...validBook, category: "OTHER" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a named custom category", () => {
+    const result = bookInventorySchema.safeParse({ ...validBook, category: "OTHER", customCategory: "Poetry" });
+    expect(result.success).toBe(true);
+  });
+
   it("allows a published reserved book with no available copies", () => {
     const result = bookInventorySchema.safeParse({
       ...validBook,
