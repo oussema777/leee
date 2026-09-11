@@ -1,62 +1,53 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminFormPage from "../../../components/AdminFormPage";
 import AdminFormField from "../../../components/AdminFormField";
 import ImageUploader from "../../../components/ImageUploader";
 import { useToast } from "../../../components/AdminToast";
 import { adminGet, adminPost, adminPut } from "@/lib/admin-api";
-import { BOOK_SELECTABLE_CATEGORIES, BOOK_CONDITIONS, BOOK_CURRENCIES, BOOK_INVENTORY_STATUSES, BOOK_LANGUAGES } from "@/lib/book-inventory/validation";
+import { BOOK_CONDITIONS, BOOK_CURRENCIES, BOOK_INVENTORY_STATUSES, BOOK_LANGUAGES } from "@/lib/book-inventory/validation";
+import { getBookCategories } from "@/lib/book-inventory/categories";
+import BookCategoryPicker from "./BookCategoryPicker";
 
 interface BookFormData {
   id?: string; sku: string; title: string; titleAr: string; author: string; authorAr: string;
   descriptionEn: string; descriptionAr: string; isbn: string; publisher: string; publicationYear: string;
-  category: string; customCategory: string; language: string; condition: string; price: string; currency: string;
+  categories: string[]; language: string; condition: string; price: string; currency: string;
   stockQuantity: number; shelfLocation: string; coverImageUrl: string; status: string; isPublished: boolean; internalNotes: string;
 }
 
-const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", category: "FICTION", customCategory: "", language: "ARABIC", condition: "GOOD", price: "5", currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "" };
+type BookFormInitial = Omit<Partial<BookFormData>, "publicationYear"> & { category?: string; customCategory?: string | null; priceCents?: number; publicationYear?: number | null };
+const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", categories: [], language: "ARABIC", condition: "GOOD", price: "5", currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "" };
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 const options = (values: readonly string[]) => values.map((value) => ({ value, label: humanize(value) }));
-function toForm(initial?: Partial<BookFormData> & { priceCents?: number; publicationYear?: number | null }) {
-  if (!initial) return { ...empty };
+function toForm(initial?: BookFormInitial) {
+  if (!initial) return { ...empty, categories: [] };
   const populatedFields = Object.fromEntries(Object.entries(initial).filter(([, value]) => value != null));
-  return { ...empty, ...populatedFields, price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear) } as BookFormData;
+  return { ...empty, ...populatedFields, categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear) } as BookFormData;
 }
 
-export default function BookInventoryForm({ initial }: { initial?: Partial<BookFormData> & { priceCents?: number; publicationYear?: number | null } }) {
+export default function BookInventoryForm({ initial }: { initial?: BookFormInitial }) {
   const router = useRouter(); const toast = useToast();
   const [form, setForm] = useState<BookFormData>(() => toForm(initial)); const [loading, setLoading] = useState(false);
   const [savedCategories, setSavedCategories] = useState<string[]>([]);
-  const [categoryName, setCategoryName] = useState(() => {
-    const initialForm = toForm(initial);
-    return initialForm.category === "OTHER" ? initialForm.customCategory : humanize(initialForm.category);
-  });
+  const [categoryError, setCategoryError] = useState("");
   const set = <K extends keyof BookFormData>(key: K, value: BookFormData[K]) => setForm((current) => ({ ...current, [key]: value }));
   useEffect(() => {
     adminGet<{ data: string[] }>('/book-inventory/categories')
       .then((result) => setSavedCategories(result.data))
       .catch(() => undefined);
   }, []);
-  const categoryNames = useMemo(() => Array.from(new Set([
-    ...BOOK_SELECTABLE_CATEGORIES.filter((category) => category !== "OTHER").map(humanize),
-    ...savedCategories.filter((category) => !["children", "religion"].includes(category.trim().toLocaleLowerCase())),
-  ])), [savedCategories]);
-  const updateCategory = (value: string) => {
-    setCategoryName(value);
-    const normalized = value.trim().toLocaleLowerCase();
-    const standardCategory = BOOK_SELECTABLE_CATEGORIES.find(
-      (category) => category !== "OTHER" && humanize(category).toLocaleLowerCase() === normalized
-    );
-    setForm((current) => ({
-      ...current,
-      category: standardCategory || "OTHER",
-      customCategory: standardCategory ? "" : value,
-    }));
-  };
+
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); setLoading(true);
+    event.preventDefault();
+    if (!form.categories.length) {
+      setCategoryError("Select at least one category.");
+      document.getElementById("book-categories")?.focus();
+      return;
+    }
+    setLoading(true);
     try {
       const payload = { ...form, priceCents: Math.round(Math.max(0, Number(form.price) || 0) * 100), publicationYear: form.publicationYear || undefined };
       if (form.id) await adminPut("/book-inventory/" + form.id, payload); else await adminPost("/book-inventory", payload);
@@ -75,15 +66,8 @@ export default function BookInventoryForm({ initial }: { initial?: Partial<BookF
       <AdminFormField type="text" label="Publisher (optional)" value={form.publisher} onChange={(value) => set("publisher", value)} />
       <AdminFormField type="number" label="Publication year (optional)" value={form.publicationYear} onChange={(value) => set("publicationYear", value)} />
     </div>
+    <BookCategoryPicker value={form.categories} savedCategories={savedCategories} error={categoryError} onChange={(categories) => { set("categories", categories); setCategoryError(""); }} />
     <div className="grid gap-5 md:grid-cols-3">
-      <div className="space-y-2">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400" htmlFor="book-category">Category <span className="text-red-400">*</span></label>
-        <input id="book-category" list="book-category-options" type="search" value={categoryName} onChange={(event) => updateCategory(event.target.value)} required maxLength={80} placeholder="Choose or type a category" autoComplete="off" className="w-full rounded-xl border border-gray-700/50 bg-[#0f172a] px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-brand-blue focus:outline-none" />
-        <datalist id="book-category-options">
-          {categoryNames.map((category) => <option key={category} value={category} />)}
-        </datalist>
-        <p className="text-xs text-gray-500">Select an existing category or type a new one. New categories are saved automatically.</p>
-      </div>
       <AdminFormField type="select" label="Language" value={form.language} onChange={(value) => set("language", value)} options={options(BOOK_LANGUAGES)} required />
       <AdminFormField type="select" label="Condition" value={form.condition} onChange={(value) => set("condition", value)} options={options(BOOK_CONDITIONS)} required />
       <AdminFormField type="number" label="Price" value={form.price} onChange={(value) => set("price", value)} required />

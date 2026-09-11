@@ -27,6 +27,41 @@ const validBook = {
 };
 
 describe("bookInventorySchema", () => {
+  it("saves multiple standard and custom categories", () => {
+    const result = bookInventorySchema.parse({ ...validBook, category: undefined, categories: ["Fiction", "HISTORY", "Poetry"] });
+    expect(result.categories).toEqual(["FICTION", "HISTORY", "Poetry"]);
+    expect(result.category).toBe("FICTION");
+    expect(result.customCategory).toBeNull();
+  });
+
+  it("keeps custom tags when one is the first selection", () => {
+    const result = bookInventorySchema.parse({ ...validBook, categories: ["Poetry", "business"] });
+    expect(result.categories).toEqual(["Poetry", "BUSINESS"]);
+    expect(result.category).toBe("OTHER");
+    expect(result.customCategory).toBe("Poetry");
+  });
+
+  it("does not restore a removed tag or leave an old custom category on save", () => {
+    const result = bookInventorySchema.parse({ ...validBook, category: "OTHER", customCategory: "Poetry", categories: ["HISTORY"] });
+    expect(result.categories).toEqual(["HISTORY"]);
+    expect(result.category).toBe("HISTORY");
+    expect(result.customCategory).toBeNull();
+  });
+
+  it("deduplicates equivalent category labels", () => {
+    const result = bookInventorySchema.parse({ ...validBook, categories: ["Fiction", " fiction ", "Poetry", "poetry"] });
+    expect(result.categories).toEqual(["FICTION", "Poetry"]);
+  });
+
+  it.each([[], [" "], ["OTHER"], ["x".repeat(81)]])("rejects empty or invalid category selections: %j", (...categories) => {
+    const result = bookInventorySchema.safeParse({ ...validBook, categories });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires a selection when neither tags nor an original category are present", () => {
+    expect(bookInventorySchema.safeParse({ ...validBook, category: undefined }).success).toBe(false);
+  });
+
   it("normalizes nullable database fields when publishing an existing book", () => {
     const result = bookInventorySchema.safeParse(validBook);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import { CheckCircle, XCircle, X } from "lucide-react";
 
 interface Toast {
@@ -42,13 +42,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [removeToast]
   );
 
-  const toast = {
-    success: (message: string) => addToast("success", message),
-    error: (message: string) => addToast("error", message),
-  };
+  // Notifications must not change consumers' effect dependencies when a toast appears or expires.
+  const contextValue = useMemo(() => ({
+    toast: {
+      success: (message: string) => addToast("success", message),
+      error: (message: string) => addToast("error", message),
+    },
+  }), [addToast]);
 
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         {toasts.map((t) => (

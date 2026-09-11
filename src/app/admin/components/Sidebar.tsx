@@ -113,6 +113,16 @@ export default function Sidebar() {
   const [role, setRole] = useState("");
 
   useEffect(() => {
+    const smallScreen = window.matchMedia("(max-width: 767px)");
+    const collapseOnSmallScreen = () => {
+      if (smallScreen.matches) setCollapsed(true);
+    };
+    collapseOnSmallScreen();
+    smallScreen.addEventListener("change", collapseOnSmallScreen);
+    return () => smallScreen.removeEventListener("change", collapseOnSmallScreen);
+  }, []);
+
+  useEffect(() => {
     adminGet<{ role: string }>("/me")
       .then((d) => setRole(d.role))
       .catch(() => {});
@@ -161,6 +171,9 @@ export default function Sidebar() {
           </Link>
         )}
         <button
+          type="button"
+          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+          aria-expanded={!collapsed}
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
             "text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-700/50 transition-colors",

@@ -1,22 +1,12 @@
 import { z } from 'zod';
+import { BOOK_CATEGORIES, MAX_BOOK_CATEGORIES, getBookCategories, normalizeBookCategories, normalizeBookCategory, primaryBookCategory } from './categories';
+
+export { BOOK_CATEGORIES, BOOK_SELECTABLE_CATEGORIES } from './categories';
 
 export const BOOK_INVENTORY_STATUSES = ['AVAILABLE', 'RESERVED', 'SOLD', 'ARCHIVED'] as const;
 export const BOOK_CONDITIONS = ['EXCELLENT', 'GOOD', 'ACCEPTABLE'] as const;
 export const BOOK_LANGUAGES = ['ARABIC', 'ENGLISH', 'FRENCH', 'OTHER'] as const;
-export const BOOK_CATEGORIES = [
-  'FICTION',
-  'CHILDREN',
-  'EDUCATION',
-  'UNIVERSITY',
-  'BUSINESS',
-  'SELF_DEVELOPMENT',
-  'RELIGION',
-  'HISTORY',
-  'OTHER',
-] as const;
-export const BOOK_SELECTABLE_CATEGORIES = BOOK_CATEGORIES.filter(
-  (category) => category !== 'CHILDREN' && category !== 'RELIGION'
-);
+
 export const BOOK_CURRENCIES = ['USD', 'LBP'] as const;
 
 const optionalText = (maximum: number) =>
@@ -54,8 +44,12 @@ export const bookInventorySchema = z
     isbn: optionalText(40),
     publisher: optionalText(160),
     publicationYear: optionalNumber(2_100),
-    category: z.enum(BOOK_CATEGORIES),
+    category: z.enum(BOOK_CATEGORIES).optional(),
     customCategory: optionalText(80),
+    categories: z.array(z.string().trim().min(1).max(80).refine(
+      (value) => normalizeBookCategory(value) !== 'OTHER',
+      'Enter a specific category name instead of Other.'
+    )).min(1, 'Select at least one category.').max(MAX_BOOK_CATEGORIES).optional(),
     language: z.enum(BOOK_LANGUAGES),
     condition: z.enum(BOOK_CONDITIONS),
     priceCents: z.coerce.number().int().min(0).max(100_000_000),
@@ -69,11 +63,16 @@ export const bookInventorySchema = z
     sourceDonationId: optionalText(100),
   })
   .superRefine((value, context) => {
-    if (value.category === 'OTHER' && !value.customCategory) {
-      context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Enter a category name when Other is selected.' });
-    }
-    if (value.category !== 'OTHER' && value.customCategory) {
-      context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Custom categories can only be used with Other.' });
+    if (value.categories === undefined) {
+      if (!value.category) {
+        context.addIssue({ code: 'custom', path: ['categories'], message: 'Select at least one category.' });
+      }
+      if (value.category === 'OTHER' && !value.customCategory) {
+        context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Enter a category name when Other is selected.' });
+      }
+      if (value.category !== 'OTHER' && value.customCategory) {
+        context.addIssue({ code: 'custom', path: ['customCategory'], message: 'Custom categories can only be used with Other.' });
+      }
     }
     if (value.isPublished && value.status !== 'AVAILABLE' && value.status !== 'RESERVED') {
       context.addIssue({ code: 'custom', path: ['status'], message: 'Published books must be available or reserved.' });
@@ -87,6 +86,12 @@ export const bookInventorySchema = z
     if (value.isPublished && !value.coverImageUrl) {
       context.addIssue({ code: 'custom', path: ['coverImageUrl'], message: 'Add a cover before publishing.' });
     }
+  })
+  .transform((value) => {
+    const categories = value.categories === undefined
+      ? getBookCategories(value)
+      : normalizeBookCategories(value.categories);
+    return { ...value, categories, ...primaryBookCategory(categories) };
   });
 
 export type BookInventoryInput = z.infer<typeof bookInventorySchema>;

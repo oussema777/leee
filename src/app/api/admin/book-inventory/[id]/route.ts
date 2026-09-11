@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { errorResponse, withAdmin } from '@/lib/api-utils';
 import { bookInventorySchema, createInventorySlug } from '@/lib/book-inventory/validation';
@@ -75,5 +76,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (error?.code === 'P2002') return errorResponse('SKU or slug already exists', 409);
     console.error('Book inventory update failed', error);
     return errorResponse('Failed to update inventory item');
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await withAdmin(request);
+  if (auth.error) return auth.error;
+  const { id } = await params;
+
+  try {
+    // The order-item foreign key prevents deletion even if an order is created concurrently.
+    await db.bookInventoryItem.delete({ where: { id }, select: { id: true } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') return errorResponse('Book not found', 404);
+      if (error.code === 'P2003') {
+        return errorResponse('This book is linked to an order and cannot be deleted. Archive it instead to preserve order history.', 409);
+      }
+    }
+    console.error('Book inventory deletion failed', error);
+    return errorResponse('Failed to delete book. Please try again.');
   }
 }

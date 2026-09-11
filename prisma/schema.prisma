@@ -487,6 +487,7 @@ model BookInventoryItem {
   publicationYear  Int?
   category         BookCategory
   customCategory   String?
+  categories       String[]                @default([])
   language         BookLanguage
   condition        BookCondition
   priceCents       Int

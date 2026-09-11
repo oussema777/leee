@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowUpRight, BookOpen, Check, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
+import { bookCategoryLabel, bookHasCategory, getBookCategories, normalizeBookCategories } from "@/lib/book-inventory/categories";
 
 export interface CatalogueBook {
   id: string;
@@ -20,6 +21,7 @@ export interface CatalogueBook {
   publicationYear: number | null;
   category: string;
   customCategory: string | null;
+  categories: string[];
   language: string;
   condition: string;
   priceCents: number;
@@ -29,17 +31,6 @@ export interface CatalogueBook {
   status: string;
 }
 
-const categoryLabels = {
-  FICTION: ["Fiction", "روايات"],
-  CHILDREN: ["Children", "أطفال"],
-  EDUCATION: ["Education", "تعليم"],
-  UNIVERSITY: ["University", "جامعي"],
-  BUSINESS: ["Business", "أعمال"],
-  SELF_DEVELOPMENT: ["Self-development", "تطوير ذاتي"],
-  RELIGION: ["Religion", "دين"],
-  HISTORY: ["History", "تاريخ"],
-  OTHER: ["Other", "أخرى"],
-} as const;
 
 const languageLabels = {
   ARABIC: ["Arabic", "العربية"],
@@ -69,7 +60,7 @@ function formatPrice(priceCents: number, currency: string, isArabic: boolean) {
 }
 
 function displayedCategory(book: CatalogueBook, isArabic: boolean) {
-  return book.customCategory || localizedLabel(categoryLabels, book.category, isArabic);
+  return getBookCategories(book).map((category) => bookCategoryLabel(category, isArabic)).join(isArabic ? "، " : ", ");
 }
 
 function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }) {
@@ -114,7 +105,7 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
             <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${conditionTone}`}>
               {localizedLabel(conditionLabels, book.condition, isArabic)}
             </span>
-            <span className="min-w-0 truncate whitespace-nowrap rounded-full bg-brand-blue-light px-3 py-1 text-xs font-semibold text-accent-navy">
+            <span title={displayedCategory(book, isArabic)} className="min-w-0 truncate whitespace-nowrap rounded-full bg-brand-blue-light px-3 py-1 text-xs font-semibold text-accent-navy">
               {displayedCategory(book, isArabic)}
             </span>
           </div>
@@ -154,7 +145,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("ALL");
   const [language, setLanguage] = useState("ALL");
-  const availableCategories = useMemo(() => Array.from(new Set(books.map((book) => book.customCategory || book.category))), [books]);
+  const availableCategories = useMemo(() => normalizeBookCategories(books.flatMap(getBookCategories)), [books]);
   const availableLanguages = useMemo(() => Array.from(new Set(books.map((book) => book.language))), [books]);
 
   const filteredBooks = useMemo(() => {
@@ -163,7 +154,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
       const searchable = [book.title, book.titleAr, book.author, book.authorAr, book.publisher, book.isbn]
         .filter(Boolean).join(" ").toLocaleLowerCase(locale);
       return (!normalizedQuery || searchable.includes(normalizedQuery))
-        && (category === "ALL" || (book.customCategory || book.category) === category)
+        && (category === "ALL" || bookHasCategory(book, category))
         && (language === "ALL" || book.language === language);
     });
   }, [books, category, language, locale, query]);
@@ -214,7 +205,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
               <SlidersHorizontal className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
               <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
                 <option value="ALL">{isArabic ? "جميع التصنيفات" : "All categories"}</option>
-                {availableCategories.map((value) => <option key={value} value={value}>{categoryLabels[value as keyof typeof categoryLabels] ? localizedLabel(categoryLabels, value, isArabic) : value}</option>)}
+                {availableCategories.map((value) => <option key={value} value={value}>{bookCategoryLabel(value, isArabic)}</option>)}
               </select>
             </label>
             <label className="relative block">

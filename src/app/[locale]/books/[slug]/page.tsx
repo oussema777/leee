@@ -20,6 +20,7 @@ const bookSelect = {
   publicationYear: true,
   category: true,
   customCategory: true,
+  categories: true,
   language: true,
   condition: true,
   priceCents: true,

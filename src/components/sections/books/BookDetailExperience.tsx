@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import { BOOK_PACKAGES, DELIVERY_FEE_CENTS, LEBANON_GOVERNORATES, deliveryFeeCents, type BookPackageKey } from "@/lib/book-orders/config";
 import type { CatalogueBook } from "./BooksCatalogue";
+import { bookCategoryLabel, getBookCategories } from "@/lib/book-inventory/categories";
 type Step = "package" | "purpose" | "books" | "checkout" | "success";
 type Purpose = "SELF" | "GIFT" | "DONATION";
 type SelectionMode = "CUSTOM" | "LEE_CHOICE";
@@ -19,7 +20,7 @@ const copy = {
         unavailable: "Unavailable",
         language: "Language",
         condition: "Condition",
-        category: "Category",
+        category: "Categories",
         order: "Order this book",
         starting: "Starting at $5 · cash payment available",
         impactTitle: "Every book opens two doors.",
@@ -106,7 +107,7 @@ const copy = {
         unavailable: "غير متاح",
         language: "اللغة",
         condition: "الحالة",
-        category: "التصنيف",
+        category: "التصنيفات",
         order: "اطلب هذا الكتاب",
         starting: "ابتداءً من ٥$ · الدفع النقدي متاح",
         impactTitle: "كل كتاب يفتح بابين.",
@@ -361,7 +362,7 @@ export function BookDetailExperience({ book, books, locale }: {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: isArabic ? -20 : 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
               <div className="mb-5 flex flex-wrap gap-2">
-<span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">{book.customCategory || prettyValue(book.category)}</span>
+{getBookCategories(book).map((category) => <span key={category} className="max-w-full break-words rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">{bookCategoryLabel(category, isArabic)}</span>)}
 <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">{prettyValue(book.condition)}</span>
 </div>
               <h1 className="max-w-3xl font-serif text-4xl leading-tight sm:text-5xl lg:text-6xl">{title}</h1>
@@ -381,7 +382,7 @@ export function BookDetailExperience({ book, books, locale }: {
 <div>
 <BookOpen className="mb-2 h-4 w-4 text-brand-blue-light"/>
 <span className="block text-xs text-white/45">{t.category}</span>
-<strong className="mt-1 block">{book.customCategory || prettyValue(book.category)}</strong>
+<strong className="mt-1 block break-words">{getBookCategories(book).map((category) => bookCategoryLabel(category, isArabic)).join(isArabic ? "، " : ", ")}</strong>
 </div>
 </div>
               <button type="button" onClick={resetAndOpen} disabled={!available} className="mt-8 inline-flex min-h-14 w-full max-w-xl items-center justify-center gap-3 rounded-2xl bg-brand-blue px-7 py-4 text-base font-bold text-white shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:bg-brand-blue-dark disabled:cursor-not-allowed disabled:opacity-50">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { errorResponse, getPaginationParams, withAdmin } from '@/lib/api-utils';
+import { normalizeBookCategory } from '@/lib/book-inventory/categories';
 import {
   BOOK_CATEGORIES,
   BOOK_INVENTORY_STATUSES,
@@ -17,19 +18,29 @@ export async function GET(request: NextRequest) {
     const { page, limit, search, skip } = getPaginationParams(request);
     const params = new URL(request.url).searchParams;
     const status = params.get('status') || '';
-    const category = params.get('category') || '';
+    const category = normalizeBookCategory(params.get('category') || '');
     const published = params.get('published');
 
     if (status && !BOOK_INVENTORY_STATUSES.includes(status as (typeof BOOK_INVENTORY_STATUSES)[number])) {
       return errorResponse('Invalid inventory status', 400);
     }
-    if (category && !BOOK_CATEGORIES.includes(category as (typeof BOOK_CATEGORIES)[number])) {
+    if (category.length > 80) {
       return errorResponse('Invalid book category', 400);
     }
 
     const where: any = {
       ...(status ? { status } : {}),
-      ...(category ? { category } : {}),
+      ...(category ? {
+        AND: [{ OR: [
+          { categories: { has: category } },
+          {
+            categories: { isEmpty: true },
+            ...(BOOK_CATEGORIES.includes(category as (typeof BOOK_CATEGORIES)[number])
+              ? { category }
+              : { customCategory: { equals: category, mode: 'insensitive' } }),
+          },
+        ] }],
+      } : {}),
       ...(published === 'true' || published === 'false' ? { isPublished: published === 'true' } : {}),
       ...(search
         ? {
@@ -40,6 +51,7 @@ export async function GET(request: NextRequest) {
               { author: { contains: search, mode: 'insensitive' } },
               { isbn: { contains: search, mode: 'insensitive' } },
               { customCategory: { contains: search, mode: 'insensitive' } },
+              { categories: { has: normalizeBookCategory(search) } },
             ],
           }
         : {}),
@@ -53,7 +65,7 @@ export async function GET(request: NextRequest) {
         orderBy: { updatedAt: 'desc' },
         select: {
           id: true, sku: true, slug: true, title: true, titleAr: true, author: true,
-          category: true, customCategory: true, language: true, condition: true, priceCents: true, currency: true,
+          category: true, customCategory: true, categories: true, language: true, condition: true, priceCents: true, currency: true,
           stockQuantity: true, coverImageUrl: true, status: true, isPublished: true,
           sourceDonation: { select: { reference: true } }, updatedAt: true,
         },
@@ -65,7 +77,8 @@ export async function GET(request: NextRequest) {
       data,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
-  } catch {
+  } catch (error) {
+    console.error('Book inventory load failed', error);
     return errorResponse('Failed to load book inventory');
   }
 }
