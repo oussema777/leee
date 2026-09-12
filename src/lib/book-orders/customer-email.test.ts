@@ -6,8 +6,8 @@ import { sendBookDonationEmail } from "../book-restore/donation-email";
 const send = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/email", () => ({
   sendTransactionalEmail: send,
-  renderNotification: (heading: string, intro: string, fields: Array<{ label: string; value?: string }>) =>
-    JSON.stringify({ heading, intro, fields }),
+  renderNotification: (heading: string, intro: string, fields: Array<{ label: string; value?: string }>, _action?: unknown, presentation?: unknown) =>
+    JSON.stringify({ heading, intro, fields, presentation }),
 }));
 
 beforeEach(() => send.mockClear());
@@ -32,7 +32,7 @@ describe("book customer emails", () => {
     });
     expect(send).toHaveBeenCalledWith(expect.objectContaining({
       subject: "طلب الكتب جاهز — LEE-BK-2",
-      html: expect.stringContaining('dir="rtl"'),
+      html: expect.stringContaining('"direction":"rtl"'),
     }));
   });
 
@@ -54,7 +54,7 @@ describe("book customer emails", () => {
     });
     expect(send).toHaveBeenCalledWith(expect.objectContaining({
       subject: "أكمل الدفع لطلب الكتب — LEE-BK-3",
-      html: expect.stringContaining('dir="rtl"'),
+      html: expect.stringContaining('"direction":"rtl"'),
     }));
   });
 });

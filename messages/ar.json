@@ -32,7 +32,9 @@
     "podcast": "بودكاست",
     "contact": "اتصل بنا",
     "crisisPage": "أزمة لبنان",
-    "phoenix": "Phoenix"
+    "phoenix": "Phoenix",
+    "phoenixValue": "كتب بأثر",
+    "phoenixMobileValue": "امنح الكتب فصلاً جديداً"
   },
   "home": {
     "statsTitle": "تجربة LEEE بالأرقام",

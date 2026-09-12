@@ -27,9 +27,14 @@ export async function sendBookDonationEmail(input: DonationEmail) {
   await sendTransactionalEmail({
     to: input.to,
     subject: `${heading} — ${input.reference}`,
-    html: `<div dir="${ar ? "rtl" : "ltr"}">${renderNotification(heading, intro, [
+    html: renderNotification(heading, intro, [
       { label: ar ? "رقم التبرع" : "Donation reference", value: input.reference },
       ...(input.bookCount === undefined ? [] : [{ label: ar ? "عدد الكتب" : "Books submitted", value: String(input.bookCount) }]),
-    ])}</div>`,
+    ], undefined, {
+      direction: ar ? "rtl" : "ltr",
+      accent: "amber",
+      eyebrow: ar ? "PHOENIX • امنح الكتب فصلاً جديداً" : "PHOENIX • GIVE BOOKS ANOTHER CHAPTER",
+      footer: ar ? "شكراً لمساهمتك في إعادة الكتب إلى التداول بمسؤولية." : "Thank you for helping books move forward responsibly.",
+    }),
   });
 }

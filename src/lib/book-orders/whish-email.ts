@@ -29,11 +29,16 @@ export async function sendWhishOrderEmail(input: OrderEmail) {
   await sendTransactionalEmail({
     to: input.to,
     subject: `${heading} — ${input.reference}`,
-    html: `<div dir="${ar ? "rtl" : "ltr"}">${renderNotification(heading, intro, [
+    html: renderNotification(heading, intro, [
       { label: ar ? "رقم الطلب" : "Order reference", value: input.reference },
       { label: ar ? "المبلغ" : "Amount", value: `${(input.amountCents / 100).toFixed(2)} USD` },
       { label: ar ? "ملاحظة من LEE" : "Note from LEE", value: input.note },
       ...(input.privatePath ? [{ label: ar ? "رابط خاص" : "Private link", value: ar ? "احتفظ بهذا الرابط. يمكن لمن يملكه الوصول إلى صفحة الدفع." : "Keep this link safe. Anyone with it can access your payment page." }] : []),
-    ], { href: url, label: input.privatePath ? (ar ? "افتح صفحة الدفع" : "Open my payment page") : (ar ? "تواصل مع LEE" : "Contact LEE") })}</div>`,
+    ], { href: url, label: input.privatePath ? (ar ? "افتح صفحة الدفع" : "Open my payment page") : (ar ? "تواصل مع LEE" : "Contact LEE") }, {
+      direction: ar ? "rtl" : "ltr",
+      accent: "amber",
+      eyebrow: ar ? "PHOENIX • دفع آمن" : "PHOENIX • SECURE PAYMENT",
+      footer: ar ? "لأمانك، لا تشارك رابط الدفع الخاص بك مع أي شخص." : "For your security, do not share your private payment link.",
+    }),
   });
 }

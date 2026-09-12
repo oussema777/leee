@@ -32,10 +32,15 @@ export async function sendBookOrderCustomerEmail(input: BookOrderEmail) {
   await sendTransactionalEmail({
     to: input.to,
     subject: `${heading} — ${input.reference}`,
-    html: `<div dir="${ar ? "rtl" : "ltr"}">${renderNotification(heading, intro, [
+    html: renderNotification(heading, intro, [
       { label: ar ? "رقم الطلب" : "Order reference", value: input.reference },
       { label: ar ? "المبلغ" : "Total", value: `${(input.amountCents / 100).toFixed(2)} USD` },
       { label: ar ? "طريقة الاستلام" : "Fulfilment", value: fulfillment },
-    ])}</div>`,
+    ], undefined, {
+      direction: ar ? "rtl" : "ltr",
+      accent: "amber",
+      eyebrow: ar ? "PHOENIX • كتب بأثر" : "PHOENIX • BOOKS WITH PURPOSE",
+      footer: ar ? "هل تحتاج إلى مساعدة بشأن طلبك؟ فريقنا جاهز لمساعدتك." : "Need help with your order? Our team is ready to assist.",
+    }),
   });
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { Menu, X, ChevronDown, Search, User } from "lucide-react";
+import { Menu, X, ChevronDown, Search, Sparkles } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import Image from "next/image";
 
@@ -43,14 +43,6 @@ export function Navbar() {
         { label: locale === "ar" ? "مساعدات LEE الإنسانية" : "LEE Humanitarian Aid", href: "/programs?pillar=humanitarian-aid" },
         { label: locale === "ar" ? "مركز LEE للإعلام الرقمي" : "LEE Digital Media Hub", href: "/programs?pillar=digital-media-hub" },
       ],
-    },
-    {
-      label: locale === "ar" ? "الكتب" : "Books",
-      href: "/books",
-    },
-    {
-      label: t("phoenix"),
-      href: "/phoenix",
     },
     {
       label: t("getInvolved"),
@@ -163,6 +155,23 @@ export function Navbar() {
 
           {/* Right Side Actions */}
           <div className="hidden lg:flex items-center gap-2">
+            {/* Featured Phoenix initiative */}
+            <Link
+              href="/phoenix"
+              className={cn(
+                "group flex min-h-11 items-center gap-2.5 rounded-lg px-3.5 py-1.5 text-[#0D2B66] shadow-[0_8px_24px_rgba(242,166,90,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#ffc27d]",
+                isActive("/phoenix") ? "bg-[#ffc27d] ring-2 ring-white/40" : "bg-[#F2A65A]"
+              )}
+            >
+              <span className="flex size-7 items-center justify-center rounded-full bg-[#0D2B66] text-[#F2A65A]">
+                <Sparkles className="size-3.5" aria-hidden="true" />
+              </span>
+              <span className="leading-none">
+                <span className="block text-[12px] font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
+                <span className="mt-1 block text-[10px] font-semibold opacity-75">{t("phoenixValue")}</span>
+              </span>
+            </Link>
+
             {/* Ask Us Button */}
             <Link
               href="/get-involved"
@@ -275,6 +284,19 @@ export function Navbar() {
 
               {/* Mobile Actions */}
               <div className="pt-4 border-t border-white/10 space-y-3 px-3">
+                <Link
+                  href="/phoenix"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex w-full items-center gap-3 rounded-xl bg-[#F2A65A] px-4 py-3 text-start text-[#0D2B66] shadow-lg"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0D2B66] text-[#F2A65A]">
+                    <Sparkles className="size-4" aria-hidden="true" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
+                    <span className="mt-0.5 block text-xs font-semibold opacity-75">{t("phoenixMobileValue")}</span>
+                  </span>
+                </Link>
                 <Link
                   href="/get-involved"
                   onClick={() => setMobileOpen(false)}
