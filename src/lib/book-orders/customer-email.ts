@@ -8,8 +8,22 @@ type BookOrderEmail = {
   reference: string;
   amountCents: number;
   fulfillmentMethod: string;
+  selectionMode: "CUSTOM" | "LEE_CHOICE";
+  requestedBookCount: number;
+  bookTitles?: string[];
   status?: OrderStatus;
 };
+
+export function formatBookOrderSummary(input: Pick<BookOrderEmail, "locale" | "selectionMode" | "requestedBookCount" | "bookTitles">) {
+  const ar = input.locale === "ar";
+  if (input.selectionMode === "LEE_CHOICE") {
+    return ar
+      ? `${input.requestedBookCount} كتب يختارها فريق LEE بعناية لك`
+      : `${input.requestedBookCount} books thoughtfully curated for you by LEE`;
+  }
+  if (input.bookTitles?.length) return input.bookTitles.map((title, index) => `${index + 1}. ${title}`).join("\n");
+  return ar ? `${input.requestedBookCount} كتب` : `${input.requestedBookCount} ${input.requestedBookCount === 1 ? "book" : "books"}`;
+}
 
 const statusCopy: Record<OrderStatus, { en: [string, string]; ar: [string, string] }> = {
   CONFIRMED: { en: ["Your book order is confirmed", "We have confirmed your order and will begin preparing it."], ar: ["تم تأكيد طلب الكتب", "أكدنا طلبك وسنبدأ بتحضيره."] },
@@ -34,6 +48,7 @@ export async function sendBookOrderCustomerEmail(input: BookOrderEmail) {
     subject: `${heading} — ${input.reference}`,
     html: renderNotification(heading, intro, [
       { label: ar ? "رقم الطلب" : "Order reference", value: input.reference },
+      { label: ar ? "الكتب المطلوبة" : "Books ordered", value: formatBookOrderSummary(input) },
       { label: ar ? "المبلغ" : "Total", value: `${(input.amountCents / 100).toFixed(2)} USD` },
       { label: ar ? "طريقة الاستلام" : "Fulfilment", value: fulfillment },
     ], undefined, {

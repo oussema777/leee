@@ -159,17 +159,16 @@ export function Navbar() {
             <Link
               href="/phoenix"
               className={cn(
-                "group flex min-h-11 items-center gap-2.5 rounded-lg px-3.5 py-1.5 text-[#0D2B66] shadow-[0_8px_24px_rgba(242,166,90,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#ffc27d]",
-                isActive("/phoenix") ? "bg-[#ffc27d] ring-2 ring-white/40" : "bg-[#F2A65A]"
+                "inline-flex h-10 items-center gap-2 rounded-full border px-3.5 text-[12px] font-bold transition-colors",
+                isActive("/phoenix")
+                  ? "border-[#F2A65A] bg-[#F2A65A] text-[#0D2B66]"
+                  : "border-[#F2A65A]/55 bg-[#F2A65A]/10 text-[#F2A65A] hover:bg-[#F2A65A]/20"
               )}
             >
-              <span className="flex size-7 items-center justify-center rounded-full bg-[#0D2B66] text-[#F2A65A]">
-                <Sparkles className="size-3.5" aria-hidden="true" />
-              </span>
-              <span className="leading-none">
-                <span className="block text-[12px] font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
-                <span className="mt-1 block text-[10px] font-semibold opacity-75">{t("phoenixValue")}</span>
-              </span>
+              <Sparkles className="size-3.5" aria-hidden="true" />
+              <span className="uppercase tracking-[0.08em]">{t("phoenix")}</span>
+              <span className="h-3 w-px bg-current opacity-30" aria-hidden="true" />
+              <span className="text-[10px] font-semibold opacity-75">{t("phoenixValue")}</span>
             </Link>
 
             {/* Ask Us Button */}
@@ -287,15 +286,12 @@ export function Navbar() {
                 <Link
                   href="/phoenix"
                   onClick={() => setMobileOpen(false)}
-                  className="flex w-full items-center gap-3 rounded-xl bg-[#F2A65A] px-4 py-3 text-start text-[#0D2B66] shadow-lg"
+                  className="flex w-full items-center justify-center gap-2 rounded-sm border border-[#F2A65A]/60 bg-[#F2A65A]/10 px-4 py-2.5 text-[#F2A65A]"
                 >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0D2B66] text-[#F2A65A]">
-                    <Sparkles className="size-4" aria-hidden="true" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
-                    <span className="mt-0.5 block text-xs font-semibold opacity-75">{t("phoenixMobileValue")}</span>
-                  </span>
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  <span className="text-sm font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
+                  <span className="opacity-35" aria-hidden="true">•</span>
+                  <span className="text-xs font-semibold opacity-75">{t("phoenixValue")}</span>
                 </Link>
                 <Link
                   href="/get-involved"

@@ -73,6 +73,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         reference: result.updated.reference,
         amountCents: result.updated.priceCents,
         fulfillmentMethod: result.updated.fulfillmentMethod,
+        selectionMode: result.updated.selectionMode,
+        requestedBookCount: result.updated.requestedBookCount,
+        bookTitles: result.updated.selectionMode === "CUSTOM"
+          ? result.updated.items.map(item => result.updated.locale === "ar" ? item.inventoryItem.titleAr || item.inventoryItem.title : item.inventoryItem.title)
+          : [],
         status: result.updated.status,
       });
     }

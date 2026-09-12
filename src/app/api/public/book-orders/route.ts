@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { renderNotification, sendNotificationEmail } from "@/lib/email";
 import { sendWhishOrderEmail } from "@/lib/book-orders/whish-email";
-import { sendBookOrderCustomerEmail } from "@/lib/book-orders/customer-email";
+import { formatBookOrderSummary, sendBookOrderCustomerEmail } from "@/lib/book-orders/customer-email";
 import { BOOK_PACKAGES, deliveryFeeCents, type BookPackageKey, isFreeExtraIndex } from "@/lib/book-orders/config";
 import { bookOrderSchema } from "@/lib/book-orders/validation";
 import { makeSnapshot, paymentDeadline } from "@/lib/book-orders/whish-config";
@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
       order = await db.$transaction(async tx => {
         const selected = input.selectedBookIds.length ? await tx.bookInventoryItem.findMany({
           where: { id: { in: input.selectedBookIds }, isPublished: true },
-          select: { id: true, title: true, status: true, stockQuantity: true },
+          select: { id: true, title: true, titleAr: true, status: true, stockQuantity: true },
         }) : [];
         if (selected.length !== input.selectedBookIds.length || selected.some(b => b.status !== "AVAILABLE" || b.stockQuantity < 1)) throw Error("BOOK_UNAVAILABLE");
-        selectedTitles = selected.map(book => book.title);
+        selectedTitles = selected.map(book => input.locale === "ar" ? book.titleAr || book.title : book.title);
         if (input.selectionMode === "CUSTOM") {
           for (const id of [...input.selectedBookIds].sort()) {
             const reserved = await tx.bookInventoryItem.updateMany({
@@ -105,10 +105,16 @@ export async function POST(request: NextRequest) {
       ? sendWhishOrderEmail({
           to: input.customerEmail, locale: input.locale, reference: order.reference,
           amountCents: total, kind: "CREATED", privatePath,
+          bookSummary: formatBookOrderSummary({
+            locale: input.locale, selectionMode: input.selectionMode,
+            requestedBookCount: pack.totalBooks, bookTitles: selectedTitles,
+          }),
         })
       : sendBookOrderCustomerEmail({
           to: input.customerEmail, locale: input.locale, reference: order.reference,
           amountCents: total, fulfillmentMethod: input.fulfillmentMethod,
+          selectionMode: input.selectionMode, requestedBookCount: pack.totalBooks,
+          bookTitles: selectedTitles,
         })] : [])]);
     return privateJson({
       id: order.id, reference: order.reference,

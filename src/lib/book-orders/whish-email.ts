@@ -3,7 +3,7 @@ import { renderNotification, sendTransactionalEmail } from "@/lib/email";
 type OrderEmail = {
   to: string; locale: string; reference: string; amountCents: number;
   kind: "CREATED" | "VERIFY" | "REQUEST_CORRECTION" | "REFUND";
-  privatePath?: string; note?: string; orderClosed?: boolean;
+  privatePath?: string; note?: string; orderClosed?: boolean; bookSummary?: string;
 };
 
 export async function sendWhishOrderEmail(input: OrderEmail) {
@@ -31,6 +31,7 @@ export async function sendWhishOrderEmail(input: OrderEmail) {
     subject: `${heading} — ${input.reference}`,
     html: renderNotification(heading, intro, [
       { label: ar ? "رقم الطلب" : "Order reference", value: input.reference },
+      { label: ar ? "الكتب المطلوبة" : "Books ordered", value: input.bookSummary },
       { label: ar ? "المبلغ" : "Amount", value: `${(input.amountCents / 100).toFixed(2)} USD` },
       { label: ar ? "ملاحظة من LEE" : "Note from LEE", value: input.note },
       ...(input.privatePath ? [{ label: ar ? "رابط خاص" : "Private link", value: ar ? "احتفظ بهذا الرابط. يمكن لمن يملكه الوصول إلى صفحة الدفع." : "Keep this link safe. Anyone with it can access your payment page." }] : []),

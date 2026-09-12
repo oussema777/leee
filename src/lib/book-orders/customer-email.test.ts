@@ -16,19 +16,22 @@ describe("book customer emails", () => {
   it("acknowledges a cash order without claiming that payment was received", async () => {
     await sendBookOrderCustomerEmail({
       to: "buyer@example.test", locale: "en", reference: "LEE-BK-1",
-      amountCents: 900, fulfillmentMethod: "DELIVERY",
+      amountCents: 900, fulfillmentMethod: "DELIVERY", selectionMode: "CUSTOM",
+      requestedBookCount: 1, bookTitles: ["The Little Prince"],
     });
     expect(send).toHaveBeenCalledWith(expect.objectContaining({
       to: "buyer@example.test",
       subject: "We received your book order — LEE-BK-1",
       html: expect.stringContaining("does not confirm receipt of payment"),
     }));
+    expect(send.mock.calls[0][0].html).toContain("The Little Prince");
   });
 
   it("renders Arabic order updates as RTL text", async () => {
     await sendBookOrderCustomerEmail({
       to: "buyer@example.test", locale: "ar", reference: "LEE-BK-2",
-      amountCents: 500, fulfillmentMethod: "PICKUP", status: "READY",
+      amountCents: 500, fulfillmentMethod: "PICKUP", selectionMode: "LEE_CHOICE",
+      requestedBookCount: 5, status: "READY",
     });
     expect(send).toHaveBeenCalledWith(expect.objectContaining({
       subject: "طلب الكتب جاهز — LEE-BK-2",

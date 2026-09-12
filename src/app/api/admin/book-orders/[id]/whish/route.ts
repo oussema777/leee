@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getWhishConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
 import { normalizedReference, paymentReviewSchema, reviewProblem } from "@/lib/book-orders/whish-policy";
 import { sendWhishOrderEmail } from "@/lib/book-orders/whish-email";
+import { formatBookOrderSummary } from "@/lib/book-orders/customer-email";
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await withPaymentAdmin(request);
@@ -15,7 +16,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const config = input.action === "REQUEST_CORRECTION" ? await getWhishConfig() : null;
     const order = await db.$transaction(async tx => {
       await lockOrder(tx, id);
-      const p = await tx.bookWhishPayment.findUnique({ where: { orderId: id }, include: { order: true } });
+      const p = await tx.bookWhishPayment.findUnique({
+        where: { orderId: id },
+        include: { order: { include: { items: { include: { inventoryItem: { select: { title: true, titleAr: true } } } } } } },
+      });
       if (!p) throw Error("NOT_FOUND");
       if (p.updatedAt.toISOString() !== input.expectedUpdatedAt) throw Error("STALE_REVIEW");
       const problem = reviewProblem(input, p.state, p.order.priceCents);
@@ -45,6 +49,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       to: order.customerEmail, locale: order.locale, reference: order.reference,
       amountCents: order.priceCents, kind: input.action, note: input.note,
       orderClosed: order.status === "CANCELLED",
+      bookSummary: formatBookOrderSummary({
+        locale: order.locale, selectionMode: order.selectionMode,
+        requestedBookCount: order.requestedBookCount,
+        bookTitles: order.selectionMode === "CUSTOM"
+          ? (order.items || []).map(item => order.locale === "ar" ? item.inventoryItem.titleAr || item.inventoryItem.title : item.inventoryItem.title)
+          : [],
+      }),
     });
     return privateJson({ success: true });
   } catch (e) {
