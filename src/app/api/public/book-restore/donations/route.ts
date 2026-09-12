@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendNotificationEmail, renderNotification } from "@/lib/email";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { sendBookDonationEmail } from "@/lib/book-restore/donation-email";
 import {
   bookDonationSchema,
   consentTextVersion,
@@ -110,6 +111,15 @@ export async function POST(request: NextRequest) {
         ],
       ),
     });
+
+    if (data.email) {
+      await sendBookDonationEmail({
+        to: data.email.toLowerCase(),
+        locale: data.locale,
+        reference: submission.reference,
+        bookCount: data.books.length,
+      });
+    }
 
     return NextResponse.json({ ok: true, reference: submission.reference }, { status: 201 });
   } catch (error) {

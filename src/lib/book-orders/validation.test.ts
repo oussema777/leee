@@ -13,6 +13,7 @@ const base = {
   fulfillmentMethod: "PICKUP",
   showSenderName: true,
   paymentMethod: "CASH_ON_DELIVERY",
+  termsAccepted: true,
 };
 
 describe("bookOrderSchema", () => {

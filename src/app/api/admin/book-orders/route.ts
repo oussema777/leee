@@ -13,9 +13,15 @@ export async function GET(request: NextRequest) {
     const params = new URL(request.url).searchParams;
     const status = params.get("status") || "";
     const purpose = params.get("purpose") || "";
+    const paymentMethod = params.get("paymentMethod") || "";
+    const paymentState = params.get("paymentState") || "";
+    if (paymentMethod && !["WHISH", "CASH_ON_DELIVERY", "CASH_ARRANGEMENT"].includes(paymentMethod)) return errorResponse("Invalid payment method", 400);
+    if (paymentState && !["AWAITING_PAYMENT", "UNDER_REVIEW", "CHANGES_REQUESTED", "VERIFIED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(paymentState)) return errorResponse("Invalid payment state", 400);
     if (status && !statuses.includes(status as (typeof statuses)[number])) return errorResponse("Invalid order status", 400);
     if (purpose && !purposes.includes(purpose as (typeof purposes)[number])) return errorResponse("Invalid order purpose", 400);
-    const where = {
+    const where: import("@prisma/client").Prisma.BookOrderWhereInput = {
+      ...(paymentMethod ? { paymentMethod: paymentMethod as "WHISH" | "CASH_ON_DELIVERY" | "CASH_ARRANGEMENT" } : {}),
+      ...(paymentState ? { whishPayment: { is: { state: paymentState as import("@prisma/client").BookWhishState } } } : {}),
       ...(status ? { status: status as (typeof statuses)[number] } : {}),
       ...(purpose ? { purpose: purpose as (typeof purposes)[number] } : {}),
       ...(search ? { OR: [
@@ -23,12 +29,13 @@ export async function GET(request: NextRequest) {
         { customerName: { contains: search, mode: "insensitive" as const } },
         { customerPhone: { contains: search, mode: "insensitive" as const } },
         { recipientName: { contains: search, mode: "insensitive" as const } },
+        { whishPayment: { is: { OR: [{ submittedReference: { contains: search, mode: "insensitive" } }, { verifiedReference: { contains: search, mode: "insensitive" } }] } } },
       ] } : {}),
     };
     const [data, total] = await Promise.all([
       db.bookOrder.findMany({
         where, skip, take: limit, orderBy: { createdAt: "desc" },
-        select: { id: true, reference: true, customerName: true, customerPhone: true, package: true, purpose: true, requestedBookCount: true, priceCents: true, currency: true, paymentStatus: true, status: true, isRead: true, createdAt: true },
+        select: { id: true, reference: true, customerName: true, customerPhone: true, package: true, purpose: true, requestedBookCount: true, priceCents: true, currency: true, paymentStatus: true, paymentMethod: true, whishPayment: { select: { state: true, submittedAt: true } }, status: true, isRead: true, createdAt: true },
       }),
       db.bookOrder.count({ where }),
     ]);

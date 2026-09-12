@@ -1,8 +1,9 @@
 "use client";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { PaymentLoading } from "./PaymentLoading";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, BookHeart, BookOpen, Check, CheckCircle2, ChevronLeft, Gift, HandHeart, HeartHandshake, Home, Languages, MapPin, PackageCheck, Search, Sparkles, Tag, Truck, UserRound, X, } from "lucide-react";
+import { Banknote, Wallet, ArrowLeft, ArrowRight, BookHeart, BookOpen, Check, CheckCircle2, ChevronLeft, Gift, HandHeart, HeartHandshake, Home, Languages, MapPin, PackageCheck, Search, Sparkles, Tag, Truck, UserRound, X, } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import { BOOK_PACKAGES, DELIVERY_FEE_CENTS, LEBANON_GOVERNORATES, deliveryFeeCents, type BookPackageKey } from "@/lib/book-orders/config";
@@ -247,6 +248,29 @@ export function BookDetailExperience({ book, books, locale }: {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [reference, setReference] = useState("");
+    const [whishAvailable, setWhishAvailable] = useState(false);
+    const [chosenPayment, setChosenPayment] = useState<"CASH" | "WHISH">("CASH");
+    const [paymentHref, setPaymentHref] = useState("");
+    const [resumeHref, setResumeHref] = useState("");
+    const paymentAttempt = useRef<{ fingerprint: string; token: string } | null>(null);
+    const checkoutDraft = useRef<Record<string, string>>({});
+    const submitLock = useRef(false);
+    useEffect(() => {
+        try {
+            const href = localStorage.getItem("book-whish-last-payment") || "";
+            if (/^\/(en|ar)\/books\/payment\/[A-Z0-9-]+#[a-f0-9]{64}$/.test(href)) setResumeHref(href);
+        } catch {}
+    }, []);
+    useEffect(() => {
+        if (!open) return;
+        let cancelled = false;
+        fetch("/api/public/book-orders/whish", { cache: "no-store" })
+            .then(r => r.ok ? r.json() : { available: false })
+            .then(data => { if (!cancelled) { setWhishAvailable(data.available === true); if (!data.available) setChosenPayment("CASH"); } })
+            .catch(() => { if (!cancelled) { setWhishAvailable(false); setChosenPayment("CASH"); } });
+        return () => { cancelled = true; };
+    }, [open]);
+
     useEffect(() => {
         if (!open)
             return;
@@ -272,6 +296,8 @@ export function BookDetailExperience({ book, books, locale }: {
         });
     }, [books, locale, query]);
     function resetAndOpen() {
+        setChosenPayment("CASH"); setPaymentHref(""); setConsent(false);
+        checkoutDraft.current = {}; paymentAttempt.current = null;
         setStep("package");
         setPackageKey("SINGLE");
         setPurpose(null);
@@ -304,48 +330,55 @@ export function BookDetailExperience({ book, books, locale }: {
     }
     async function submitOrder(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!packageKey || !purpose || !consent)
-            return;
-        setSubmitting(true);
-        setError("");
+        if (!packageKey || !purpose || !consent || submitLock.current) return;
+        submitLock.current = true;
+        setSubmitting(true); setError("");
         const data = new FormData(event.currentTarget);
-        const isLeeChoice = purpose === "DONATION" && selectionMode === "LEE_CHOICE";
-        const response = await fetch("/api/public/book-orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                locale: isArabic ? "ar" : "en",
-                package: packageKey,
-                purpose,
+        try {
+            const isLeeChoice = purpose === "DONATION" && selectionMode === "LEE_CHOICE";
+            const payload: Record<string, unknown> = {
+                locale: isArabic ? "ar" : "en", package: packageKey, purpose,
                 selectionMode: isLeeChoice ? "LEE_CHOICE" : "CUSTOM",
                 selectedBookIds: isLeeChoice ? selectedIds.slice(0, 1) : selectedIds,
-                customerName: data.get("customerName"),
-                customerPhone: data.get("customerPhone"),
+                customerName: data.get("customerName"), customerPhone: data.get("customerPhone"),
                 customerEmail: data.get("customerEmail"),
                 fulfillmentMethod: purpose === "DONATION" ? "LEE_DISTRIBUTION" : purpose === "GIFT" ? "DELIVERY" : fulfillment,
-                governorate: data.get("governorate"),
-                area: data.get("area"),
-                detailedAddress: data.get("detailedAddress"),
-                recipientName: data.get("recipientName"),
-                recipientPhone: data.get("recipientPhone"),
-                giftMessage: data.get("giftMessage"),
-                showSenderName: data.get("showSenderName") === "on",
-                paymentMethod: purpose === "SELF" ? "CASH_ON_DELIVERY" : "CASH_ARRANGEMENT",
-                website: data.get("website"),
-            }),
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            setError(typeof result.error === "string" ? result.error : t.error);
-            setSubmitting(false);
-            return;
-        }
-        setReference(result.reference);
-        setStep("success");
-        setSubmitting(false);
+                governorate: data.get("governorate"), area: data.get("area"), detailedAddress: data.get("detailedAddress"),
+                recipientName: data.get("recipientName"), recipientPhone: data.get("recipientPhone"),
+                giftMessage: data.get("giftMessage"), showSenderName: data.get("showSenderName") === "on",
+                paymentMethod: chosenPayment === "WHISH" ? "WHISH" : purpose === "SELF" ? "CASH_ON_DELIVERY" : "CASH_ARRANGEMENT",
+                termsAccepted: consent, website: data.get("website"),
+            };
+            if (chosenPayment === "WHISH") {
+                const fingerprint = JSON.stringify(payload);
+                if (paymentAttempt.current?.fingerprint !== fingerprint) {
+                    const bytes = crypto.getRandomValues(new Uint8Array(32));
+                    paymentAttempt.current = { fingerprint, token: Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("") };
+                }
+                payload.paymentAccessToken = paymentAttempt.current.token;
+            }
+            const response = await fetch("/api/public/book-orders", {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw Error(typeof result.error === "string" ? result.error : t.error);
+            setReference(result.reference);
+            if (chosenPayment === "WHISH" && typeof result.paymentUrl === "string" &&
+                /^\/(en|ar)\/books\/payment\/[A-Z0-9-]+#[a-f0-9]{64}$/.test(result.paymentUrl)) {
+                setPaymentHref(result.paymentUrl);
+                try { localStorage.setItem("book-whish-last-payment", result.paymentUrl); } catch {}
+                window.location.assign(result.paymentUrl);
+                return;
+            }
+            if (chosenPayment === "WHISH") throw Error(isArabic ? "تعذر فتح الدفع. حاول مجدداً لاستعادة رابطك." : "Could not open payment. Retry to recover your payment link.");
+            setStep("success");
+        } catch (error) {
+            setError(error instanceof Error ? error.message : t.error);
+        } finally { setSubmitting(false); submitLock.current = false; }
     }
     const stepNumber = step === "package" ? 1 : step === "purpose" ? 2 : step === "books" ? 3 : 4;
     return (<main className="min-h-screen bg-surface-primary">
+{resumeHref && <Container className="py-3"><a href={resumeHref} className="text-sm font-semibold text-brand-blue-deeper underline underline-offset-4">{isArabic ? "العودة إلى طلب Whish الأخير" : "Return to your last Whish order"}</a></Container>}
       <section className="relative overflow-hidden bg-accent-navy text-white">
         <div className="pointer-events-none absolute -end-40 -top-48 h-96 w-96 rounded-full bg-brand-blue/20 blur-3xl"/>
         <Container className="relative py-8 md:py-12">
@@ -514,22 +547,22 @@ export function BookDetailExperience({ book, books, locale }: {
 </div>
 </motion.div>}
 
-                {step === "checkout" && activePackage && purpose && <motion.div key="checkout" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                {step === "checkout" && !paymentHref && !(submitting && chosenPayment === "WHISH") && activePackage && purpose && <motion.div key="checkout" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
 <h2 className="font-serif text-3xl text-accent-navy md:text-4xl">{t.checkoutTitle}</h2>
 <p className="mt-2 text-sm text-text-secondary">{t.checkoutIntro}</p>
-<form onSubmit={submitOrder} className="mt-7 grid gap-6 lg:grid-cols-[1fr_320px]">
+<form onSubmit={submitOrder} onChange={event => { const form = event.currentTarget; const entries = new FormData(form); checkoutDraft.current = Object.fromEntries(Array.from(entries.entries(), ([key, value]) => [key, String(value)])); if (form.querySelector('[name="showSenderName"]')) checkoutDraft.current.showSenderName = entries.has("showSenderName") ? "on" : "off"; }} className="mt-7 grid gap-6 lg:grid-cols-[1fr_320px]">
 <div className="space-y-6">
 <section className="rounded-2xl bg-white p-5">
 <h3 className="font-serif text-xl text-accent-navy">{t.customerDetails}</h3>
 <div className="mt-5 grid gap-4 sm:grid-cols-2">
 <Field label={t.fullName} required>
-<input name="customerName" required maxLength={120} autoComplete="name" className={fieldClass}/>
+<input name="customerName" defaultValue={checkoutDraft.current.customerName || ""} required maxLength={120} autoComplete="name" className={fieldClass}/>
 </Field>
 <Field label={t.phone} required>
-<input name="customerPhone" required maxLength={30} inputMode="tel" autoComplete="tel" className={fieldClass}/>
+<input name="customerPhone" defaultValue={checkoutDraft.current.customerPhone || ""} required maxLength={30} inputMode="tel" autoComplete="tel" className={fieldClass}/>
 </Field>
 <Field label={t.email}>
-<input name="customerEmail" type="email" maxLength={254} autoComplete="email" className={fieldClass}/>
+<input name="customerEmail" defaultValue={checkoutDraft.current.customerEmail || ""} type="email" maxLength={254} autoComplete="email" className={fieldClass}/>
 </Field>
 <input name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true"/>
 </div>
@@ -542,40 +575,42 @@ export function BookDetailExperience({ book, books, locale }: {
 <Gift className="h-5 w-5 text-brand-blue"/>{t.recipient}</h3>
 <div className="mt-5 grid gap-4 sm:grid-cols-2">
 <Field label={t.recipientName} required>
-<input name="recipientName" required maxLength={120} className={fieldClass}/>
+<input name="recipientName" defaultValue={checkoutDraft.current.recipientName || ""} required maxLength={120} className={fieldClass}/>
 </Field>
 <Field label={t.recipientPhone} required>
-<input name="recipientPhone" required maxLength={30} inputMode="tel" className={fieldClass}/>
+<input name="recipientPhone" defaultValue={checkoutDraft.current.recipientPhone || ""} required maxLength={30} inputMode="tel" className={fieldClass}/>
 </Field>
 </div>
 <div className="mt-5 rounded-2xl bg-brand-blue-light/50 p-4">
 <h4 className="flex items-center gap-2 text-sm font-bold text-accent-navy">
 <Sparkles className="h-4 w-4 text-brand-blue"/>{t.giftCard}</h4>
-<textarea name="giftMessage" maxLength={300} rows={3} placeholder={t.giftMessage} className={`${fieldClass} h-auto resize-none py-3`}/>
+<textarea name="giftMessage" defaultValue={checkoutDraft.current.giftMessage || ""} maxLength={300} rows={3} placeholder={t.giftMessage} className={`${fieldClass} h-auto resize-none py-3`}/>
 <label className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
-<input name="showSenderName" type="checkbox" defaultChecked className="h-4 w-4 accent-brand-blue"/>{t.showName}</label>
+<input name="showSenderName" type="checkbox" defaultChecked={checkoutDraft.current.showSenderName !== "off"} className="h-4 w-4 accent-brand-blue"/>{t.showName}</label>
 </div>
 </section>}{purpose !== "DONATION" && (purpose === "GIFT" || fulfillment === "DELIVERY") && <section className="rounded-2xl bg-white p-5">
 <h3 className="font-serif text-xl text-accent-navy">{t.address}</h3>
 <div className="mt-5 grid gap-4 sm:grid-cols-2">
 <Field label={t.governorate} required>
-<select name="governorate" required defaultValue="" autoComplete="address-level1" className={fieldClass}>
+<select name="governorate" required defaultValue={checkoutDraft.current.governorate || ""} autoComplete="address-level1" className={fieldClass}>
 <option value="" disabled>{t.selectGovernorate}</option>
 {LEBANON_GOVERNORATES.map((governorate) => <option key={governorate} value={governorate}>{governorateLabels[governorate][isArabic ? 1 : 0]}</option>)}
 </select>
 </Field>
 <Field label={t.area} required>
-<input name="area" required maxLength={120} autoComplete="address-level2" className={fieldClass}/>
+<input name="area" defaultValue={checkoutDraft.current.area || ""} required maxLength={120} autoComplete="address-level2" className={fieldClass}/>
 </Field>
 <div className="sm:col-span-2">
 <Field label={t.detailedAddress} required>
-<textarea name="detailedAddress" required maxLength={500} rows={3} autoComplete="street-address" className={`${fieldClass} h-auto resize-none py-3`}/>
+<textarea name="detailedAddress" defaultValue={checkoutDraft.current.detailedAddress || ""} required maxLength={500} rows={3} autoComplete="street-address" className={`${fieldClass} h-auto resize-none py-3`}/>
 </Field>
 </div>
 </div>
-</section>}</div>
-<aside className="lg:sticky lg:top-0 lg:self-start">
-<div className="rounded-2xl bg-accent-navy p-5 text-white">
+</section>}
+
+</div>
+<aside className="contents lg:block lg:sticky lg:top-0 lg:self-start">
+<div className="order-first rounded-2xl bg-accent-navy p-5 text-white lg:order-none">
 <div className="flex items-center justify-between">
 <h3 className="font-serif text-xl">{t.orderSummary}</h3>
 <button type="button" onClick={() => setStep("package")} className="text-xs font-bold text-brand-blue-light underline underline-offset-4">{t.change}</button>
@@ -597,25 +632,38 @@ export function BookDetailExperience({ book, books, locale }: {
 </div>
 <div className="mt-5 flex -space-x-2 rtl:space-x-reverse">{selectionMode === "LEE_CHOICE" ? <div className="flex h-12 items-center gap-2 rounded-xl bg-white/10 px-3 text-xs">
 <Sparkles className="h-4 w-4 text-brand-blue-light"/>{t.leeChoose}</div> : selectedBooks.slice(0, 6).map((item) => <div key={item.id} className="relative h-12 w-9 overflow-hidden rounded-md bg-white/10 ring-2 ring-accent-navy">{item.coverImageUrl && <Image unoptimized src={item.coverImageUrl} alt="" fill sizes="36px" className="object-cover"/>}</div>)}</div>
-<div className="mt-5 rounded-xl bg-white/10 p-4">
-<div className="flex items-center gap-2 text-sm font-bold">
-<PackageCheck className="h-5 w-5 text-brand-blue-light"/>{t.cash}</div>
-<p className="mt-2 text-xs leading-5 text-white/65">{purpose === "SELF" ? t.cashCod : purpose === "GIFT" ? t.cashArrange : t.cashDonate}</p>
+<fieldset className="mt-6 border-t border-white/15 pt-5">
+<legend className="sr-only">{isArabic ? "طريقة الدفع" : "Payment method"}</legend>
+<p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/65">{isArabic ? "طريقة الدفع" : "Payment method"}</p>
+<div className="space-y-3">{(whishAvailable ? ["CASH", "WHISH"] as const : ["CASH"] as const).map(method => {
+const active = chosenPayment === method;
+const Icon = method === "WHISH" ? Wallet : Banknote;
+return <label key={method} className={`relative flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition duration-200 focus-within:ring-2 focus-within:ring-brand-blue-light focus-within:ring-offset-2 focus-within:ring-offset-accent-navy ${active ? "border-white bg-white text-accent-navy shadow-md" : "border-white/20 bg-white/5 text-white hover:border-white/50 hover:bg-white/10"}`}>
+<input type="radio" name="paymentChoice" value={method} checked={active} onChange={() => setChosenPayment(method)} className="sr-only" />
+<span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${active ? method === "WHISH" ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-700" : "bg-white/10 text-white/80"}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
+<span className="min-w-0 flex-1"><strong className="block text-sm">{method === "WHISH" ? "Whish Pay" : purpose === "SELF" ? fulfillment === "PICKUP" ? (isArabic ? "نقداً عند الاستلام" : "Cash at pickup") : (isArabic ? "الدفع عند التوصيل" : "Cash on delivery") : t.cash}</strong><span className={`mt-1 block text-xs leading-5 ${active ? "text-text-secondary" : "text-white/65"}`}>{method === "WHISH" ? (isArabic ? "امسح الرمز وأرسل تفاصيل الدفع" : "Scan the QR and submit payment details") : (isArabic ? "بدون دفع إلكتروني مسبق" : "No online payment needed")}</span></span>
+<span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${active ? "border-brand-blue bg-brand-blue text-white" : "border-white/40"}`}>{active && <Check className="h-3 w-3" />}</span>
+</label>;
+})}</div>
+</fieldset>
 </div>
-</div>
+<div className="order-last lg:order-none">
 <label className="mt-4 flex items-start gap-3 rounded-xl bg-white p-4 text-sm leading-6 text-text-secondary">
-<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/>{t.consent}</label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
+<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/><span>{t.consent}<span aria-hidden="true" className="ms-1 font-bold text-red-600">*</span><span className="sr-only">{isArabic ? " (مطلوب)" : " (required)"}</span></span></label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : chosenPayment === "WHISH" ? (isArabic ? "تابع للدفع عبر Whish" : "Continue to Whish payment") : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
 <button type="button" onClick={() => setStep(activePackage.totalBooks > 1 && selectionMode === "CUSTOM" ? "books" : "purpose")} className="mt-2 w-full px-3 py-2 text-sm font-bold text-text-secondary">{t.back}</button>
+</div>
 </aside>
 </form>
 </motion.div>}
 
-                {step === "success" && <motion.div key="success" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-xl py-10 text-center">
+                {step === "checkout" && (paymentHref || (submitting && chosenPayment === "WHISH")) && <PaymentLoading isArabic={isArabic} href={paymentHref || undefined} />}
+{step === "success" && <motion.div key="success" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-xl py-10 text-center">
 <motion.div initial={{ scale: 0, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", delay: .15 }} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
 <CheckCircle2 className="h-12 w-12"/>
 </motion.div>
 <h2 className="mt-7 font-serif text-4xl text-accent-navy">{purpose === "GIFT" ? t.successGift : purpose === "DONATION" ? t.successDonation : t.successTitle}</h2>
-<p className="mt-4 leading-7 text-text-secondary">{t.successBody}</p>
+<p className="mt-4 leading-7 text-text-secondary">{paymentHref ? (isArabic ? "تم حفظ طلبك. افتح صفحة الدفع لإكماله." : "Your order is saved. Open the payment page to complete it.") : t.successBody}</p>
+{paymentHref && <a href={paymentHref} className="mt-5 inline-flex rounded-xl bg-brand-blue px-6 py-3 font-bold text-white">{isArabic ? "افتح صفحة الدفع" : "Open payment page"}</a>}
 <div className="mx-auto mt-6 max-w-sm rounded-2xl border border-dashed border-brand-blue bg-white p-5">
 <span className="text-xs font-bold uppercase tracking-wider text-text-muted">{t.reference}</span>
 <strong className="mt-2 block text-xl tracking-wide text-accent-navy">{reference}</strong>

@@ -1,3 +1,4 @@
+import { expireWhishPayments } from "@/lib/book-orders/whish-server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function BookPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
+  await expireWhishPayments().catch(() => console.error("Book payment cleanup unavailable"));
   const [book, availableBooks] = await Promise.all([
     db.bookInventoryItem.findFirst({ where: { slug, isPublished: true }, select: bookSelect }),
     db.bookInventoryItem.findMany({

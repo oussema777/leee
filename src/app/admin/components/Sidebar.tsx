@@ -85,6 +85,7 @@ const navGroups: NavGroup[] = [
       { label: "Expert Applications", href: "/admin/expert-submissions", icon: Award },
       { label: "Book Donations", href: "/admin/book-donations", icon: BookHeart },
       { label: "Book Orders", href: "/admin/book-orders", icon: ShoppingBag },
+      { label: "Whish Payments", href: "/admin/book-whish", icon: ShoppingBag },
     ],
   },
   {

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { errorResponse, withAdmin } from "@/lib/api-utils";
 import { BOOK_DONATION_STATUSES } from "@/lib/book-restore/validation";
+import { sendBookDonationEmail } from "@/lib/book-restore/donation-email";
 
 const updateSchema = z.object({
   status: z.enum(BOOK_DONATION_STATUSES).optional(),
@@ -36,7 +37,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const current = await db.bookDonationSubmission.findUnique({
       where: { id },
-      select: { reviewedAt: true, status: true },
+      select: { reviewedAt: true, status: true, email: true, locale: true, reference: true },
     });
     if (!current) return errorResponse("Not found", 404);
 
@@ -45,7 +46,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (parsed.data.adminNotes !== undefined) data.adminNotes = parsed.data.adminNotes.trim();
     if (data.status && data.status !== "NEW" && current.status === "NEW" && !current.reviewedAt) data.reviewedAt = new Date();
 
-    return NextResponse.json(await db.bookDonationSubmission.update({ where: { id }, data }));
+    const updated = await db.bookDonationSubmission.update({ where: { id }, data });
+    if (current.email && data.status && data.status !== current.status && data.status !== "NEW") {
+      await sendBookDonationEmail({
+        to: current.email,
+        locale: current.locale,
+        reference: current.reference,
+        status: data.status,
+      });
+    }
+    return NextResponse.json(updated);
   } catch {
     return errorResponse("Failed to update book donation");
   }

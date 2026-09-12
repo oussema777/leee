@@ -29,7 +29,7 @@ function escapeHtml(s: string): string {
 export type EmailField = { label: string; value?: string | null };
 
 /** Renders a simple, branded HTML email body with a details table. */
-export function renderNotification(heading: string, intro: string, fields: EmailField[]): string {
+export function renderNotification(heading: string, intro: string, fields: EmailField[], action?: { href: string; label: string }): string {
   const rows = fields
     .filter((f) => f.value != null && String(f.value).trim() !== "")
     .map(
@@ -47,6 +47,7 @@ export function renderNotification(heading: string, intro: string, fields: Email
     <div style="border:1px solid #C0D6EE;border-top:none;border-radius:0 0 8px 8px;padding:20px 24px;background:#ffffff;">
       <p style="color:#4B5563;font-size:14px;margin:0 0 16px;">${escapeHtml(intro)}</p>
       <table style="border-collapse:collapse;width:100%;">${rows}</table>
+      ${action && /^https?:\/\//.test(action.href) ? `<p style="margin:24px 0 8px;"><a href="${escapeHtml(action.href)}" style="display:inline-block;background:#1B3A5C;color:#ffffff;padding:14px 20px;border-radius:8px;text-decoration:none;">${escapeHtml(action.label)}</a></p>` : ""}
       <p style="color:#9CA3AF;font-size:12px;margin:18px 0 0;">Sent automatically from theleeexperience.com</p>
     </div>
   </div>`;
@@ -73,6 +74,17 @@ export async function sendNotificationEmail(opts: {
     if (error) console.error("[email] Resend returned error:", error);
   } catch (err) {
     console.error("[email] Failed to send notification:", err);
+  }
+}
+
+/** Sends an order update only to the purchaser's supplied email. Never throws. */
+export async function sendTransactionalEmail(opts: { to: string; subject: string; html: string }): Promise<void> {
+  if (!resend) return;
+  try {
+    const { error } = await resend.emails.send({ from: FROM, to: opts.to, subject: opts.subject, html: opts.html });
+    if (error) console.error("[email] Order email delivery failed:", error.name);
+  } catch {
+    console.error("[email] Order email delivery failed");
   }
 }
 

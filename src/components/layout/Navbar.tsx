@@ -49,6 +49,10 @@ export function Navbar() {
       href: "/books",
     },
     {
+      label: t("phoenix"),
+      href: "/phoenix",
+    },
+    {
       label: t("getInvolved"),
       href: "/get-involved",
       children: [

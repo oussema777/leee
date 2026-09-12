@@ -1,3 +1,4 @@
+import { expireWhishPayments } from "@/lib/book-orders/whish-server";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { BooksCatalogue, type CatalogueBook } from "@/components/sections/books/BooksCatalogue";
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function BooksPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  await expireWhishPayments().catch(() => console.error("Book payment cleanup unavailable"));
   let books: CatalogueBook[] = [];
   let loadError = false;
 

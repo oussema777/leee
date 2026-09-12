@@ -1,0 +1,41 @@
+import { renderNotification, sendTransactionalEmail } from "@/lib/email";
+
+type OrderStatus = "CONFIRMED" | "PREPARING" | "READY" | "DISPATCHED" | "COMPLETED" | "CANCELLED";
+
+type BookOrderEmail = {
+  to: string;
+  locale: string;
+  reference: string;
+  amountCents: number;
+  fulfillmentMethod: string;
+  status?: OrderStatus;
+};
+
+const statusCopy: Record<OrderStatus, { en: [string, string]; ar: [string, string] }> = {
+  CONFIRMED: { en: ["Your book order is confirmed", "We have confirmed your order and will begin preparing it."], ar: ["تم تأكيد طلب الكتب", "أكدنا طلبك وسنبدأ بتحضيره."] },
+  PREPARING: { en: ["Your book order is being prepared", "Our team is preparing your books."], ar: ["طلب الكتب قيد التحضير", "يعمل فريقنا الآن على تحضير كتبك."] },
+  READY: { en: ["Your book order is ready", "Your books are ready. Our team will contact you with the handover details."], ar: ["طلب الكتب جاهز", "كتبك جاهزة. سيتواصل معك فريقنا لتأكيد تفاصيل التسليم."] },
+  DISPATCHED: { en: ["Your book order is on its way", "Your books have been dispatched for delivery."], ar: ["طلب الكتب في طريقه إليك", "تم إرسال كتبك للتوصيل."] },
+  COMPLETED: { en: ["Your book order is complete", "Your book order has been completed. Thank you for supporting The LEE Experience."], ar: ["اكتمل طلب الكتب", "اكتمل طلبك. شكرًا لدعمك The LEE Experience."] },
+  CANCELLED: { en: ["Your book order was cancelled", "Your book order has been cancelled. Contact us if you need help."], ar: ["تم إلغاء طلب الكتب", "تم إلغاء طلبك. تواصل معنا إذا كنت بحاجة إلى المساعدة."] },
+};
+
+export async function sendBookOrderCustomerEmail(input: BookOrderEmail) {
+  const ar = input.locale === "ar";
+  const [heading, intro] = input.status
+    ? statusCopy[input.status][ar ? "ar" : "en"]
+    : ar
+      ? ["استلمنا طلب الكتب", "شكرًا لك. استلمنا طلبك وسيراجعه فريق LEE قبل تأكيده. لم يتم تأكيد أي دفعة عبر هذه الرسالة."]
+      : ["We received your book order", "Thank you. The LEE team will review your order before confirming it. This message does not confirm receipt of payment."];
+  const fulfillment = input.fulfillmentMethod === "PICKUP" ? (ar ? "استلام" : "Pickup") : (ar ? "توصيل" : "Delivery");
+
+  await sendTransactionalEmail({
+    to: input.to,
+    subject: `${heading} — ${input.reference}`,
+    html: `<div dir="${ar ? "rtl" : "ltr"}">${renderNotification(heading, intro, [
+      { label: ar ? "رقم الطلب" : "Order reference", value: input.reference },
+      { label: ar ? "المبلغ" : "Total", value: `${(input.amountCents / 100).toFixed(2)} USD` },
+      { label: ar ? "طريقة الاستلام" : "Fulfilment", value: fulfillment },
+    ])}</div>`,
+  });
+}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { accessTokenSchema } from "./whish-policy";
 import { BOOK_PACKAGES, BOOK_PACKAGE_KEYS, LEBANON_GOVERNORATES } from "./config";
 
 export const BOOK_ORDER_PURPOSES = ["SELF", "GIFT", "DONATION"] as const;
@@ -36,11 +37,14 @@ export const bookOrderSchema = z.object({
   giftMessage: optionalText(300),
   showSenderName: z.boolean().default(true),
   paymentMethod: z.enum(BOOK_PAYMENT_METHODS),
+  termsAccepted: z.literal(true, { error: "Please confirm your order details and consent." }),
+  paymentAccessToken: accessTokenSchema.optional(),
   website: optionalText(1),
 }).superRefine((value, context) => {
   if (value.fulfillmentMethod === 'DELIVERY' && value.governorate && !LEBANON_GOVERNORATES.includes(value.governorate as (typeof LEBANON_GOVERNORATES)[number])) {
     context.addIssue({ code: 'custom', path: ['governorate'], message: 'Choose a Lebanese governorate' });
   }
+  if (value.paymentMethod === "WHISH" && !value.paymentAccessToken) context.addIssue({ code: "custom", path: ["paymentAccessToken"], message: "Start a new payment session." });
   const packageDetails = BOOK_PACKAGES[value.package as keyof typeof BOOK_PACKAGES];
   if (new Set(value.selectedBookIds).size !== value.selectedBookIds.length) {
     context.addIssue({ code: "custom", path: ["selectedBookIds"], message: "A book can only be selected once" });
@@ -56,7 +60,7 @@ export const bookOrderSchema = z.object({
   }
   if (value.purpose === "SELF") {
     if (value.fulfillmentMethod === "LEE_DISTRIBUTION") context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "Choose delivery or pickup" });
-    if (value.paymentMethod !== "CASH_ON_DELIVERY") context.addIssue({ code: "custom", path: ["paymentMethod"], message: "Choose cash payment" });
+    if (value.paymentMethod !== "CASH_ON_DELIVERY" && value.paymentMethod !== "WHISH") context.addIssue({ code: "custom", path: ["paymentMethod"], message: "Choose cash or Whish payment" });
   }
   if (value.purpose === "GIFT") {
     if (value.fulfillmentMethod !== "DELIVERY") context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "Gift orders are delivered" });
@@ -66,7 +70,7 @@ export const bookOrderSchema = z.object({
   if (value.purpose === "DONATION" && value.fulfillmentMethod !== "LEE_DISTRIBUTION") {
     context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "LEE distributes donated books" });
   }
-  if (value.purpose !== "SELF" && value.paymentMethod !== "CASH_ARRANGEMENT") {
+  if (value.purpose !== "SELF" && value.paymentMethod !== "CASH_ARRANGEMENT" && value.paymentMethod !== "WHISH") {
     context.addIssue({ code: "custom", path: ["paymentMethod"], message: "LEE will arrange payment with the purchaser" });
   }
   if (value.fulfillmentMethod === "DELIVERY") {

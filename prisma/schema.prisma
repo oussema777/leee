@@ -589,12 +589,66 @@ model BookOrder {
   adminNotes         String?                 @db.Text
   reviewedAt         DateTime?
   items              BookOrderItem[]
+  whishPayment       BookWhishPayment?
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
 
   @@index([status, createdAt])
   @@index([paymentStatus, createdAt])
   @@index([createdAt])
+}
+
+
+model BookWhishSettings {
+  id        String   @id @default("book-restore")
+  config    Json
+  updatedBy String
+  updatedAt DateTime @updatedAt
+}
+
+enum BookWhishState {
+  AWAITING_PAYMENT
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  VERIFIED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+model BookWhishPayment {
+  id                 String           @id @default(cuid())
+  orderId            String           @unique
+  order              BookOrder        @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  state              BookWhishState   @default(AWAITING_PAYMENT)
+  accessTokenHash    String           @unique
+  requestHash        String
+  snapshot           Json
+  expiresAt          DateTime
+  submittedReference String?
+  senderPhone        String?
+  submittedAt        DateTime?
+  verifiedReference  String?          @unique
+  customerNote       String?          @db.Text
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  events             BookWhishEvent[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([state, expiresAt])
+}
+
+model BookWhishEvent {
+  id        String           @id @default(cuid())
+  paymentId String
+  payment   BookWhishPayment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  action    String
+  actor     String
+  details   Json
+  createdAt DateTime         @default(now())
+
+  @@index([paymentId, createdAt])
 }
 
 model BookOrderItem {
