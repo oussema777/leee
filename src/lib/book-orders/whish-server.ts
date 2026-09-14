@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { withAdmin, errorResponse } from "@/lib/api-utils";
 import { accessTokenSchema, shouldExpire } from "./whish-policy";
-import { emptyWhishConfig, whishConfigSchema, snapshotActive, type WhishSnapshot } from "./whish-config";
+import { emptyWhishConfig, parseWhishConfig, snapshotActive, type WhishSnapshot } from "./whish-config";
 
 export const PRIVATE_HEADERS = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow", "Referrer-Policy": "no-referrer" };
 export function privateJson(value: unknown, status = 200) { return NextResponse.json(value, { status, headers: PRIVATE_HEADERS }); }
@@ -16,8 +16,7 @@ export function paymentPath(locale: string, reference: string, token: string) {
 export async function getWhishConfig() {
   try {
     const row = await db.bookWhishSettings.findUnique({ where: { id: "book-restore" } });
-    const parsed = whishConfigSchema.safeParse(row?.config);
-    return parsed.success ? parsed.data : emptyWhishConfig();
+    return parseWhishConfig(row?.config);
   } catch (e) {
     // Fail closed until the additive schema patch has been applied.
     if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021")) console.error("Whish setup unavailable");
@@ -43,10 +42,11 @@ export async function lockOrder(tx: Prisma.TransactionClient, id: string) {
 }
 export async function releaseOrderStock(tx: Prisma.TransactionClient, order: { id: string; selectionMode: string }) {
   if (order.selectionMode !== "CUSTOM") return;
-  const items = await tx.bookOrderItem.findMany({ where: { orderId: order.id }, orderBy: { inventoryItemId: "asc" } });
+  const items = await tx.bookOrderItem.findMany({ where: { orderId: order.id }, orderBy: { inventoryItemId: "asc" }, select: { inventoryItemId: true, editionId: true } });
   for (const item of items) {
     // Do not make an item that staff deliberately withdrew available again.
     await tx.bookInventoryItem.update({ where: { id: item.inventoryItemId }, data: { stockQuantity: { increment: 1 } } });
+    if (item.editionId) await tx.bookInventoryEdition.update({ where: { id: item.editionId }, data: { stockQuantity: { increment: 1 } } });
     await tx.bookInventoryItem.updateMany({ where: { id: item.inventoryItemId, status: "RESERVED" }, data: { status: "AVAILABLE" } });
   }
 }
@@ -89,7 +89,7 @@ export async function paymentSummary(p: BookWhishPayment & { order: BookOrder })
     getWhishConfig(),
     p.order.selectionMode === "LEE_CHOICE" ? Promise.resolve([]) : db.bookOrderItem.findMany({
       where: { orderId: p.orderId }, orderBy: { createdAt: "asc" },
-      select: { isFreeExtra: true, inventoryItem: { select: { id: true, title: true, titleAr: true, author: true, authorAr: true, coverImageUrl: true } } },
+      select: { isFreeExtra: true, edition: { select: { label: true, publicationYear: true, coverImageUrl: true } }, inventoryItem: { select: { id: true, title: true, titleAr: true, author: true, authorAr: true, coverImageUrl: true } } },
     }),
   ]);
   const payable = ["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(p.state) &&
@@ -98,7 +98,7 @@ export async function paymentSummary(p: BookWhishPayment & { order: BookOrder })
     reference: p.order.reference, state: p.state, orderStatus: p.order.status,
     amountCents: p.order.priceCents, currency: p.order.currency,
     selectionMode: p.order.selectionMode,
-    books: items.map(item => ({ ...item.inventoryItem, isFreeExtra: item.isFreeExtra })),
+    books: items.map(item => ({ ...item.inventoryItem, coverImageUrl: item.edition?.coverImageUrl || item.inventoryItem.coverImageUrl, editionLabel: item.edition?.label || null, editionYear: item.edition?.publicationYear || null, isFreeExtra: item.isFreeExtra })),
     bookCount: p.order.requestedBookCount, fulfillmentMethod: p.order.fulfillmentMethod,
     expiresAt: p.expiresAt.toISOString(), submittedAt: p.submittedAt?.toISOString() || null,
     customerNote: p.customerNote, submittedReference: p.submittedReference,

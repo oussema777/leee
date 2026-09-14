@@ -18,6 +18,7 @@ export interface CatalogueBook {
   descriptionAr: string | null;
   isbn: string | null;
   publisher: string | null;
+  editions: { id: string; label: string | null; publicationYear: number | null; stockQuantity: number; coverImageUrl: string | null }[];
   publicationYear: number | null;
   category: string;
   customCategory: string | null;
@@ -29,6 +30,7 @@ export interface CatalogueBook {
   stockQuantity: number;
   coverImageUrl: string | null;
   status: string;
+  donor: { displayName: string; type: string; logoUrl: string | null; logoApproved: boolean; publicRecognition: boolean } | null;
 }
 
 
@@ -113,6 +115,7 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
             <Link href={`/books/${book.slug}`} className="transition-colors hover:text-brand-blue-deeper">{title}</Link>
           </h2>
           <p className="mt-2 line-clamp-1 min-h-5 text-sm font-medium text-text-secondary">{isArabic ? "بقلم" : "by"} {author}</p>
+          {book.editions.length > 1 && <p className="mt-1 text-xs font-semibold text-brand-blue-deeper">{book.editions.length} {isArabic ? "طبعات متاحة" : "editions available"}</p>}
 
           <dl className="mt-auto grid grid-cols-2 gap-x-4 gap-y-3 border-t border-surface-tertiary pt-5">
             <div>
@@ -151,7 +154,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
   const filteredBooks = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase(locale);
     return books.filter((book) => {
-      const searchable = [book.title, book.titleAr, book.author, book.authorAr, book.publisher, book.isbn]
+      const searchable = [book.title, book.titleAr, book.author, book.authorAr, book.publisher, book.isbn, ...book.editions.map((edition) => edition.label)]
         .filter(Boolean).join(" ").toLocaleLowerCase(locale);
       return (!normalizedQuery || searchable.includes(normalizedQuery))
         && (category === "ALL" || bookHasCategory(book, category))

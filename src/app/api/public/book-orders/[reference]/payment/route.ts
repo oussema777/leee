@@ -33,12 +33,14 @@ export async function POST(request: NextRequest, context: Context) {
     const authenticated = await authenticatePayment(request, reference);
     if (!authenticated) return privateJson({ error: "Payment page not found." }, 404);
     const multipart = request.headers.get("content-type")?.startsWith("multipart/form-data");
-    const form = multipart ? await receiptForm(request) : null;
-    const parsed = paymentReportSchema.safeParse(form ? { transactionReference: form.get("transactionReference"), senderPhone: form.get("senderPhone") } : await request.json());
+    if (!multipart) return privateJson({ error: "A payment screenshot is required." }, 400);
+    const form = await receiptForm(request);
+    const parsed = paymentReportSchema.safeParse({ transactionReference: form.get("transactionReference") || "", senderPhone: form.get("senderPhone") });
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Check your payment details." }, 400);
     const { transactionReference, senderPhone } = parsed.data;
-    const receipt = form?.get("receipt");
-    if (receipt && typeof receipt !== "string" && receipt.size > 0 && authenticated.state !== "UNDER_REVIEW" && canReportPayment(authenticated.state)) {
+    const receipt = form.get("receipt");
+    if (!(receipt instanceof File) || receipt.size === 0) return privateJson({ error: "A payment screenshot is required." }, 400);
+    if (authenticated.state !== "UNDER_REVIEW" && canReportPayment(authenticated.state)) {
       const image = await prepareWhishReceipt(receipt);
       receiptPath = await saveWhishReceipt(authenticated.id, image);
     }
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest, context: Context) {
       }
       const payment = await tx.bookWhishPayment.update({
         where: { id: p.id }, data: {
-          state: "UNDER_REVIEW", submittedReference: transactionReference, senderPhone,
+          state: "UNDER_REVIEW", submittedReference: transactionReference || null, senderPhone,
           submittedAt: new Date(), customerNote: null,
           events: { create: { action: "SUBMITTED", actor: "customer", details: { transactionReference, senderPhone, ...(receiptPath ? { receiptPath } : {}), orderWasClosed: p.order.status === "CANCELLED" } } },
         }, include: { order: true },
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest, context: Context) {
       subject: "Whish payment to verify: " + reference,
       html: renderNotification("Whish payment awaiting verification", "Check the actual incoming wallet transaction before confirming this payment.", [
         { label: "Order", value: reference }, { label: "Amount", value: "USD " + result.payment.order.priceCents / 100 },
-        { label: "Whish reference", value: transactionReference }, { label: "Sender phone", value: senderPhone },
+        { label: "Whish reference", value: transactionReference || "Not provided" }, { label: "Sender phone", value: senderPhone },
         { label: "Order status", value: result.payment.order.status },
       ]),
     });

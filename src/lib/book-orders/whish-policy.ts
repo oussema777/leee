@@ -1,7 +1,8 @@
 import { z } from "zod";
 export const accessTokenSchema = z.string().regex(/^[a-f0-9]{64}$/);
 export const paymentReportSchema = z.object({
-  transactionReference: z.string().trim().min(3).max(100).regex(/^[A-Za-z0-9 _./:-]+$/, "Enter the reference shown by Whish."),
+  transactionReference: z.string().trim().max(100)
+    .refine(value => value === "" || (value.length >= 3 && /^[A-Za-z0-9 _./:-]+$/.test(value)), "Enter a valid Whish reference or leave it blank."),
   senderPhone: z.string().trim().min(6).max(30).regex(/^[+\d\s().-]+$/)
     .refine(value => /^\d{6,15}$/.test(value.replace(/\D/g, "")), "Enter the phone number used to pay."),
 });

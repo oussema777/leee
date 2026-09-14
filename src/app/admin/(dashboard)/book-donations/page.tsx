@@ -14,6 +14,8 @@ interface Donation {
   id: string;
   reference: string;
   fullName: string;
+  donorType: "INDIVIDUAL" | "ORGANISATION";
+  organizationName: string | null;
   governorate: string;
   estimatedQuantity: string;
   handoverMethod: string;
@@ -63,7 +65,7 @@ export default function BookDonationsPage() {
 
   const columns: Column<Donation>[] = [
     { key: "reference", label: "Reference", render: (item) => <span className={item.isRead ? "font-medium text-gray-300" : "font-semibold text-white"}>{!item.isRead && <span className="me-2 inline-block size-2 rounded-full bg-brand-blue" />}{item.reference}</span> },
-    { key: "fullName", label: "Donor", sortable: true },
+    { key: "fullName", label: "Donor", sortable: true, render: (item) => <div><p>{item.organizationName || item.fullName}</p>{item.organizationName && <p className="text-xs text-gray-400">Contact: {item.fullName}</p>}</div> },
     { key: "governorate", label: "Governorate", render: (item) => humanize(item.governorate) },
     { key: "estimatedQuantity", label: "Quantity", render: (item) => humanize(item.estimatedQuantity) },
     { key: "handoverMethod", label: "Handover", render: (item) => humanize(item.handoverMethod) },

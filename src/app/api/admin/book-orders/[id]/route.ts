@@ -8,7 +8,7 @@ import { sendBookOrderCustomerEmail } from "@/lib/book-orders/customer-email";
 const statuses = ["NEW", "CONFIRMED", "PREPARING", "READY", "DISPATCHED", "COMPLETED", "CANCELLED"] as const;
 const paymentStatuses = ["PENDING", "PAID", "FAILED", "REFUNDED", "CANCELLED"] as const;
 const include = {
-  items: { include: { inventoryItem: { select: { id: true, slug: true, title: true, titleAr: true, author: true, coverImageUrl: true, sku: true } } } },
+  items: { include: { edition: { select: { label: true, publicationYear: true, coverImageUrl: true } }, inventoryItem: { select: { id: true, slug: true, title: true, titleAr: true, author: true, coverImageUrl: true, sku: true } } } },
   whishPayment: { select: adminPaymentSelect },
 } as const;
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -76,7 +76,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         selectionMode: result.updated.selectionMode,
         requestedBookCount: result.updated.requestedBookCount,
         bookTitles: result.updated.selectionMode === "CUSTOM"
-          ? result.updated.items.map(item => result.updated.locale === "ar" ? item.inventoryItem.titleAr || item.inventoryItem.title : item.inventoryItem.title)
+          ? result.updated.items.map(item => {
+              const title = result.updated.locale === "ar" ? item.inventoryItem.titleAr || item.inventoryItem.title : item.inventoryItem.title;
+              return `${title} — ${item.edition?.label || (result.updated.locale === "ar" ? "الطبعة القياسية" : "Standard edition")}${item.edition?.publicationYear ? ` (${item.edition.publicationYear})` : ""}`;
+            })
           : [],
         status: result.updated.status,
       });

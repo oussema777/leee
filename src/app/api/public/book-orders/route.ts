@@ -48,15 +48,26 @@ export async function POST(request: NextRequest) {
           select: { id: true, title: true, titleAr: true, status: true, stockQuantity: true },
         }) : [];
         if (selected.length !== input.selectedBookIds.length || selected.some(b => b.status !== "AVAILABLE" || b.stockQuantity < 1)) throw Error("BOOK_UNAVAILABLE");
-        selectedTitles = selected.map(book => input.locale === "ar" ? book.titleAr || book.title : book.title);
+        const selectedEditions = input.selectedEditions.length ? await tx.bookInventoryEdition.findMany({
+          where: { id: { in: input.selectedEditions.map((item) => item.editionId) }, active: true },
+          select: { id: true, inventoryItemId: true, label: true, publicationYear: true, stockQuantity: true },
+        }) : [];
+        if (input.selectionMode === "CUSTOM" && (selectedEditions.length !== input.selectedEditions.length || selectedEditions.some((edition) => edition.stockQuantity < 1 || !input.selectedEditions.some((choice) => choice.bookId === edition.inventoryItemId && choice.editionId === edition.id)))) throw Error("BOOK_UNAVAILABLE");
+        selectedTitles = selected.map(book => {
+          const edition = selectedEditions.find((item) => item.inventoryItemId === book.id);
+          const title = input.locale === "ar" ? book.titleAr || book.title : book.title;
+          return edition ? `${title} — ${edition.label || (input.locale === "ar" ? "الطبعة القياسية" : "Standard edition")}${edition.publicationYear ? ` (${edition.publicationYear})` : ""}` : title;
+        });
         if (input.selectionMode === "CUSTOM") {
-          for (const id of [...input.selectedBookIds].sort()) {
+          for (const choice of [...input.selectedEditions].sort((a, b) => a.editionId.localeCompare(b.editionId))) {
+            const editionReserved = await tx.bookInventoryEdition.updateMany({ where: { id: choice.editionId, inventoryItemId: choice.bookId, active: true, stockQuantity: { gt: 0 } }, data: { stockQuantity: { decrement: 1 } } });
+            if (editionReserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
             const reserved = await tx.bookInventoryItem.updateMany({
-              where: { id, isPublished: true, status: "AVAILABLE", stockQuantity: { gt: 0 } },
+              where: { id: choice.bookId, isPublished: true, status: "AVAILABLE", stockQuantity: { gt: 0 } },
               data: { stockQuantity: { decrement: 1 } },
             });
             if (reserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
-            await tx.bookInventoryItem.updateMany({ where: { id, stockQuantity: 0 }, data: { status: "RESERVED" } });
+            await tx.bookInventoryItem.updateMany({ where: { id: choice.bookId, stockQuantity: 0 }, data: { status: "RESERVED" } });
           }
         }
         return tx.bookOrder.create({
@@ -70,7 +81,7 @@ export async function POST(request: NextRequest) {
             recipientName: input.recipientName || null, recipientPhone: input.recipientPhone || null,
             giftMessage: input.giftMessage || null, showSenderName: input.showSenderName,
             paymentMethod: input.paymentMethod, termsAccepted: input.termsAccepted, consentTextVersion: "book-order-v2",
-            items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
+            items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
             ...(snapshot && config && hash ? { whishPayment: { create: {
               accessTokenHash: hash, requestHash: fingerprint, snapshot: snapshot as unknown as Prisma.InputJsonValue,
               expiresAt: paymentDeadline(config, snapshot),

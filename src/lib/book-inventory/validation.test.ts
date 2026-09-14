@@ -12,6 +12,7 @@ const validBook = {
   isbn: null,
   publisher: null,
   publicationYear: null,
+  editions: [{ label: null, publicationYear: null, stockQuantity: 1, coverImageUrl: null }],
   category: "FICTION",
   language: "ENGLISH",
   condition: "GOOD",
@@ -27,6 +28,12 @@ const validBook = {
 };
 
 describe("bookInventorySchema", () => {
+  it("accepts multiple editions with independent stock", () => {
+    const editions = [{ label: "  2015 edition  ", publicationYear: 2015, stockQuantity: 2, coverImageUrl: null }, { label: "2021 edition", publicationYear: 2021, stockQuantity: 3, coverImageUrl: "https://example.com/2021.jpg" }];
+    const result = bookInventorySchema.parse({ ...validBook, stockQuantity: 5, editions });
+    expect(result.editions.map((edition) => edition.label)).toEqual(["2015 edition", "2021 edition"]);
+    expect(bookInventorySchema.safeParse({ ...validBook, stockQuantity: 5, editions: editions.map((edition) => ({ ...edition, label: "Same" })) }).success).toBe(false);
+  });
   it("saves multiple standard and custom categories", () => {
     const result = bookInventorySchema.parse({ ...validBook, category: undefined, categories: ["Fiction", "HISTORY", "Poetry"] });
     expect(result.categories).toEqual(["FICTION", "HISTORY", "Poetry"]);
@@ -100,6 +107,7 @@ describe("bookInventorySchema", () => {
       ...validBook,
       status: "RESERVED",
       stockQuantity: 0,
+      editions: [{ label: null, publicationYear: null, stockQuantity: 0, coverImageUrl: null }],
     });
 
     expect(result.success).toBe(true);

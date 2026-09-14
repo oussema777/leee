@@ -7,11 +7,11 @@ import { bookOrderSchema } from "./validation";
 function configured() {
   const c = emptyWhishConfig();
   return { ...c, enabled: true, accountName: "LEE test account", accountNumber: "+96170123456", supportPhone: "96170123456",
-    qrCodes: c.qrCodes.map(q => ({ ...q, verified: true, reusable: true, expiryConfirmed: true })) };
+    qrImageUrl: "https://assets.example.test/whish.webp", qrVerified: true };
 }
 const token = "ab".repeat(32);
 describe("Whish checkout readiness and exact totals", () => {
-  it("starts disabled with every real QR awaiting verification", () => {
+  it("starts disabled until a permanent QR is uploaded and verified", () => {
     expect(isWhishAvailable(emptyWhishConfig())).toBe(false);
     expect(makeSnapshot(emptyWhishConfig(), 500)).toBeNull();
   });
@@ -26,13 +26,12 @@ describe("Whish checkout readiness and exact totals", () => {
     expect(amount).toBe(expected);
     expect(makeSnapshot(configured(), amount)).toMatchObject({ amountCents: expected, currency: "USD" });
   });
-  it("never falls back to another amount's QR", () => { expect(makeSnapshot(configured(), 2900)).toBeNull(); });
-  it("blocks an unverified, non-reusable or expired code", () => {
-    for (const field of ["verified", "reusable", "expiryConfirmed"] as const) {
-      const c = configured(); c.qrCodes[1][field] = false; expect(isWhishAvailable(c)).toBe(false);
-    }
-    const c = configured(); c.qrCodes[0].expiresAt = "2000-01-01T00:00:00.000Z";
-    expect(isWhishAvailable(c)).toBe(false);
+  it("uses the same permanent QR for any valid order total", () => {
+    expect(makeSnapshot(configured(), 2900)).toMatchObject({ amountCents: 2900, imageUrl: "https://assets.example.test/whish.webp" });
+  });
+  it("blocks a missing or unverified QR", () => {
+    expect(isWhishAvailable({ ...configured(), qrVerified: false })).toBe(false);
+    expect(isWhishAvailable({ ...configured(), qrImageUrl: "" })).toBe(false);
   });
   it("stops displaying historical instructions when disabled or recipient changed", () => {
     const c = configured(); const s = makeSnapshot(c, 500)!;
@@ -40,22 +39,21 @@ describe("Whish checkout readiness and exact totals", () => {
     expect(snapshotActive({ ...c, enabled: false }, s)).toBe(false);
     expect(snapshotActive({ ...c, accountNumber: "96170999999" }, s)).toBe(false);
   });
-  it("caps an order's payment window at the QR expiry", () => {
+  it("uses the configured order payment window", () => {
     const c = configured(); const now = new Date("2030-01-01T00:00:00Z");
-    const s = { ...makeSnapshot(c, 500)!, qrExpiresAt: "2030-01-01T01:00:00.000Z" };
-    expect(paymentDeadline(c, s, now).toISOString()).toBe(s.qrExpiresAt);
+    expect(paymentDeadline(c, makeSnapshot(c, 500)!, now).toISOString()).toBe("2030-01-02T00:00:00.000Z");
   });
 });
 describe("Whish reports and verification", () => {
   it("requires a cryptographically sized access token and explicit consent", () => {
     expect(accessTokenSchema.safeParse(token).success).toBe(true);
     expect(accessTokenSchema.safeParse("LEE-BK-2026-ABC12345").success).toBe(false);
-    const order = { locale: "en", package: "SINGLE", purpose: "SELF", selectionMode: "CUSTOM", selectedBookIds: ["book-1"],
+    const order = { locale: "en", package: "SINGLE", purpose: "SELF", selectionMode: "CUSTOM", selectedBookIds: ["book-1"], selectedEditions: [{ bookId: "book-1", editionId: "edition-1" }],
       customerName: "Maya Haddad", customerPhone: "70123456", fulfillmentMethod: "PICKUP", paymentMethod: "WHISH", paymentAccessToken: token, termsAccepted: true };
     expect(bookOrderSchema.safeParse(order).success).toBe(true);
     expect(bookOrderSchema.safeParse({ ...order, termsAccepted: false }).success).toBe(false);
     expect(bookOrderSchema.safeParse({ ...order, paymentAccessToken: undefined }).success).toBe(false);
-    expect(bookOrderSchema.safeParse({ ...order, purpose: "DONATION", selectionMode: "LEE_CHOICE", fulfillmentMethod: "LEE_DISTRIBUTION" }).success).toBe(true);
+    expect(bookOrderSchema.safeParse({ ...order, purpose: "DONATION", selectionMode: "LEE_CHOICE", selectedEditions: [], fulfillmentMethod: "LEE_DISTRIBUTION" }).success).toBe(true);
     expect(bookOrderSchema.safeParse({ ...order, purpose: "GIFT", fulfillmentMethod: "DELIVERY", recipientName: "Recipient", recipientPhone: "70999999", governorate: "BEIRUT", area: "Hamra", detailedAddress: "Building 5" }).success).toBe(true);
   });
   it("ignores customer-supplied paid flags and rejects invalid receipt data", () => {
@@ -63,6 +61,7 @@ describe("Whish reports and verification", () => {
     expect(result).not.toHaveProperty("paid");
     expect(result).not.toHaveProperty("amountCents");
     expect(paymentReportSchema.safeParse({ transactionReference: "", senderPhone: "xx" }).success).toBe(false);
+    expect(paymentReportSchema.safeParse({ transactionReference: "", senderPhone: "70123456" }).success).toBe(true);
   });
   it("requires review, a wallet check and an exact received amount in USD", () => {
     const input = { action: "VERIFY" as const, expectedUpdatedAt: new Date().toISOString(), transactionReference: "REF-123", receivedAmountCents: 900, currency: "USD" as const, checkedWallet: true, note: "" };

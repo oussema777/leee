@@ -11,7 +11,7 @@ import { adminDelete, adminGet, type PaginatedResponse } from "@/lib/admin-api";
 import { BOOK_INVENTORY_STATUSES } from "@/lib/book-inventory/validation";
 import { bookCategoryLabel, getBookCategories, getBookCategoryOptions } from "@/lib/book-inventory/categories";
 
-interface BookInventory { id: string; sku: string; title: string; author: string; category: string; customCategory: string | null; categories: string[]; language: string; condition: string; priceCents: number; currency: string; stockQuantity: number; coverImageUrl: string | null; status: string; isPublished: boolean; updatedAt: string; }
+interface BookInventory { id: string; sku: string; title: string; author: string; editions: { id: string; label: string | null }[]; category: string; customCategory: string | null; categories: string[]; language: string; condition: string; priceCents: number; currency: string; stockQuantity: number; coverImageUrl: string | null; status: string; isPublished: boolean; donor: { displayName: string; type: string; logoUrl: string | null; logoApproved: boolean } | null; updatedAt: string; }
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 const options = (values: readonly string[]) => values.map((value) => ({ value, label: humanize(value) }));
 const variant = (status: string): "success" | "warning" | "neutral" => status === "AVAILABLE" ? "success" : status === "ARCHIVED" ? "neutral" : "warning";
@@ -63,8 +63,9 @@ export default function BookInventoryPage() {
     }
   };
   const columns: Column<BookInventory>[] = [
-    { key: "title", label: "Book", render: (item) => <div className="flex items-center gap-3 min-w-[220px]">{item.coverImageUrl ? <img src={item.coverImageUrl} alt="" className="h-12 w-9 rounded object-cover" /> : <div className="h-12 w-9 rounded bg-gray-700" />}<div><p className="font-medium text-white">{item.title}</p><p className="text-xs text-gray-500">{item.author}</p></div></div> },
+    { key: "title", label: "Book", render: (item) => <div className="flex items-center gap-3 min-w-[220px]">{item.coverImageUrl ? <img src={item.coverImageUrl} alt="" className="h-12 w-9 rounded object-cover" /> : <div className="h-12 w-9 rounded bg-gray-700" />}<div><p className="font-medium text-white">{item.title}</p><p className="text-xs text-gray-500">{item.author} · {item.editions.length} {item.editions.length === 1 ? "edition" : "editions"}</p></div></div> },
     { key: "sku", label: "SKU" },
+    { key: "donor", label: "Donated by", render: (item) => item.donor ? <div className="flex min-w-32 items-center gap-2">{item.donor.logoUrl && item.donor.logoApproved && <img src={item.donor.logoUrl} alt="" className="size-7 rounded bg-white object-contain p-0.5" />}<span>{item.donor.displayName}</span></div> : <span className="text-gray-500">Not recorded</span> },
     { key: "categories", label: "Categories", render: (item) => <div className="flex min-w-40 max-w-64 flex-wrap gap-1.5">{getBookCategories(item).map((category) => <span key={category} className="max-w-full break-words rounded-md bg-brand-blue/15 px-2 py-1 text-xs text-blue-200">{bookCategoryLabel(category)}</span>)}</div> },
     { key: "priceCents", label: "Price", render: (item) => `${(item.priceCents / 100).toFixed(2)} ${item.currency}` },
     { key: "stockQuantity", label: "Stock" },

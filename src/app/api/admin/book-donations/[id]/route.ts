@@ -16,10 +16,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if ("error" in auth) return auth.error;
   const { id } = await params;
   try {
-    const item = await db.bookDonationSubmission.findUnique({ where: { id } });
+    const item = await db.bookDonationSubmission.findUnique({ where: { id }, include: { donor: true } });
     if (!item) return errorResponse("Not found", 404);
     if (!item.isRead) {
-      return NextResponse.json(await db.bookDonationSubmission.update({ where: { id }, data: { isRead: true } }));
+      return NextResponse.json(await db.bookDonationSubmission.update({ where: { id }, data: { isRead: true }, include: { donor: true } }));
     }
     return NextResponse.json(item);
   } catch {

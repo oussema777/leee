@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
     bookOrder: { update: fn(), findUnique: fn() },
     bookOrderItem: { findMany: fn() },
     bookInventoryItem: { update: fn(), updateMany: fn() },
+    bookInventoryEdition: { update: fn() },
   } };
 });
 vi.mock("@/lib/db", () => ({ db: mocks.db }));
@@ -29,6 +30,13 @@ vi.mock("@/lib/api-utils", async () => {
   };
 });
 vi.mock("@/lib/email", () => ({ renderNotification: () => "test", sendNotificationEmail: vi.fn(), sendTransactionalEmail: vi.fn() }));
+vi.mock("./whish-receipts", () => ({
+  receiptForm: (request: Request) => request.formData(),
+  prepareWhishReceipt: vi.fn(async () => Buffer.from("cleaned-receipt")),
+  saveWhishReceipt: vi.fn(async () => "payment-1/test.webp"),
+  removeWhishReceipt: vi.fn(async () => undefined),
+  ReceiptError: class ReceiptError extends Error {},
+}));
 
 const access = "cd".repeat(32);
 let payment: any;
@@ -38,6 +46,15 @@ function request(method: string, body?: unknown, token = access) {
   return new NextRequest("http://localhost/api/public/book-orders/LEE-BK-2026-12345678/payment", {
     method, headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
     ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+}
+function paymentRequest(body: { transactionReference?: string; senderPhone: string; [key: string]: unknown }, token = access) {
+  const form = new FormData();
+  form.set("transactionReference", body.transactionReference || "");
+  form.set("senderPhone", body.senderPhone);
+  form.set("receipt", new File(["receipt"], "receipt.png", { type: "image/png" }));
+  return new NextRequest("http://localhost/api/public/book-orders/LEE-BK-2026-12345678/payment", {
+    method: "POST", headers: { Authorization: "Bearer " + token }, body: form,
   });
 }
 beforeEach(() => {
@@ -67,18 +84,19 @@ beforeEach(() => {
   });
   mocks.db.bookOrder.findUnique.mockImplementation(async () => ({ ...payment.order, whishPayment: payment, items: [] }));
   mocks.db.bookOrder.update.mockImplementation(async ({ data }) => { payment.order = { ...payment.order, ...data }; return payment.order; });
-  mocks.db.bookOrderItem.findMany.mockResolvedValue([{ inventoryItemId: "book-1" }]);
+  mocks.db.bookOrderItem.findMany.mockResolvedValue([{ inventoryItemId: "book-1", editionId: "edition-1", edition: null, inventoryItem: { id: "book-1", title: "Test book", titleAr: null, author: "Writer", authorAr: null, coverImageUrl: null } }]);
   mocks.db.bookInventoryItem.update.mockResolvedValue({});
   mocks.db.bookInventoryItem.updateMany.mockResolvedValue({ count: 1 });
+  mocks.db.bookInventoryEdition.update.mockResolvedValue({});
 });
 
 describe("private Whish payment routes", () => {
   it("returns an order-scoped book recap without exposing customer details", async () => {
-    mocks.db.bookOrderItem.findMany.mockResolvedValueOnce([{ isFreeExtra: true, inventoryItem: { id: "book-1", title: "A new chapter", titleAr: "فصل جديد", author: "Writer", authorAr: "كاتب", coverImageUrl: "/book.jpg" } }]);
+    mocks.db.bookOrderItem.findMany.mockResolvedValueOnce([{ isFreeExtra: true, edition: { label: "2021 edition", publicationYear: 2021, coverImageUrl: null }, inventoryItem: { id: "book-1", title: "A new chapter", titleAr: "فصل جديد", author: "Writer", authorAr: "كاتب", coverImageUrl: "/book.jpg" } }]);
     const response = await GET(request("GET"), context);
     const body = await response.json();
-    expect(body.books).toEqual([{ id: "book-1", title: "A new chapter", titleAr: "فصل جديد", author: "Writer", authorAr: "كاتب", coverImageUrl: "/book.jpg", isFreeExtra: true }]);
-    expect(mocks.db.bookOrderItem.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { orderId: "order-1" }, select: { isFreeExtra: true, inventoryItem: { select: { id: true, title: true, titleAr: true, author: true, authorAr: true, coverImageUrl: true } } } }));
+    expect(body.books).toEqual([{ id: "book-1", title: "A new chapter", titleAr: "فصل جديد", author: "Writer", authorAr: "كاتب", editionLabel: "2021 edition", editionYear: 2021, coverImageUrl: "/book.jpg", isFreeExtra: true }]);
+    expect(mocks.db.bookOrderItem.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { orderId: "order-1" }, select: { isFreeExtra: true, edition: { select: { label: true, publicationYear: true, coverImageUrl: true } }, inventoryItem: { select: { id: true, title: true, titleAr: true, author: true, authorAr: true, coverImageUrl: true } } } }));
     expect(body).not.toHaveProperty("customerPhone");
   });
   it("does not present a seed book as the final selection when LEE chooses", async () => {
@@ -100,18 +118,18 @@ describe("private Whish payment routes", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
   it("a customer-paid assertion only submits for review, never confirms funds", async () => {
-    const response = await POST(request("POST", { transactionReference: "TX-123", senderPhone: "70123456", paid: true, paymentStatus: "PAID" }), context);
+    const response = await POST(paymentRequest({ transactionReference: "", senderPhone: "70123456", paid: true, paymentStatus: "PAID" }), context);
     expect(response.status).toBe(200);
     expect(payment.state).toBe("UNDER_REVIEW");
     expect(payment.order.paymentStatus).toBe("PENDING");
   });
   it("handles a repeated report idempotently and prevents changing it during review", async () => {
     const body = { transactionReference: "TX-123", senderPhone: "70123456" };
-    await POST(request("POST", body), context);
+    await POST(paymentRequest(body), context);
     const writes = mocks.db.bookWhishPayment.update.mock.calls.length;
-    expect((await POST(request("POST", body), context)).status).toBe(200);
+    expect((await POST(paymentRequest(body), context)).status).toBe(200);
     expect(mocks.db.bookWhishPayment.update.mock.calls.length).toBe(writes);
-    expect((await POST(request("POST", { ...body, transactionReference: "TX-999" }), context)).status).toBe(409);
+    expect((await POST(paymentRequest({ ...body, transactionReference: "TX-999" }), context)).status).toBe(409);
   });
   it("expires and releases an unpaid reservation exactly once across repeated reads", async () => {
     payment.expiresAt = new Date("2000-01-01");
@@ -122,7 +140,7 @@ describe("private Whish payment routes", () => {
   });
   it("accepts a late receipt without reopening the cancelled order or re-reserving books", async () => {
     payment.expiresAt = new Date("2000-01-01");
-    await POST(request("POST", { transactionReference: "TX-LATE", senderPhone: "70123456" }), context);
+    await POST(paymentRequest({ transactionReference: "TX-LATE", senderPhone: "70123456" }), context);
     expect(payment.state).toBe("UNDER_REVIEW");
     expect(payment.order.status).toBe("CANCELLED");
     expect(mocks.db.bookInventoryItem.update).toHaveBeenCalledTimes(1);
@@ -168,8 +186,7 @@ describe("staff verification and fulfilment", () => {
 describe("Whish settings updates", () => {
   it("rejects stale setup and changed recipients carrying old QR verification", async () => {
     const config = emptyWhishConfig();
-    config.accountName = "Test LEE"; config.accountNumber = "70123456";
-    config.qrCodes = config.qrCodes.map(q => ({ ...q, verified: true, reusable: true, expiryConfirmed: true }));
+    Object.assign(config, { accountName: "Test LEE", accountNumber: "70123456", qrImageUrl: "https://assets.example.test/whish.webp", qrVerified: true });
     const version = "2026-01-01T00:00:00.000Z";
     mocks.db.bookWhishSettings.findUnique.mockResolvedValue({ id: "book-restore", config, updatedAt: new Date(version) });
     expect((await saveSetup(request("PUT", { ...config, version: null }))).status).toBe(409);

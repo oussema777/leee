@@ -11,7 +11,7 @@ const copy = {
   en: {
     title: "Complete your Whish payment", reference: "Order reference", total: "Order total",
     intro: "Your order is awaiting payment. Complete the transfer, then submit your payment details for LEE to verify.",
-    payTitle: "Pay with Whish", qr: "Scan with Whish on another device", open: "Open payment link", samePhone: "Open Whish and transfer the exact amount to this account. Check the recipient before paying, then return here.",
+    payTitle: "Pay with Whish", qr: "Scan the permanent QR with Whish", open: "Open payment link", samePhone: "The QR does not fill in the price. Enter the exact order total yourself in Whish, check the recipient, then return here.",
     account: "Receiving account", number: "Account number", amount: "Amount", deadline: "Payment window ends",
     saved: "Keep your private payment link", saveHint: "Use this link to return after switching apps. Anyone with it can access this payment page.",
     copy: "Copy", copyLink: "Copy my payment link", copied: "Copied", copyFailed: "Could not copy automatically. Select and copy the text instead.",
@@ -29,12 +29,12 @@ const copy = {
     missing: "Open the complete private payment link you received at checkout. The order reference alone cannot open this page.",
     error: "We couldn't load your payment. Please try again.", reportError: "We couldn't submit the payment details. Check them and try again.",
     pickup: "Pickup from LEE", delivery: "Delivery", distribution: "LEE distribution", fulfilment: "Fulfilment",
-    verification: "Payment is confirmed after LEE verifies receipt.", txHint: "Use the reference from your Whish payment receipt, not the Book Restore order reference.",
+    verification: "Payment is confirmed after LEE verifies your screenshot.", txHint: "Optional. If available, use the reference from your Whish receipt—not the Book Restore order reference.",
   },
   ar: {
     title: "أكمل الدفع عبر Whish", reference: "رقم الطلب", total: "إجمالي الطلب",
     intro: "طلبك بانتظار الدفع. أكمل التحويل ثم أرسل تفاصيل العملية ليتحقق منها فريق LEE.",
-    payTitle: "الدفع عبر Whish", qr: "امسح الرمز بتطبيق Whish من جهاز آخر", open: "افتح رابط الدفع", samePhone: "افتح Whish وحوّل المبلغ المحدد إلى هذا الحساب. تحقق من المستلم قبل الدفع ثم عد إلى هنا.",
+    payTitle: "الدفع عبر Whish", qr: "امسح رمز QR الدائم عبر Whish", open: "افتح رابط الدفع", samePhone: "لا يملأ رمز QR السعر تلقائياً. أدخل إجمالي الطلب المحدد بنفسك في Whish، وتحقق من المستلم، ثم عد إلى هنا.",
     account: "الحساب المستلم", number: "رقم الحساب", amount: "المبلغ", deadline: "تنتهي مهلة الدفع في",
     saved: "احتفظ برابط الدفع الخاص بك", saveHint: "استخدم هذا الرابط للعودة بعد الانتقال إلى التطبيق. يمكن لمن يملك الرابط الوصول إلى صفحة الدفع.",
     copy: "انسخ", copyLink: "انسخ رابط الدفع", copied: "تم النسخ", copyFailed: "تعذر النسخ تلقائياً. حدد النص وانسخه يدوياً.",
@@ -52,7 +52,7 @@ const copy = {
     missing: "افتح رابط الدفع الخاص الكامل الذي حصلت عليه عند الطلب. رقم الطلب وحده لا يفتح هذه الصفحة.",
     error: "تعذر تحميل تفاصيل الدفع. حاول مجدداً.", reportError: "تعذر إرسال تفاصيل الدفع. راجع البيانات وحاول مجدداً.",
     pickup: "استلام من LEE", delivery: "توصيل", distribution: "توزيع عبر LEE", fulfilment: "طريقة الاستلام",
-    verification: "يُؤكَّد الدفع بعد تحقق فريق LEE من استلام المبلغ.", txHint: "استخدم رقم العملية من إيصال Whish وليس رقم طلب الكتب.",
+    verification: "يُؤكَّد الدفع بعد تحقق فريق LEE من صورة الإيصال.", txHint: "اختياري. إذا كان متاحاً، استخدم رقم العملية من إيصال Whish وليس رقم طلب الكتب.",
   },
 } as const;
 const inputClass = "mt-2 w-full rounded-xl border border-surface-tertiary bg-white px-4 py-3 text-accent-navy outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30";
@@ -124,14 +124,14 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
   }
   async function report(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (submitting) return;
+    if (!receipt) { setError(ar ? "صورة إيصال الدفع مطلوبة." : "A payment screenshot is required."); return; }
     setSubmitting(true); setError("");
     try {
       const form = new FormData();
       form.set("transactionReference", transactionReference); form.set("senderPhone", senderPhone);
-      if (receipt) form.set("receipt", receipt);
+      form.set("receipt", receipt);
       const response = await fetch("/api/public/book-orders/" + encodeURIComponent(reference) + "/payment", {
-        method: "POST", headers: { ...(!receipt ? { "Content-Type": "application/json" } : {}), Authorization: "Bearer " + token },
-        body: receipt ? form : JSON.stringify({ transactionReference, senderPhone }),
+        method: "POST", headers: { Authorization: "Bearer " + token }, body: form,
       });
       const result = await response.json();
       if (!response.ok) throw Error(ar ? t.reportError : result.error || t.reportError);
@@ -172,9 +172,9 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
               <div className="mt-5 rounded-2xl border border-brand-blue/15 bg-accent-ice/50 p-4">
                 <div className="order-2 sm:order-1">
                   <p className="text-center text-sm font-semibold text-accent-navy">{t.qr}</p>
-                  <img src={instructions.imageUrl} alt={(ar ? "رمز دفع Whish بقيمة " : "Whish payment QR for ") + payment.amountCents / 100 + " USD"} width={320} height={320} className="mx-auto mt-3 aspect-square w-full max-w-80 object-contain" />
+                  <img src={instructions.imageUrl} alt={ar ? "رمز QR الدائم للدفع عبر Whish" : "Permanent Whish payment QR"} width={320} height={320} className="mx-auto mt-3 aspect-square w-full max-w-80 object-contain" />
                 </div>
-                  <p className="rounded-xl bg-amber-50 p-4 text-xs leading-6 text-amber-950">{ar ? "إذا ظهر أن الرمز منتهي الصلاحية أو اختلف المستلم أو المبلغ، توقف وتواصل مع LEE. لا تعاود الدفع إذا سبق أن أرسلت المبلغ." : "If Whish says the QR has expired, or the recipient or amount differs, stop and contact LEE. Do not pay again if you already sent the money."}</p>
+                  <p className="rounded-xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">{ar ? <>أدخل المبلغ يدوياً: <bdi>{payment.amountCents / 100} USD</bdi>. إذا اختلف المستلم، توقف وتواصل مع LEE. لا تدفع مرتين.</> : <>Enter this amount manually: <bdi>{payment.amountCents / 100} USD</bdi>. If the recipient differs, stop and contact LEE. Do not pay twice.</>}</p>
               </div>
               <div className="mt-5 flex flex-col gap-5">
 
@@ -199,7 +199,7 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
 <div className="mb-5 flex items-center justify-between gap-3"><h3 className="font-serif text-xl text-accent-navy">{ar ? "ملخص كتبك" : "Your book recap"}</h3><span className="rounded-full bg-accent-ice px-3 py-1 text-xs font-bold text-brand-blue-deeper">{payment.bookCount} {ar ? "كتاب" : payment.bookCount === 1 ? "book" : "books"}</span></div>
 {payment.selectionMode === "LEE_CHOICE" ? <div className="flex items-center gap-4 rounded-2xl bg-accent-ice p-5"><BookOpen className="h-8 w-8 shrink-0 text-brand-blue" /><p className="text-sm leading-6 text-text-secondary">{ar ? "سيختار فريق LEE كتباً مناسبة للتوزيع نيابةً عنك." : "LEE will choose suitable books to distribute on your behalf."}</p></div> : payment.books?.length ? <ul className="max-h-80 space-y-4 overflow-y-auto pe-1">{payment.books.map(book => <li key={book.id} className="flex items-center gap-4 rounded-2xl border border-brand-blue/10 p-3">
 <div className="flex h-20 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent-ice">{book.coverImageUrl ? <img src={book.coverImageUrl} alt="" width={56} height={80} className="h-full w-full object-cover" /> : <BookOpen className="h-6 w-6 text-brand-blue/60" aria-hidden="true" />}</div>
-<div className="min-w-0"><p className="font-serif text-lg leading-6 text-accent-navy">{ar ? book.titleAr || book.title : book.title}</p>{(book.author || book.authorAr) && <p className="mt-1 text-xs text-text-secondary">{ar ? book.authorAr || book.author : book.author || book.authorAr}</p>}{book.isFreeExtra && <span className="mt-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{ar ? "كتاب إضافي مجاني" : "Free extra book"}</span>}</div>
+<div className="min-w-0"><p className="font-serif text-lg leading-6 text-accent-navy">{ar ? book.titleAr || book.title : book.title}</p>{(book.author || book.authorAr) && <p className="mt-1 text-xs text-text-secondary">{ar ? book.authorAr || book.author : book.author || book.authorAr}</p>}<p className="mt-1 text-xs font-semibold text-brand-blue-deeper">{book.editionLabel || (ar ? "الطبعة القياسية" : "Standard edition")}{book.editionYear ? ` (${book.editionYear})` : ""}</p>{book.isFreeExtra && <span className="mt-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{ar ? "كتاب إضافي مجاني" : "Free extra book"}</span>}</div>
 </li>)}</ul> : <p className="rounded-xl bg-accent-ice p-4 text-sm text-text-secondary">{ar ? "سيؤكد فريقنا اختيار الكتب معك خلال الاتصال." : "Our team will confirm your book selection with you on the call."}</p>}
 <dl className="mt-6 grid gap-4 border-t border-brand-blue/10 pt-5 sm:grid-cols-2">
 <div><dt className="text-xs text-text-secondary">{t.tx}</dt><dd dir="ltr" className="mt-1 break-all text-sm font-semibold text-accent-navy">{payment.submittedReference || "—"}</dd></div>
@@ -212,11 +212,11 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
             {reportable && currentStage === 2 && <section className="rounded-2xl bg-white p-6 shadow-sm">
               <h2 className="font-serif text-2xl text-accent-navy">{ar ? "أرسل تفاصيل الدفع" : "Submit your payment details"}</h2><p className="mt-2 text-sm leading-6 text-text-secondary">{t.reportHint}</p>
               <form onSubmit={report} className="mt-6 space-y-5">
-                <label className="block text-sm font-semibold text-accent-navy">{t.tx}<input value={transactionReference} onChange={e => setTransactionReference(e.target.value)} required minLength={3} maxLength={100} dir="ltr" autoComplete="off" className={inputClass} /><span className="mt-2 block text-xs font-normal leading-5 text-text-secondary">{t.txHint}</span></label>
+                <label className="block text-sm font-semibold text-accent-navy">{t.tx} <span className="font-normal text-text-secondary">({ar ? "اختياري" : "optional"})</span><input value={transactionReference} onChange={e => setTransactionReference(e.target.value)} minLength={3} maxLength={100} dir="ltr" autoComplete="off" className={inputClass} /><span className="mt-2 block text-xs font-normal leading-5 text-text-secondary">{t.txHint}</span></label>
                 <label className="block text-sm font-semibold text-accent-navy">{t.sender}<input type="tel" value={senderPhone} onChange={e => setSenderPhone(e.target.value)} required minLength={6} maxLength={30} dir="ltr" autoComplete="tel" className={inputClass} /><span className="mt-2 block text-xs font-normal leading-5 text-text-secondary">{t.senderHint}</span></label>
                 <div className="rounded-xl border border-dashed border-brand-blue/40 bg-accent-ice p-4">
-<label className="block text-sm font-semibold text-accent-navy">{ar ? "صورة إيصال الدفع (اختياري)" : "Payment screenshot (optional)"}
-<input type="file" accept="image/jpeg,image/png,image/webp" disabled={submitting} className="mt-3 block w-full text-xs file:me-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold" onChange={event => {
+<label className="block text-sm font-semibold text-accent-navy">{ar ? "صورة إيصال الدفع (مطلوبة)" : "Payment screenshot (required)"}
+<input type="file" accept="image/jpeg,image/png,image/webp" required={!receipt} disabled={submitting} className="mt-3 block w-full text-xs file:me-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold" onChange={event => {
   const file = event.target.files?.[0] || null; setError("");
   if (file && (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 2 * 1024 * 1024)) {
     setError(ar ? "اختر صورة JPG أو PNG أو WebP بحجم لا يتجاوز 2 ميغابايت." : "Choose a JPG, PNG or WebP image up to 2 MB."); event.target.value = ""; setReceipt(null); return;
@@ -227,7 +227,7 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
 {receiptPreview && <><img src={receiptPreview} alt={ar ? "معاينة إيصال الدفع" : "Payment screenshot preview"} className="mt-4 max-h-64 w-full rounded-lg object-contain" /><button type="button" disabled={submitting} onClick={() => { setReceipt(null); const input = document.querySelector<HTMLInputElement>('input[type="file"]'); if (input) input.value = ""; }} className="mt-2 min-h-11 text-sm font-semibold underline">{ar ? "إزالة الصورة" : "Remove screenshot"}</button></>}
 </div>
 <p className="text-xs leading-5 text-text-secondary">{t.verification}</p>
-<button disabled={submitting} className={buttonClass + " w-full"}>{submitting && <Loader2 className="h-4 w-4 animate-spin" />}{submitting ? t.submitting : t.submit}</button>
+<button disabled={submitting || !receipt} className={buttonClass + " w-full"}>{submitting && <Loader2 className="h-4 w-4 animate-spin" />}{submitting ? t.submitting : t.submit}</button>
               </form>
               {!expired && payment.state !== "CHANGES_REQUESTED" && <button type="button" disabled={submitting} onClick={() => goToStage(1)} className="mt-4 min-h-11 text-sm font-bold text-brand-blue-deeper">{ar ? "رجوع إلى تعليمات الدفع" : "Back to payment instructions"}</button>}
             </section>}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -22,6 +23,8 @@ type BookState = {
   backCoverUrl: string;
 };
 type FormState = {
+  donorType: "INDIVIDUAL" | "ORGANISATION";
+  organizationName: string;
   fullName: string;
   phone: string;
   email: string;
@@ -33,6 +36,7 @@ type FormState = {
   notes: string;
   donationConsent: boolean;
   privacyConsent: boolean;
+  publicRecognition: boolean;
   acceptanceAcknowledged: boolean;
   website: string;
 };
@@ -48,6 +52,8 @@ const emptyBook = (): BookState => ({
 });
 
 const initialForm: FormState = {
+  donorType: "INDIVIDUAL",
+  organizationName: "",
   fullName: "",
   phone: "",
   email: "",
@@ -59,6 +65,7 @@ const initialForm: FormState = {
   notes: "",
   donationConsent: false,
   privacyConsent: false,
+  publicRecognition: false,
   acceptanceAcknowledged: false,
   website: "",
 };
@@ -82,6 +89,7 @@ const copy = {
   en: {
     formTitle: "Register a book donation", formIntro: "Estimates are fine. Required fields are marked with an asterisk.",
     steps: ["Your details", "The books", "Handover"], step: "Step", of: "of",
+    donorQuestion: "Who is making this donation?", individual: "An individual", organisation: "An organisation", organizationName: "Organisation name", contactName: "Contact person",
     fullName: "Full name", phone: "Phone / WhatsApp", email: "Email", optional: "Optional", governorate: "Governorate", chooseGovernorate: "Choose your governorate",
     area: "Area or locality", address: "Detailed pickup address", addressHint: "Required only when pickup is selected.",
     book: "Book", title: "Book title", author: "Author", category: "Category", language: "Language", condition: "Condition",
@@ -92,6 +100,7 @@ const copy = {
     handover: "Preferred handover", notes: "Notes for the team", notesHint: "Access details, preferred contact time, or anything else we should know.",
     donationConsent: "I confirm that I am donating these books free of charge and have the right to give them.",
     privacyConsent: "I agree that LEE may use these details to review and coordinate this donation.",
+    recognitionTitle: "Public recognition", recognitionYes: "You may display my name or the organisation name with these donated books.", recognitionNo: "Keep this donation anonymous.",
     acceptance: "I understand that submitting this form does not guarantee that every book will be accepted.",
     acceptanceAcknowledged: "I understand that submitting this form does not guarantee that every book will be accepted.",
     routing: "Books are reviewed and may be routed for resale, community use, or responsible recycling under the approved policy.",
@@ -103,6 +112,8 @@ const copy = {
     validation: "Please review the highlighted fields.", successTitle: "Your donation is registered", successBody: "Keep this reference. Our team will review your details and contact you to confirm the next step.", reference: "Donation reference", another: "Register another donation",
   },
   ar: {
+    donorQuestion: "\u0645\u0646 \u064a\u0642\u062f\u0651\u0645 \u0647\u0630\u0627 \u0627\u0644\u062a\u0628\u0631\u0639\u061f", individual: "\u0641\u0631\u062f", organisation: "\u0645\u0624\u0633\u0633\u0629", organizationName: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0624\u0633\u0633\u0629", contactName: "\u0627\u0644\u0634\u062e\u0635 \u0627\u0644\u0645\u0633\u0624\u0648\u0644",
+    recognitionTitle: "\u0627\u0644\u062a\u0642\u062f\u064a\u0631 \u0627\u0644\u0639\u0644\u0646\u064a", recognitionYes: "\u064a\u0645\u0643\u0646\u0643\u0645 \u0639\u0631\u0636 \u0627\u0633\u0645\u064a \u0623\u0648 \u0627\u0633\u0645 \u0627\u0644\u0645\u0624\u0633\u0633\u0629 \u0645\u0639 \u0627\u0644\u0643\u062a\u0628 \u0627\u0644\u0645\u062a\u0628\u0631\u0639 \u0628\u0647\u0627.", recognitionNo: "\u0627\u062d\u062a\u0641\u0638\u0648\u0627 \u0628\u0647\u0630\u0627 \u0627\u0644\u062a\u0628\u0631\u0639 \u0645\u062c\u0647\u0648\u0644 \u0627\u0644\u0627\u0633\u0645.",
     chooseGovernorate: "\u0627\u062e\u062a\u0631 \u0645\u062d\u0627\u0641\u0638\u062a\u0643",
     formTitle: "سجّل تبرعاً بالكتب", formIntro: "المعلومات التقديرية كافية. الحقول المطلوبة مميزة بنجمة.",
     steps: ["بياناتك", "الكتب", "التسليم"], step: "الخطوة", of: "من",
@@ -141,6 +152,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
   const labelIndex = locale === "ar" ? 1 : 0;
   const [form, setForm] = useState<FormState>(initialForm);
   const [step, setStep] = useState(0);
+  const [stepDirection, setStepDirection] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [requestError, setRequestError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -219,6 +231,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
   const getStepErrors = (currentStep: number) => {
     const nextErrors: Record<string, string> = {};
     if (currentStep === 0) {
+      if (form.donorType === "ORGANISATION" && form.organizationName.trim().length < 2) nextErrors.organizationName = t.required;
       if (form.fullName.trim().length < 2) nextErrors.fullName = t.required;
       if (form.phone.trim().length < 6) nextErrors.phone = t.required;
       if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) nextErrors.email = t.invalidEmail;
@@ -255,6 +268,7 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
   const nextStep = () => {
     setRequestError("");
     if (validateStep(step)) {
+      setStepDirection(1);
       setStep((current) => Math.min(2, current + 1));
       document.getElementById("donation-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -277,8 +291,8 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
           const fieldErrors = Object.fromEntries(Object.keys(result.fields ?? {}).map((key) => [key, t.required]));
           setErrors(fieldErrors);
           const firstField = Object.keys(fieldErrors)[0];
-          if (["fullName", "phone", "email", "governorate", "area"].includes(firstField)) setStep(0);
-          else if (firstField === "books") setStep(1);
+          if (["donorType", "organizationName", "fullName", "phone", "email", "governorate", "area"].includes(firstField)) { setStepDirection(-1); setStep(0); }
+          else if (firstField === "books") { setStepDirection(-1); setStep(1); }
           focusFirstError(fieldErrors);
           throw new Error(t.validation);
         }
@@ -347,10 +361,26 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
           <input id="website" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={(event) => update("website", event.target.value)} />
         </div>
 
+        <AnimatePresence mode="wait" initial={false} custom={stepDirection}>
+          <motion.div
+            key={step}
+            custom={stepDirection}
+            variants={{
+              enter: (direction: number) => ({ opacity: 0, x: direction > 0 ? 36 : -36 }),
+              center: { opacity: 1, x: 0 },
+              exit: (direction: number) => ({ opacity: 0, x: direction > 0 ? -36 : 36 }),
+            }}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
         {step === 0 && (
           <fieldset className="space-y-5">
             <legend className="sr-only">{t.steps[0]}</legend>
-            <div><label htmlFor="fullName" className="text-sm font-semibold text-text-primary">{t.fullName} <span className="text-red-600">*</span></label><input id="fullName" className={inputClass} value={form.fullName} onChange={(e) => update("fullName", e.target.value)} autoComplete="name" aria-invalid={!!errors.fullName} aria-describedby={describedBy("fullName")} />{errorText("fullName")}</div>
+            <fieldset><legend className="text-sm font-semibold text-text-primary">{t.donorQuestion} <span className="text-red-600">*</span></legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{(["INDIVIDUAL", "ORGANISATION"] as const).map((value) => <label key={value} className={cn("cursor-pointer rounded-sm border px-4 py-4 text-sm transition-colors", form.donorType === value ? "border-brand-blue bg-brand-blue-light font-semibold text-accent-navy" : "border-surface-tertiary hover:border-brand-blue/60")}><input type="radio" name="donorType" checked={form.donorType === value} onChange={() => update("donorType", value)} className="me-2 accent-[#5895D0]" />{value === "INDIVIDUAL" ? t.individual : t.organisation}</label>)}</div></fieldset>
+            {form.donorType === "ORGANISATION" && <div><label htmlFor="organizationName" className="text-sm font-semibold text-text-primary">{t.organizationName} <span className="text-red-600">*</span></label><input id="organizationName" className={inputClass} value={form.organizationName} onChange={(e) => update("organizationName", e.target.value)} autoComplete="organization" aria-invalid={!!errors.organizationName} aria-describedby={describedBy("organizationName")} />{errorText("organizationName")}</div>}
+            <div><label htmlFor="fullName" className="text-sm font-semibold text-text-primary">{form.donorType === "ORGANISATION" ? t.contactName : t.fullName} <span className="text-red-600">*</span></label><input id="fullName" className={inputClass} value={form.fullName} onChange={(e) => update("fullName", e.target.value)} autoComplete="name" aria-invalid={!!errors.fullName} aria-describedby={describedBy("fullName")} />{errorText("fullName")}</div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div><label htmlFor="phone" className="text-sm font-semibold text-text-primary">{t.phone} <span className="text-red-600">*</span></label><input id="phone" type="tel" className={inputClass} value={form.phone} onChange={(e) => update("phone", e.target.value)} autoComplete="tel" dir="ltr" aria-invalid={!!errors.phone} aria-describedby={describedBy("phone")} />{errorText("phone")}</div>
               <div><label htmlFor="email" className="text-sm font-semibold text-text-primary">{t.email} <span className="font-normal text-text-secondary">({t.optional})</span></label><input id="email" type="email" className={inputClass} value={form.email} onChange={(e) => update("email", e.target.value)} autoComplete="email" dir="ltr" aria-invalid={!!errors.email} aria-describedby={describedBy("email")} />{errorText("email")}</div>
@@ -386,13 +416,16 @@ export function BookDonationForm({ locale }: { locale: Locale }) {
             <fieldset><legend className="text-sm font-semibold text-text-primary">{t.handover} <span className="text-red-600">*</span></legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{HANDOVER_METHODS.map((value) => <label key={value} className={cn("cursor-pointer rounded-sm border px-4 py-4 text-sm transition-colors", form.handoverMethod === value ? "border-brand-blue bg-brand-blue-light font-semibold text-accent-navy" : "border-surface-tertiary hover:border-brand-blue/60")}><input id={value === HANDOVER_METHODS[0] ? "handoverMethod" : undefined} type="radio" name="handover" checked={form.handoverMethod === value} onChange={() => update("handoverMethod", value)} className="me-2 accent-[#5895D0]" aria-invalid={!!errors.handoverMethod} />{optionLabel("handover", value)}</label>)}</div>{errorText("handoverMethod")}</fieldset>
             {form.handoverMethod === "PICKUP" && <div><label htmlFor="detailedAddress" className="text-sm font-semibold text-text-primary">{t.address} <span className="text-red-600">*</span></label><p id="detailedAddress-hint" className="mt-1 text-sm text-text-secondary">{t.addressHint}</p><textarea id="detailedAddress" rows={3} className={inputClass} value={form.detailedAddress} onChange={(e) => update("detailedAddress", e.target.value)} autoComplete="street-address" aria-invalid={!!errors.detailedAddress} aria-describedby={describedBy("detailedAddress", true)} />{errorText("detailedAddress")}</div>}
             <div><label htmlFor="notes" className="text-sm font-semibold text-text-primary">{t.notes} <span className="font-normal text-text-secondary">({t.optional})</span></label><p id="notes-hint" className="mt-1 text-sm text-text-secondary">{t.notesHint}</p><textarea id="notes" rows={4} maxLength={2000} className={inputClass} value={form.notes} onChange={(e) => update("notes", e.target.value)} aria-describedby="notes-hint" /></div>
+            <fieldset><legend className="text-sm font-semibold text-text-primary">{t.recognitionTitle}</legend><div className="mt-3 grid gap-2">{([true, false] as const).map((value) => <label key={String(value)} className={cn("cursor-pointer rounded-sm border px-4 py-3 text-sm transition-colors", form.publicRecognition === value ? "border-brand-blue bg-brand-blue-light text-accent-navy" : "border-surface-tertiary hover:border-brand-blue/60")}><input type="radio" name="publicRecognition" checked={form.publicRecognition === value} onChange={() => update("publicRecognition", value)} className="me-2 accent-[#5895D0]" />{value ? t.recognitionYes : t.recognitionNo}</label>)}</div></fieldset>
             <div className="rounded-xl bg-brand-blue-light p-5"><p className="text-sm leading-6 text-accent-navy">{t.routing}</p><div className="mt-5 space-y-4">{(["donationConsent", "privacyConsent", "acceptanceAcknowledged"] as const).map((key) => <div key={key}><label className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-text-primary"><input id={key} type="checkbox" checked={form[key]} onChange={(e) => update(key, e.target.checked)} className="mt-1 size-4 shrink-0 accent-[#5895D0]" aria-invalid={!!errors[key]} aria-describedby={errors[key] ? `${key}-error` : undefined} /><span>{t[key]} <span className="text-red-600">*</span></span></label>{errorText(key)}</div>)}</div></div>
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
 
         <div className="mt-8 min-h-6" aria-live="assertive">{requestError && <p role="alert" className="rounded-sm bg-red-50 px-4 py-3 text-sm text-red-700">{requestError}</p>}</div>
         <div className="mt-4 flex items-center justify-between border-t border-surface-secondary pt-6">
-          {step > 0 ? <button type="button" onClick={() => { setErrors({}); setRequestError(""); setStep((current) => current - 1); }} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-text-secondary hover:text-accent-navy"><ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />{t.back}</button> : <span />}
+          {step > 0 ? <button type="button" onClick={() => { setErrors({}); setRequestError(""); setStepDirection(-1); setStep((current) => current - 1); }} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-text-secondary hover:text-accent-navy"><ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />{t.back}</button> : <span />}
           {step < 2 ? <button type="button" onClick={nextStep} disabled={!canContinue} className={cn("inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold", canContinue ? "bg-brand-blue-dark text-white hover:bg-brand-blue-deeper" : "cursor-not-allowed bg-surface-secondary text-text-muted")}>{t.next}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" /></button> : <button type="submit" disabled={submitting || !canContinue} className={cn("inline-flex items-center gap-2 rounded-sm px-6 py-3 text-sm font-semibold", canContinue && !submitting ? "bg-brand-blue-dark text-white hover:bg-brand-blue-deeper" : "cursor-not-allowed bg-surface-secondary text-text-muted")}>{submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}{submitting ? t.submitting : t.submit}</button>}
         </div>
       </form>

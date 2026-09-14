@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
             OR: [
               { reference: { contains: search, mode: "insensitive" as const } },
               { fullName: { contains: search, mode: "insensitive" as const } },
+              { organizationName: { contains: search, mode: "insensitive" as const } },
               { phone: { contains: search, mode: "insensitive" as const } },
               { email: { contains: search, mode: "insensitive" as const } },
               { area: { contains: search, mode: "insensitive" as const } },
@@ -39,6 +40,10 @@ export async function GET(request: NextRequest) {
           id: true,
           reference: true,
           fullName: true,
+          donorType: true,
+          organizationName: true,
+          publicRecognition: true,
+          donor: { select: { id: true, displayName: true, logoUrl: true, logoApproved: true } },
           governorate: true,
           estimatedQuantity: true,
           handoverMethod: true,

@@ -39,6 +39,7 @@ export const BOOK_CATEGORIES = [
 export const BOOK_LANGUAGES = ["ARABIC", "ENGLISH", "FRENCH", "OTHER"] as const;
 export const BOOK_CONDITIONS = ["EXCELLENT", "GOOD", "ACCEPTABLE"] as const;
 export const HANDOVER_METHODS = ["DROP_OFF", "PICKUP"] as const;
+export const BOOK_DONOR_TYPES = ["INDIVIDUAL", "ORGANISATION"] as const;
 export const BOOK_DONATION_STATUSES = [
   "NEW",
   "NEEDS_FOLLOW_UP",
@@ -82,6 +83,8 @@ export type DonatedBookInput = z.infer<typeof donatedBookSchema>;
 
 export const bookDonationSchema = z
   .object({
+    donorType: z.enum(BOOK_DONOR_TYPES).default("INDIVIDUAL"),
+    organizationName: optionalText(160),
     fullName: z.string().trim().min(2).max(120),
     phone: z.string().trim().min(6).max(40),
     email: z.string().trim().email().max(200).optional().or(z.literal("")),
@@ -94,16 +97,37 @@ export const bookDonationSchema = z
     locale: z.enum(["en", "ar"]),
     donationConsent: z.literal(true),
     privacyConsent: z.literal(true),
+    publicRecognition: z.boolean().default(false),
     acceptanceAcknowledged: z.literal(true),
     website: z.string().max(0).optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.donorType === "ORGANISATION" && !data.organizationName?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["organizationName"], message: "The organisation name is required." });
+    }
     if (data.handoverMethod === "PICKUP" && !data.detailedAddress?.trim()) {
       ctx.addIssue({ code: "custom", path: ["detailedAddress"], message: "A detailed address is required for pickup." });
     }
   });
 
 export type BookDonationInput = z.infer<typeof bookDonationSchema>;
+
+export const bookDonorAdminSchema = z.object({
+  type: z.enum(BOOK_DONOR_TYPES),
+  displayName: optionalText(160),
+  contactName: optionalText(120),
+  phone: optionalText(40),
+  email: z.string().trim().email().max(200).optional().or(z.literal("")),
+  logoUrl: z.string().trim().url().max(2_000).optional().or(z.literal("")),
+  logoApproved: z.boolean().default(false),
+  publicRecognition: z.boolean().default(false),
+  active: z.boolean().default(true),
+  adminNotes: optionalText(5_000),
+}).strict().superRefine((data, ctx) => {
+  if (data.type === "INDIVIDUAL" && data.logoUrl) {
+    ctx.addIssue({ code: "custom", path: ["logoUrl"], message: "Logos are only available for organisations." });
+  }
+});
 
 export function consentTextVersion(locale: "en" | "ar") {
   return `book-donation-v2-2026-09-07-${locale}`;

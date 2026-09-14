@@ -12,6 +12,8 @@ type Status = (typeof BOOK_DONATION_STATUSES)[number];
 interface DonationBook { title: string; author?: string; category: string; language: string; condition: string; frontCoverUrl: string; backCoverUrl: string; }
 interface Donation {
   id: string; reference: string; fullName: string; phone: string; email: string | null;
+  donorType: "INDIVIDUAL" | "ORGANISATION"; organizationName: string | null; publicRecognition: boolean;
+  donor: { id: string; displayName: string; logoUrl: string | null; logoApproved: boolean } | null;
   governorate: string; area: string; detailedAddress: string | null; estimatedQuantity: string;
   bookCategories: string[]; otherCategory: string | null; bookLanguages: string[]; overallCondition: string;
   handoverMethod: string; photoUrls: string[]; notes: string | null; locale: string;
@@ -69,7 +71,8 @@ export default function BookDonationDetailPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-6">
           <section className="rounded-xl bg-[#1e293b] p-6"><h2 className="mb-5 text-base font-semibold text-white">Donor and location</h2><dl className="grid gap-5 sm:grid-cols-2">
-            <Detail label="Full name" dir={textDirection}>{donation.fullName}</Detail><Detail label="Preferred language">{donation.locale === "ar" ? "Arabic" : "English"}</Detail>
+            <Detail label="Donor type">{donation.donorType === "ORGANISATION" ? "Organisation" : "Individual"}</Detail><Detail label="Preferred language">{donation.locale === "ar" ? "Arabic" : "English"}</Detail>
+            {donation.organizationName && <Detail label="Organisation" dir={textDirection}>{donation.organizationName}</Detail>}<Detail label={donation.organizationName ? "Contact person" : "Full name"} dir={textDirection}>{donation.fullName}</Detail>
             <Detail label="Phone / WhatsApp"><a href={`tel:${donation.phone}`} className="inline-flex items-center gap-2 text-brand-blue hover:underline"><Phone size={14} />{donation.phone}</a></Detail>
             <Detail label="Email">{donation.email ? <a href={`mailto:${donation.email}`} className="inline-flex items-center gap-2 text-brand-blue hover:underline"><Mail size={14} />{donation.email}</a> : "—"}</Detail>
             <Detail label="Governorate">{humanize(donation.governorate)}</Detail><Detail label="Area" dir={textDirection}>{donation.area}</Detail>
@@ -85,6 +88,7 @@ export default function BookDonationDetailPage() {
           {individualBooks.length > 0 && <section className="rounded-xl bg-[#1e293b] p-6"><h2 className="mb-5 text-base font-semibold text-white">Individual books</h2><div className="space-y-5">{individualBooks.map((book, index) => <article key={`${book.title}-${index}`} className="rounded-xl border border-gray-700 bg-[#0f172a] p-4"><div className="mb-4"><p className="text-xs font-semibold uppercase tracking-wide text-brand-blue">Book {index + 1}</p><h3 className="mt-1 text-lg font-semibold text-white" dir={textDirection}>{book.title}</h3>{book.author && <p className="mt-1 text-sm text-gray-400" dir={textDirection}>by {book.author}</p>}</div><dl className="mb-4 grid gap-4 sm:grid-cols-3"><Detail label="Category">{humanize(book.category)}</Detail><Detail label="Language">{humanize(book.language)}</Detail><Detail label="Condition">{humanize(book.condition)}</Detail></dl><div className="grid gap-4 sm:grid-cols-2">{[["Front cover", book.frontCoverUrl], ["Back cover", book.backCoverUrl]].map(([label, url]) => <a key={label} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border border-gray-700 bg-[#1e293b]"><img src={url} alt={`${label} of ${book.title}`} className="aspect-[4/3] w-full object-contain" /><span className="block border-t border-gray-700 px-3 py-2 text-xs font-semibold text-gray-300">{label}</span></a>)}</div></article>)}</div></section>}
           <section className="rounded-xl bg-[#1e293b] p-6"><h2 className="mb-5 text-base font-semibold text-white">Consent record</h2><dl className="grid gap-5 sm:grid-cols-2">
             <Detail label="Free donation confirmed">{donation.donationConsent ? "Yes" : "No"}</Detail><Detail label="Privacy acknowledged">{donation.privacyConsent ? "Yes" : "No"}</Detail>
+            <Detail label="Public recognition">{donation.publicRecognition ? "Name may be displayed" : "Anonymous"}</Detail>
             <Detail label="Acceptance acknowledged">{donation.acceptanceAcknowledged ? "Yes" : "No"}</Detail><Detail label="Consent version"><span className="break-all text-xs">{donation.consentTextVersion}</span></Detail>
           </dl></section>
         </div>

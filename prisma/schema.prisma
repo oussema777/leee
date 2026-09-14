@@ -501,6 +501,9 @@ model BookInventoryItem {
   internalNotes    String?                 @db.Text
   sourceDonationId String?
   sourceDonation   BookDonationSubmission? @relation(fields: [sourceDonationId], references: [id], onDelete: SetNull)
+  donorId          String?
+  donor            BookDonor?              @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  editions         BookInventoryEdition[]
   orderItems       BookOrderItem[]
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
@@ -508,6 +511,23 @@ model BookInventoryItem {
   @@index([status, isPublished, updatedAt])
   @@index([category, language])
   @@index([sourceDonationId])
+  @@index([donorId])
+}
+
+model BookInventoryEdition {
+  id              String            @id @default(cuid())
+  inventoryItemId String
+  inventoryItem   BookInventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  label           String?
+  publicationYear Int?
+  stockQuantity   Int               @default(1)
+  coverImageUrl   String?
+  active          Boolean           @default(true)
+  orderItems      BookOrderItem[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([inventoryItemId, active])
 }
 
 enum BookOrderPackage {
@@ -559,16 +579,16 @@ enum BookOrderStatus {
 }
 
 model BookOrder {
-  id                 String                  @id @default(cuid())
-  reference          String                  @unique
+  id                 String                @id @default(cuid())
+  reference          String                @unique
   locale             String
   package            BookOrderPackage
   purpose            BookOrderPurpose
-  selectionMode      BookSelectionMode       @default(CUSTOM)
+  selectionMode      BookSelectionMode     @default(CUSTOM)
   requestedBookCount Int
   priceCents         Int
-  deliveryFeeCents   Int                     @default(0)
-  currency           BookCurrency            @default(USD)
+  deliveryFeeCents   Int                   @default(0)
+  currency           BookCurrency          @default(USD)
   customerName       String
   customerPhone      String
   customerEmail      String?
@@ -578,26 +598,25 @@ model BookOrder {
   detailedAddress    String?
   recipientName      String?
   recipientPhone     String?
-  giftMessage        String?                 @db.Text
-  showSenderName     Boolean                 @default(true)
+  giftMessage        String?               @db.Text
+  showSenderName     Boolean               @default(true)
   paymentMethod      BookPaymentMethod
-  paymentStatus      BookPaymentStatus       @default(PENDING)
-  status             BookOrderStatus         @default(NEW)
-  termsAccepted      Boolean                 @default(false)
-  consentTextVersion String                  @default("book-order-v1")
-  isRead             Boolean                 @default(false)
-  adminNotes         String?                 @db.Text
+  paymentStatus      BookPaymentStatus     @default(PENDING)
+  status             BookOrderStatus       @default(NEW)
+  termsAccepted      Boolean               @default(false)
+  consentTextVersion String                @default("book-order-v1")
+  isRead             Boolean               @default(false)
+  adminNotes         String?               @db.Text
   reviewedAt         DateTime?
   items              BookOrderItem[]
   whishPayment       BookWhishPayment?
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
 
   @@index([status, createdAt])
   @@index([paymentStatus, createdAt])
   @@index([createdAt])
 }
-
 
 model BookWhishSettings {
   id        String   @id @default("book-restore")
@@ -642,7 +661,7 @@ model BookWhishPayment {
 model BookWhishEvent {
   id        String           @id @default(cuid())
   paymentId String
-  payment   BookWhishPayment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  payment   BookWhishPayment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
   action    String
   actor     String
   details   Json
@@ -652,16 +671,19 @@ model BookWhishEvent {
 }
 
 model BookOrderItem {
-  id              String            @id @default(cuid())
+  id              String                @id @default(cuid())
   orderId         String
-  order           BookOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order           BookOrder             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   inventoryItemId String
-  inventoryItem   BookInventoryItem @relation(fields: [inventoryItemId], references: [id])
-  isFreeExtra     Boolean           @default(false)
-  createdAt       DateTime          @default(now())
+  inventoryItem   BookInventoryItem     @relation(fields: [inventoryItemId], references: [id])
+  editionId       String?
+  edition         BookInventoryEdition? @relation(fields: [editionId], references: [id], onDelete: Restrict)
+  isFreeExtra     Boolean               @default(false)
+  createdAt       DateTime              @default(now())
 
   @@unique([orderId, inventoryItemId])
   @@index([inventoryItemId])
+  @@index([editionId])
 }
 
 // ─────────────────────────────────────────
@@ -823,9 +845,42 @@ enum BookDonationStatus {
   CLOSED
 }
 
+enum BookDonorType {
+  INDIVIDUAL
+  ORGANISATION
+}
+
+model BookDonor {
+  id                String                   @id @default(cuid())
+  type              BookDonorType            @default(INDIVIDUAL)
+  displayName       String
+  contactName       String?
+  phone             String
+  email             String?
+  logoUrl           String?
+  logoApproved      Boolean                  @default(false)
+  publicRecognition Boolean                  @default(false)
+  active            Boolean                  @default(true)
+  adminNotes        String?                  @db.Text
+  donations         BookDonationSubmission[]
+  inventoryItems    BookInventoryItem[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([displayName])
+  @@index([phone])
+  @@index([email])
+  @@index([type, active])
+}
+
 model BookDonationSubmission {
   id                     String              @id @default(cuid())
   reference              String              @unique
+  donorId                String?
+  donor                  BookDonor?          @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donorType              BookDonorType       @default(INDIVIDUAL)
+  organizationName       String?
+  publicRecognition      Boolean             @default(false)
   fullName               String
   phone                  String
   email                  String?
@@ -856,6 +911,7 @@ model BookDonationSubmission {
 
   @@index([status, createdAt])
   @@index([createdAt])
+  @@index([donorId])
 }
 
 // ─────────────────────────────────────────

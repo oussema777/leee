@@ -32,7 +32,16 @@ const validSubmission = {
 
 describe("bookDonationSchema", () => {
   it("accepts a valid English drop-off submission", () => {
-    expect(bookDonationSchema.safeParse(validSubmission).success).toBe(true);
+    const result = bookDonationSchema.safeParse(validSubmission);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toMatchObject({ donorType: "INDIVIDUAL", publicRecognition: false });
+  });
+
+  it("accepts an organisation and requires its name", () => {
+    expect(bookDonationSchema.safeParse({ ...validSubmission, donorType: "ORGANISATION", organizationName: "LEE Foundation", publicRecognition: true }).success).toBe(true);
+    const missingName = bookDonationSchema.safeParse({ ...validSubmission, donorType: "ORGANISATION" });
+    expect(missingName.success).toBe(false);
+    if (!missingName.success) expect(missingName.error.flatten().fieldErrors.organizationName).toBeDefined();
   });
 
   it("accepts Arabic donor content", () => {

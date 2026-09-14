@@ -58,6 +58,12 @@ describe("private payment screenshots", () => {
     expect((await POST(await report(), context)).status).toBe(404);
     expect(mocks.save).not.toHaveBeenCalled();
   });
+  it("requires a screenshot even when the reference is omitted", async () => {
+    const form = new FormData(); form.set("transactionReference", ""); form.set("senderPhone", "70123456");
+    const request = new NextRequest("http://localhost/api/public/book-orders/LEE-BK-TEST/payment", { method: "POST", body: form });
+    expect((await POST(request, context)).status).toBe(400);
+    expect(mocks.save).not.toHaveBeenCalled();
+  });
   it("attaches private proof to the audit event without confirming payment", async () => {
     const response = await POST(await report(), context);
     expect(response.status).toBe(200);

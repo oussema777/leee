@@ -7,6 +7,7 @@ const base = {
   purpose: "SELF",
   selectionMode: "CUSTOM",
   selectedBookIds: ["book-1"],
+  selectedEditions: [{ bookId: "book-1", editionId: "edition-1" }],
   customerName: "Maya Haddad",
   customerPhone: "+961 70 123 456",
   customerEmail: "maya@example.com",
@@ -32,6 +33,7 @@ describe("bookOrderSchema", () => {
       package: "TWENTY_PLUS_TWO",
       purpose: "DONATION",
       selectionMode: "LEE_CHOICE",
+      selectedEditions: [],
       fulfillmentMethod: "LEE_DISTRIBUTION",
       paymentMethod: "CASH_ARRANGEMENT",
     });

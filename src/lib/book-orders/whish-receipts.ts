@@ -8,7 +8,7 @@ export class ReceiptError extends Error {}
 function storage() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new ReceiptError("Screenshot storage is unavailable. Remove the screenshot to submit your transaction details, or try again later.");
+  if (!url || !key) throw new ReceiptError("Screenshot storage is unavailable. Please try again later or contact LEE.");
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }).storage;
 }
 export async function receiptForm(request: Request) {
@@ -44,12 +44,12 @@ export async function saveWhishReceipt(paymentId: string, image: Buffer) {
     const created = await client.createBucket(BUCKET, { public: false, fileSizeLimit: MAX_RECEIPT_BYTES, allowedMimeTypes: ["image/webp"] });
     if (created.error) {
       const retry = await client.getBucket(BUCKET);
-      if (retry.error || retry.data.public) throw new ReceiptError("Could not store the screenshot privately. Remove it to submit your transaction details, or try again.");
+      if (retry.error || retry.data.public) throw new ReceiptError("Could not store the screenshot privately. Please try again or contact LEE.");
     }
-  } else if (bucket.data.public) throw new ReceiptError("Private screenshot storage is unavailable. Remove the screenshot and submit your transaction details.");
+  } else if (bucket.data.public) throw new ReceiptError("Private screenshot storage is unavailable. Please contact LEE.");
   const path = paymentId + "/" + randomUUID() + ".webp";
   const uploaded = await client.from(BUCKET).upload(path, image, { contentType: "image/webp", upsert: false });
-  if (uploaded.error) throw new ReceiptError("Screenshot upload failed. Try again, or remove it to submit your transaction details.");
+  if (uploaded.error) throw new ReceiptError("Screenshot upload failed. Please try again or contact LEE.");
   return path;
 }
 export async function removeWhishReceipt(path: string) {

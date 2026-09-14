@@ -58,6 +58,7 @@ const navGroups: NavGroup[] = [
       { label: "Sliders", href: "/admin/sliders", icon: Layers },
       { label: "Programs", href: "/admin/programs", icon: Briefcase },
       { label: "Book Inventory", href: "/admin/book-inventory", icon: BookOpen },
+      { label: "Book Donors", href: "/admin/book-donors", icon: BookHeart },
       { label: "Events", href: "/admin/events", icon: Calendar },
       { label: "Blog Posts", href: "/admin/blog", icon: FileText },
       { label: "Gallery", href: "/admin/gallery", icon: Image },

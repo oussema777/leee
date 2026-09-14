@@ -216,6 +216,9 @@ function localAuthor(book: CatalogueBook, isArabic: boolean) {
 function prettyValue(value: string) {
     return value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
+function defaultEditionSelections(books: CatalogueBook[]) {
+    return Object.fromEntries(books.filter((item) => item.editions.length === 1).map((item) => [item.id, item.editions[0].id]));
+}
 function Field({ label, required, children }: {
     label: string;
     required?: boolean;
@@ -242,6 +245,7 @@ export function BookDetailExperience({ book, books, locale }: {
     const [purpose, setPurpose] = useState<Purpose | null>(null);
     const [selectionMode, setSelectionMode] = useState<SelectionMode>("CUSTOM");
     const [selectedIds, setSelectedIds] = useState<string[]>([book.id]);
+    const [selectedEditionIds, setSelectedEditionIds] = useState<Record<string, string>>(() => defaultEditionSelections(books));
     const [query, setQuery] = useState("");
     const [fulfillment, setFulfillment] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
     const [consent, setConsent] = useState(false);
@@ -292,7 +296,7 @@ export function BookDetailExperience({ book, books, locale }: {
         return books.filter((item) => {
             if (item.status !== "AVAILABLE" || item.stockQuantity < 1)
                 return false;
-            return !normalized || [item.title, item.titleAr, item.author, item.authorAr].filter(Boolean).join(" ").toLocaleLowerCase(locale).includes(normalized);
+            return !normalized || [item.title, item.titleAr, item.author, item.authorAr, ...item.editions.map((edition) => edition.label)].filter(Boolean).join(" ").toLocaleLowerCase(locale).includes(normalized);
         });
     }, [books, locale, query]);
     function resetAndOpen() {
@@ -303,6 +307,7 @@ export function BookDetailExperience({ book, books, locale }: {
         setPurpose(null);
         setSelectionMode("CUSTOM");
         setSelectedIds([book.id]);
+        setSelectedEditionIds(defaultEditionSelections(books));
         setError("");
         setReference("");
         setOpen(true);
@@ -331,15 +336,19 @@ export function BookDetailExperience({ book, books, locale }: {
     async function submitOrder(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!packageKey || !purpose || !consent || submitLock.current) return;
+        const isLeeChoice = purpose === "DONATION" && selectionMode === "LEE_CHOICE";
+        if (!isLeeChoice && selectedBooks.some((item) => !selectedEditionIds[item.id])) {
+            setError(isArabic ? "اختر طبعة لكل كتاب." : "Choose an edition for every book."); return;
+        }
         submitLock.current = true;
         setSubmitting(true); setError("");
         const data = new FormData(event.currentTarget);
         try {
-            const isLeeChoice = purpose === "DONATION" && selectionMode === "LEE_CHOICE";
             const payload: Record<string, unknown> = {
                 locale: isArabic ? "ar" : "en", package: packageKey, purpose,
                 selectionMode: isLeeChoice ? "LEE_CHOICE" : "CUSTOM",
                 selectedBookIds: isLeeChoice ? selectedIds.slice(0, 1) : selectedIds,
+                selectedEditions: isLeeChoice ? [] : selectedIds.map((bookId) => ({ bookId, editionId: selectedEditionIds[bookId] })),
                 customerName: data.get("customerName"), customerPhone: data.get("customerPhone"),
                 customerEmail: data.get("customerEmail"),
                 fulfillmentMethod: purpose === "DONATION" ? "LEE_DISTRIBUTION" : purpose === "GIFT" ? "DELIVERY" : fulfillment,
@@ -400,6 +409,8 @@ export function BookDetailExperience({ book, books, locale }: {
 </div>
               <h1 className="max-w-3xl font-serif text-4xl leading-tight sm:text-5xl lg:text-6xl">{title}</h1>
               <p className="mt-4 text-lg text-white/65">{t.by} {author}</p>
+              {book.donor && <div className="mt-4 flex items-center gap-3 text-sm text-white/70">{book.donor.publicRecognition && book.donor.type === "ORGANISATION" && book.donor.logoApproved && book.donor.logoUrl && <Image unoptimized src={book.donor.logoUrl} alt="" width={36} height={36} className="size-9 rounded-lg bg-white object-contain p-1" />}<span>{isArabic ? "\u0645\u062a\u0628\u0631\u0639 \u0628\u0647 \u0645\u0646" : "Donated by"} <strong className="text-white">{book.donor.publicRecognition ? book.donor.displayName : (isArabic ? "\u062f\u0627\u0639\u0645 \u0645\u0646 \u0627\u0644\u0645\u062c\u062a\u0645\u0639" : "a community supporter")}</strong></span></div>}
+              {book.editions.length > 1 && <p className="mt-2 text-sm font-semibold text-brand-blue-light">{book.editions.length} {isArabic ? "طبعات متاحة — اختر طبعتك عند الطلب" : "editions available — choose yours when ordering"}</p>}
               {description && <p className="mt-7 max-w-2xl text-base leading-8 text-white/75">{description}</p>}
               <div className="mt-8 grid max-w-xl grid-cols-3 border-y border-white/15 py-5 text-sm">
 <div>
@@ -535,7 +546,7 @@ export function BookDetailExperience({ book, books, locale }: {
 <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-secondary">{item.coverImageUrl ? <Image unoptimized src={item.coverImageUrl} alt="" fill sizes="64px" className="object-cover"/> : <BookOpen className="absolute inset-0 m-auto h-5 w-5 text-accent-navy/30"/>}</div>
 <div className="min-w-0">
 <strong className="line-clamp-2 font-serif text-base text-accent-navy">{localTitle(item, isArabic)}</strong>
-<span className="mt-1 block truncate text-xs text-text-muted">{localAuthor(item, isArabic)}</span>
+<span className="mt-1 block truncate text-xs text-text-muted">{localAuthor(item, isArabic)}{item.editions.length > 1 ? ` · ${item.editions.length} ${isArabic ? "طبعات" : "editions"}` : ""}</span>
 <span className={`mt-3 inline-flex items-center gap-1 text-xs font-bold ${active ? "text-red-600" : "text-brand-blue-deeper"}`}>{active ? <>
 <X className="h-3 w-3"/>{t.remove}</> : <>
 <Check className="h-3 w-3"/>{t.add}</>}</span>
@@ -552,6 +563,14 @@ export function BookDetailExperience({ book, books, locale }: {
 <p className="mt-2 text-sm text-text-secondary">{t.checkoutIntro}</p>
 <form onSubmit={submitOrder} onChange={event => { const form = event.currentTarget; const entries = new FormData(form); checkoutDraft.current = Object.fromEntries(Array.from(entries.entries(), ([key, value]) => [key, String(value)])); if (form.querySelector('[name="showSenderName"]')) checkoutDraft.current.showSenderName = entries.has("showSenderName") ? "on" : "off"; }} className="mt-7 grid gap-6 lg:grid-cols-[1fr_320px]">
 <div className="space-y-6">
+{selectionMode === "CUSTOM" && selectedBooks.length > 0 && <section className="rounded-2xl bg-white p-5">
+<h3 className="font-serif text-xl text-accent-navy">{isArabic ? "اختر الطبعة" : "Choose editions"}</h3>
+<p className="mt-2 text-xs leading-5 text-text-secondary">{isArabic ? "اختر الطبعة المطلوبة لكل كتاب. إذا توفرت طبعة واحدة فقط فسيتم اختيارها تلقائياً." : "Choose the edition wanted for each book. A single available edition is selected automatically."}</p>
+<div className="mt-5 space-y-4">{selectedBooks.map((item) => <label key={item.id} className="block text-sm font-semibold text-accent-navy"><span>{localTitle(item, isArabic)}</span>
+<select value={selectedEditionIds[item.id] || ""} required onChange={(event) => setSelectedEditionIds((current) => ({ ...current, [item.id]: event.target.value }))} className={fieldClass}>
+<option value="" disabled>{isArabic ? "اختر الطبعة" : "Select edition"}</option>{item.editions.map((edition) => <option key={edition.id} value={edition.id}>{edition.label || (isArabic ? "الطبعة القياسية" : "Standard edition")}{edition.publicationYear ? ` (${edition.publicationYear})` : ""} · {edition.stockQuantity} {isArabic ? "متوفر" : "available"}</option>)}</select>
+</label>)}</div>
+</section>}
 <section className="rounded-2xl bg-white p-5">
 <h3 className="font-serif text-xl text-accent-navy">{t.customerDetails}</h3>
 <div className="mt-5 grid gap-4 sm:grid-cols-2">

@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
               { title: { contains: search, mode: 'insensitive' } },
               { titleAr: { contains: search, mode: 'insensitive' } },
               { author: { contains: search, mode: 'insensitive' } },
+              { editions: { some: { label: { contains: search, mode: 'insensitive' } } } },
               { isbn: { contains: search, mode: 'insensitive' } },
               { customCategory: { contains: search, mode: 'insensitive' } },
               { categories: { has: normalizeBookCategory(search) } },
@@ -67,7 +68,8 @@ export async function GET(request: NextRequest) {
           id: true, sku: true, slug: true, title: true, titleAr: true, author: true,
           category: true, customCategory: true, categories: true, language: true, condition: true, priceCents: true, currency: true,
           stockQuantity: true, coverImageUrl: true, status: true, isPublished: true,
-          sourceDonation: { select: { reference: true } }, updatedAt: true,
+          editions: { where: { active: true }, select: { id: true, label: true, publicationYear: true, stockQuantity: true, coverImageUrl: true } },
+          sourceDonation: { select: { reference: true } }, donor: { select: { id: true, displayName: true, type: true, logoUrl: true, logoApproved: true } }, updatedAt: true,
         },
       }),
       db.bookInventoryItem.count({ where }),
@@ -93,29 +95,28 @@ export async function POST(request: NextRequest) {
 
     const input = parsed.data;
     const sku = input.sku || createInventorySku();
-    const { sku: _ignored, sourceDonationId, ...rest } = input;
+    const { sku: _ignored, sourceDonationId, donorId, editions, ...rest } = input;
 
     const duplicate = await db.bookInventoryItem.findFirst({
-      where: input.isbn
-        ? {
-            OR: [
-              { title: { equals: input.title, mode: 'insensitive' } },
-              { isbn: { equals: input.isbn, mode: 'insensitive' } },
-            ],
-          }
-        : { title: { equals: input.title, mode: 'insensitive' } },
+      where: input.isbn ? { OR: [{ title: { equals: input.title, mode: 'insensitive' } }, { isbn: { equals: input.isbn, mode: 'insensitive' } }] } : { title: { equals: input.title, mode: 'insensitive' } },
       select: { id: true },
     });
     if (duplicate) {
-      return errorResponse('Book already exists. A book with the same title or ISBN is already in inventory.', 409);
+      return errorResponse('This book title or ISBN is already in inventory. Add another edition to the existing book instead.', 409);
     }
 
+    let resolvedDonorId = donorId || null;
     if (sourceDonationId) {
       const donation = await db.bookDonationSubmission.findUnique({
         where: { id: sourceDonationId },
-        select: { id: true },
+        select: { id: true, donorId: true },
       });
       if (!donation) return errorResponse('Source donation not found', 400);
+      resolvedDonorId ||= donation.donorId;
+    }
+    if (donorId) {
+      const donor = await db.bookDonor.findFirst({ where: { id: donorId, active: true }, select: { id: true } });
+      if (!donor) return errorResponse('Donor not found or inactive', 400);
     }
 
     const item = await db.bookInventoryItem.create({
@@ -124,8 +125,11 @@ export async function POST(request: NextRequest) {
         sku,
         slug: createInventorySlug(input.title, sku),
         sourceDonationId: sourceDonationId || null,
+        donorId: resolvedDonorId,
         publishedAt: input.isPublished ? new Date() : null,
+        editions: { create: editions.map(({ id: _id, ...edition }) => ({ ...edition, active: true })) },
       },
+      include: { editions: { where: { active: true } } },
     });
     return NextResponse.json(item, { status: 201 });
   } catch (error: any) {

@@ -19,6 +19,7 @@ export const bookOrderSchema = z.object({
   purpose: z.enum(BOOK_ORDER_PURPOSES),
   selectionMode: z.enum(BOOK_SELECTION_MODES),
   selectedBookIds: z.array(z.string().min(1)).max(22),
+  selectedEditions: z.array(z.object({ bookId: z.string().min(1), editionId: z.string().min(1) })).max(22),
   customerName: z.string().trim().min(2, "Enter your name").max(120),
   customerPhone: phone,
   customerEmail: z.preprocess(
@@ -51,6 +52,16 @@ export const bookOrderSchema = z.object({
   }
   if (value.selectionMode === "CUSTOM" && value.selectedBookIds.length !== packageDetails.totalBooks) {
     context.addIssue({ code: "custom", path: ["selectedBookIds"], message: `Choose exactly ${packageDetails.totalBooks} books for this package` });
+  }
+  if (value.selectionMode === "CUSTOM") {
+    const editionBookIds = value.selectedEditions.map((selection) => selection.bookId);
+    if (new Set(editionBookIds).size !== editionBookIds.length || editionBookIds.length !== value.selectedBookIds.length ||
+        value.selectedBookIds.some((id) => !editionBookIds.includes(id))) {
+      context.addIssue({ code: "custom", path: ["selectedEditions"], message: "Choose one edition for every selected book" });
+    }
+  }
+  if (value.selectionMode === "LEE_CHOICE" && value.selectedEditions.length) {
+    context.addIssue({ code: "custom", path: ["selectedEditions"], message: "LEE will choose editions for curated orders" });
   }
   if (value.selectionMode === "LEE_CHOICE" && value.purpose !== "DONATION") {
     context.addIssue({ code: "custom", path: ["selectionMode"], message: "LEE Choice is only available for donations" });

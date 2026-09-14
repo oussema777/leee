@@ -6,7 +6,7 @@ export type PaymentSummary = {
   customerNote: string | null; submittedReference: string | null; supportPhone: string;
   instructions: WhishSnapshot | null;
   selectionMode?: string;
-  books?: { id: string; title: string; titleAr: string | null; author: string | null; authorAr: string | null; coverImageUrl: string | null; isFreeExtra: boolean }[];
+  books?: { id: string; title: string; titleAr: string | null; author: string | null; authorAr: string | null; editionLabel: string | null; editionYear: number | null; coverImageUrl: string | null; isFreeExtra: boolean }[];
 };
 export type AdminWhishPayment = {
   id: string; state: WhishState; updatedAt: string; expiresAt: string;

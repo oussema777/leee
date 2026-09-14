@@ -29,6 +29,8 @@ const bookSelect = {
   stockQuantity: true,
   coverImageUrl: true,
   status: true,
+  donor: { select: { displayName: true, type: true, logoUrl: true, logoApproved: true, publicRecognition: true } },
+  editions: { where: { active: true, stockQuantity: { gt: 0 } }, orderBy: { createdAt: "asc" }, select: { id: true, label: true, publicationYear: true, stockQuantity: true, coverImageUrl: true } },
 } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {

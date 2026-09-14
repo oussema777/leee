@@ -43,6 +43,13 @@ export const bookInventorySchema = z
     descriptionAr: optionalText(4_000),
     isbn: optionalText(40),
     publisher: optionalText(160),
+    editions: z.array(z.object({
+      id: optionalText(100),
+      label: optionalText(100),
+      publicationYear: optionalNumber(2_100),
+      stockQuantity: z.coerce.number().int().min(0).max(10_000),
+      coverImageUrl: optionalUrl,
+    })).min(1, 'Add at least one edition.').max(50),
     publicationYear: optionalNumber(2_100),
     category: z.enum(BOOK_CATEGORIES).optional(),
     customCategory: optionalText(80),
@@ -61,8 +68,20 @@ export const bookInventorySchema = z
     isPublished: z.boolean(),
     internalNotes: optionalText(5_000),
     sourceDonationId: optionalText(100),
+    donorId: optionalText(100),
   })
   .superRefine((value, context) => {
+    const editionKeys = value.editions.map((edition) => (edition.label || '').toLocaleLowerCase());
+    if (value.editions.length > 1 && value.editions.some((edition) => !edition.label)) {
+      context.addIssue({ code: 'custom', path: ['editions'], message: 'Name every edition when a book has more than one.' });
+    }
+    if (new Set(editionKeys).size !== editionKeys.length) {
+      context.addIssue({ code: 'custom', path: ['editions'], message: 'Edition names must be different.' });
+    }
+    const editionStock = value.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+    if (value.stockQuantity !== editionStock) {
+      context.addIssue({ code: 'custom', path: ['stockQuantity'], message: 'Book stock must match the total stock across editions.' });
+    }
     if (value.categories === undefined) {
       if (!value.category) {
         context.addIssue({ code: 'custom', path: ['categories'], message: 'Select at least one category.' });

@@ -55,9 +55,25 @@ export async function POST(request: NextRequest) {
 
     for (let attempt = 0; attempt < 3 && !submission; attempt += 1) {
       try {
-        submission = await db.bookDonationSubmission.create({
-          data: {
+        submission = await db.$transaction(async (tx) => {
+          const donor = await tx.bookDonor.create({
+            data: {
+              type: data.donorType,
+              displayName: data.donorType === "ORGANISATION" ? data.organizationName! : data.fullName,
+              contactName: data.donorType === "ORGANISATION" ? data.fullName : null,
+              phone: data.phone,
+              email: clean(data.email)?.toLowerCase() ?? null,
+              publicRecognition: data.publicRecognition,
+            },
+            select: { id: true },
+          });
+          return tx.bookDonationSubmission.create({
+            data: {
             reference: generateDonationReference(),
+            donorId: donor.id,
+            donorType: data.donorType,
+            organizationName: data.donorType === "ORGANISATION" ? data.organizationName : null,
+            publicRecognition: data.publicRecognition,
             fullName: data.fullName,
             phone: data.phone,
             email: clean(data.email)?.toLowerCase() ?? null,
@@ -81,7 +97,8 @@ export async function POST(request: NextRequest) {
             acceptanceAcknowledged: data.acceptanceAcknowledged,
             consentTextVersion: consentTextVersion(data.locale),
           },
-          select: { reference: true },
+            select: { reference: true },
+          });
         });
       } catch (error) {
         const referenceCollision =
@@ -101,7 +118,10 @@ export async function POST(request: NextRequest) {
         `A donor submitted a book donation in ${data.locale === "ar" ? "Arabic" : "English"}.`,
         [
           { label: "Reference", value: submission.reference },
-          { label: "Name", value: data.fullName },
+          { label: "Donor type", value: data.donorType === "ORGANISATION" ? "Organisation" : "Individual" },
+          { label: data.donorType === "ORGANISATION" ? "Contact person" : "Name", value: data.fullName },
+          ...(data.organizationName ? [{ label: "Organisation", value: data.organizationName }] : []),
+          { label: "Public recognition", value: data.publicRecognition ? "Name may be displayed" : "Anonymous" },
           { label: "Phone / WhatsApp", value: data.phone },
           { label: "Email", value: data.email },
           { label: "Location", value: `${data.area}, ${data.governorate}` },
