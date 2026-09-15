@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { errorResponse, withAdmin } from "@/lib/api-utils";
 import { bookDonorAdminSchema } from "@/lib/book-restore/validation";
@@ -32,5 +33,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   } catch (error: any) {
     if (error?.code === "P2025") return errorResponse("Donor not found", 404);
     return errorResponse("Failed to update donor");
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await withAdmin(request);
+  if ("error" in auth) return auth.error;
+  const { id } = await params;
+
+  try {
+    await db.bookDonor.delete({ where: { id }, select: { id: true } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") return errorResponse("Donor not found", 404);
+      if (error.code === "P2003") return errorResponse("This donor is still linked to a record and cannot be deleted.", 409);
+    }
+    console.error("Book donor deletion failed", error);
+    return errorResponse("Failed to delete donor. Please try again.");
   }
 }

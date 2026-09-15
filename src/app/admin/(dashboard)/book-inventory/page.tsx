@@ -91,7 +91,7 @@ export default function BookInventoryPage() {
       onClose={() => { if (!deleting) setDeleteTarget(null); }}
       onConfirm={handleDelete}
       title="Delete book?"
-      message={`Permanently delete "${deleteTarget?.title ?? ""}"${deleteTarget?.sku ? ` (${deleteTarget.sku})` : ""} from inventory and the catalogue? This cannot be undone.`}
+      message={`Are you sure you want to permanently delete "${deleteTarget?.title ?? ""}"${deleteTarget?.sku ? ` (${deleteTarget.sku})` : ""} from inventory and the catalogue? This cannot be undone.`}
       confirmLabel="Delete book"
       loading={deleting}
       loadingLabel="Deleting..."

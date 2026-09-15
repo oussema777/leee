@@ -9,6 +9,7 @@ import { useToast } from "../../../components/AdminToast";
 import { adminGet, adminPost, adminPut } from "@/lib/admin-api";
 import { BOOK_CONDITIONS, BOOK_CURRENCIES, BOOK_INVENTORY_STATUSES, BOOK_LANGUAGES } from "@/lib/book-inventory/validation";
 import { getBookCategories } from "@/lib/book-inventory/categories";
+import { setEditionStockTotal } from "@/lib/book-inventory/stock";
 import BookCategoryPicker from "./BookCategoryPicker";
 
 interface BookFormData {
@@ -134,7 +135,7 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
       <AdminFormField type="select" label="Condition" value={form.condition} onChange={(value) => set("condition", value)} options={options(BOOK_CONDITIONS)} required />
       <AdminFormField type="number" label="Price" value={form.price} onChange={(value) => set("price", value)} required />
       <AdminFormField type="select" label="Currency" value={form.currency} onChange={(value) => set("currency", value)} options={options(BOOK_CURRENCIES)} />
-      <div className="rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3"><span className="text-xs text-gray-400">Total copies</span><strong className="mt-1 block text-white">{form.editions.reduce((total, edition) => total + edition.stockQuantity, 0)}</strong></div>
+      <AdminFormField type="number" label="Total copies" value={form.editions.reduce((total, edition) => total + edition.stockQuantity, 0)} onChange={(value) => set("editions", setEditionStockTotal(form.editions, Number(value)))} required />
       <AdminFormField type="text" label="Shelf location (optional)" value={form.shelfLocation} onChange={(value) => set("shelfLocation", value)} />
     </div>
     <section className="rounded-2xl border border-gray-700/60 p-5">
