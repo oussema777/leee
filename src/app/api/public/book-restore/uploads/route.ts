@@ -1,16 +1,11 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { uploadFile } from "@/lib/upload";
+import { optimizeImageUpload } from "@/lib/image-optimization";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const FOLDER = "book-restore";
-const extensions: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
 function sniffImageType(buffer: Buffer) {
   if (buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "image/jpeg";
   if (buffer.length > 4 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return "image/png";
@@ -39,7 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Only verified JPEG, PNG, or WebP images are allowed" }, { status: 400 });
     }
 
-    const url = await uploadFile(buffer, `${randomUUID()}.${extensions[contentType]}`, contentType, FOLDER);
+    const optimized = await optimizeImageUpload(buffer, 1800);
+    const url = await uploadFile(
+      optimized.buffer,
+      `${randomUUID()}.${optimized.extension}`,
+      optimized.contentType,
+      FOLDER
+    );
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Book cover upload failed", error instanceof Error ? error.message : "Unknown error");

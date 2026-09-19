@@ -1,0 +1,14 @@
+# Local source-media and design artifacts are not needed by the Next.js build.
+newimages/
+QR codes/
+.claude/
+.impeccable/
+docs/
+*.xlsx
+*.tmp.*
+*-review.png
+
+# Raw/duplicate video sources must live in external media storage.
+public/images/The spark/
+public/images/projects/2025-leb-srp2-irc/
+public/images/spark/*.mp4

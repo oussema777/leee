@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev --webpack",
+    "prebuild": "npm run assets:check",
     "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "start": "next start",
@@ -14,7 +15,9 @@
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "assets:check": "node scripts/optimize-images.mjs",
+    "assets:optimize": "node scripts/optimize-images.mjs --write"
   },
   "keywords": [],
   "author": "",

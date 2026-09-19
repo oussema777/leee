@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { uploadFile } from "@/lib/upload";
+import { optimizeImageUpload } from "@/lib/image-optimization";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 /**
@@ -12,12 +13,6 @@ import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const FOLDER = "testimonials/submissions";
-
-const EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 function sniffImageType(buf: Buffer): string | null {
   if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "image/jpeg";
@@ -39,11 +34,17 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const sniffed = sniffImageType(buffer);
-    if (!sniffed || !EXT[sniffed]) {
+    if (!sniffed) {
       return NextResponse.json({ error: "Only JPEG, PNG, or WebP images are allowed" }, { status: 400 });
     }
 
-    const url = await uploadFile(buffer, `${randomUUID()}.${EXT[sniffed]}`, sniffed, FOLDER);
+    const optimized = await optimizeImageUpload(buffer);
+    const url = await uploadFile(
+      optimized.buffer,
+      `${randomUUID()}.${optimized.extension}`,
+      optimized.contentType,
+      FOLDER
+    );
     return NextResponse.json({ url });
   } catch (err) {
     console.error("Public upload error:", err);
