@@ -42,11 +42,12 @@ export async function lockOrder(tx: Prisma.TransactionClient, id: string) {
 }
 export async function releaseOrderStock(tx: Prisma.TransactionClient, order: { id: string; selectionMode: string }) {
   if (order.selectionMode !== "CUSTOM") return;
-  const items = await tx.bookOrderItem.findMany({ where: { orderId: order.id }, orderBy: { inventoryItemId: "asc" }, select: { inventoryItemId: true, editionId: true } });
+  const items = await tx.bookOrderItem.findMany({ where: { orderId: order.id }, orderBy: { inventoryItemId: "asc" }, select: { inventoryItemId: true, editionId: true, donorAllocationId: true } });
   for (const item of items) {
     // Do not make an item that staff deliberately withdrew available again.
     await tx.bookInventoryItem.update({ where: { id: item.inventoryItemId }, data: { stockQuantity: { increment: 1 } } });
     if (item.editionId) await tx.bookInventoryEdition.update({ where: { id: item.editionId }, data: { stockQuantity: { increment: 1 } } });
+    if (item.donorAllocationId) await tx.bookInventoryDonorAllocation.update({ where: { id: item.donorAllocationId }, data: { stockQuantity: { increment: 1 } } });
     await tx.bookInventoryItem.updateMany({ where: { id: item.inventoryItemId, status: "RESERVED" }, data: { status: "AVAILABLE" } });
   }
 }

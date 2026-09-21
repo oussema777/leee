@@ -69,7 +69,9 @@ export async function GET(request: NextRequest) {
           category: true, customCategory: true, categories: true, language: true, condition: true, priceCents: true, currency: true,
           stockQuantity: true, coverImageUrl: true, status: true, isPublished: true,
           editions: { where: { active: true }, select: { id: true, label: true, publicationYear: true, stockQuantity: true, coverImageUrl: true } },
-          sourceDonation: { select: { reference: true } }, donor: { select: { id: true, displayName: true, type: true, logoUrl: true, logoApproved: true } }, updatedAt: true,
+          sourceDonation: { select: { reference: true } }, donor: { select: { id: true, displayName: true, type: true, logoUrl: true, logoApproved: true } },
+          donorAllocations: { where: { stockQuantity: { gt: 0 } }, select: { id: true, stockQuantity: true, donor: { select: { id: true, displayName: true, type: true, logoUrl: true, logoApproved: true } } } },
+          updatedAt: true,
         },
       }),
       db.bookInventoryItem.count({ where }),
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const input = parsed.data;
     const sku = input.sku || createInventorySku();
-    const { sku: _ignored, sourceDonationId, donorId, editions, ...rest } = input;
+    const { sku: _ignored, sourceDonationId, donorId, donorAllocations, editions, ...rest } = input;
 
     const duplicate = await db.bookInventoryItem.findFirst({
       where: input.isbn ? { OR: [{ title: { equals: input.title, mode: 'insensitive' } }, { isbn: { equals: input.isbn, mode: 'insensitive' } }] } : { title: { equals: input.title, mode: 'insensitive' } },
@@ -118,6 +120,13 @@ export async function POST(request: NextRequest) {
       const donor = await db.bookDonor.findFirst({ where: { id: donorId, active: true }, select: { id: true } });
       if (!donor) return errorResponse('Donor not found or inactive', 400);
     }
+    const resolvedAllocations = donorAllocations.length
+      ? donorAllocations
+      : resolvedDonorId ? [{ donorId: resolvedDonorId, stockQuantity: input.stockQuantity }] : [];
+    if (resolvedAllocations.length) {
+      const activeDonors = await db.bookDonor.count({ where: { id: { in: resolvedAllocations.map((allocation) => allocation.donorId) }, active: true } });
+      if (activeDonors !== resolvedAllocations.length) return errorResponse('One or more donors were not found or are inactive', 400);
+    }
 
     const item = await db.bookInventoryItem.create({
       data: {
@@ -125,11 +134,12 @@ export async function POST(request: NextRequest) {
         sku,
         slug: createInventorySlug(input.title, sku),
         sourceDonationId: sourceDonationId || null,
-        donorId: resolvedDonorId,
+        donorId: resolvedAllocations[0]?.donorId || resolvedDonorId,
         publishedAt: input.isPublished ? new Date() : null,
         editions: { create: editions.map(({ id: _id, ...edition }) => ({ ...edition, active: true })) },
+        donorAllocations: { create: resolvedAllocations.map(({ id: _id, ...allocation }) => allocation) },
       },
-      include: { editions: { where: { active: true } } },
+      include: { editions: { where: { active: true } }, donorAllocations: { include: { donor: true } } },
     });
     return NextResponse.json(item, { status: 201 });
   } catch (error: any) {

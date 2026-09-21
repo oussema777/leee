@@ -36,9 +36,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const auth = await withAdmin(request);
-  if ("error" in auth) return auth.error;
+  if ("error" in auth) return auth.error!;
   const { id } = await params;
 
   try {

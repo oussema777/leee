@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
           const title = input.locale === "ar" ? book.titleAr || book.title : book.title;
           return edition ? `${title} — ${edition.label || (input.locale === "ar" ? "الطبعة القياسية" : "Standard edition")}${edition.publicationYear ? ` (${edition.publicationYear})` : ""}` : title;
         });
+        const donorAllocationIds = new Map<string, string>();
         if (input.selectionMode === "CUSTOM") {
           for (const choice of [...input.selectedEditions].sort((a, b) => a.editionId.localeCompare(b.editionId))) {
             const editionReserved = await tx.bookInventoryEdition.updateMany({ where: { id: choice.editionId, inventoryItemId: choice.bookId, active: true, stockQuantity: { gt: 0 } }, data: { stockQuantity: { decrement: 1 } } });
@@ -67,6 +68,16 @@ export async function POST(request: NextRequest) {
               data: { stockQuantity: { decrement: 1 } },
             });
             if (reserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
+            const allocation = await tx.bookInventoryDonorAllocation.findFirst({
+              where: { inventoryItemId: choice.bookId, stockQuantity: { gt: 0 } },
+              orderBy: { createdAt: "asc" },
+              select: { id: true },
+            });
+            if (allocation) {
+              const allocationReserved = await tx.bookInventoryDonorAllocation.updateMany({ where: { id: allocation.id, stockQuantity: { gt: 0 } }, data: { stockQuantity: { decrement: 1 } } });
+              if (allocationReserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
+              donorAllocationIds.set(choice.bookId, allocation.id);
+            }
             await tx.bookInventoryItem.updateMany({ where: { id: choice.bookId, stockQuantity: 0 }, data: { status: "RESERVED" } });
           }
         }
@@ -81,7 +92,7 @@ export async function POST(request: NextRequest) {
             recipientName: input.recipientName || null, recipientPhone: input.recipientPhone || null,
             giftMessage: input.giftMessage || null, showSenderName: input.showSenderName,
             paymentMethod: input.paymentMethod, termsAccepted: input.termsAccepted, consentTextVersion: "book-order-v2",
-            items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
+            items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, donorAllocationId: donorAllocationIds.get(inventoryItemId), isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
             ...(snapshot && config && hash ? { whishPayment: { create: {
               accessTokenHash: hash, requestHash: fingerprint, snapshot: snapshot as unknown as Prisma.InputJsonValue,
               expiresAt: paymentDeadline(config, snapshot),

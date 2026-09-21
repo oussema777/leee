@@ -12,7 +12,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const item = await db.bookInventoryItem.findUnique({
       where: { id },
-      include: { sourceDonation: { select: { id: true, reference: true, fullName: true } }, donor: { select: { id: true, displayName: true, type: true } }, editions: { where: { active: true }, orderBy: { createdAt: 'asc' } } },
+      include: {
+        sourceDonation: { select: { id: true, reference: true, fullName: true } },
+        donor: { select: { id: true, displayName: true, type: true } },
+        donorAllocations: { where: { stockQuantity: { gt: 0 } }, include: { donor: { select: { id: true, displayName: true, type: true, phone: true } } }, orderBy: { createdAt: 'asc' } },
+        editions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
+      },
     });
     if (!item) return errorResponse('Not found', 404);
     return NextResponse.json(item);
@@ -36,7 +41,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const parsed = bookInventorySchema.safeParse(await request.json());
     if (!parsed.success) return errorResponse(parsed.error.issues[0]?.message || 'Invalid inventory data', 400);
     const input = parsed.data;
-    const { sku: _ignored, sourceDonationId, donorId, editions, ...rest } = input;
+    const { sku: _ignored, sourceDonationId, donorId, donorAllocations, editions, ...rest } = input;
 
     const duplicate = await db.bookInventoryItem.findFirst({
       where: {
@@ -59,6 +64,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       const donor = await db.bookDonor.findUnique({ where: { id: donorId }, select: { id: true } });
       if (!donor) return errorResponse('Donor not found', 400);
     }
+    const resolvedAllocations = donorAllocations.length
+      ? donorAllocations
+      : resolvedDonorId ? [{ donorId: resolvedDonorId, stockQuantity: input.stockQuantity }] : [];
+    if (resolvedAllocations.length) {
+      const activeDonors = await db.bookDonor.count({ where: { id: { in: resolvedAllocations.map((allocation) => allocation.donorId) }, active: true } });
+      if (activeDonors !== resolvedAllocations.length) return errorResponse('One or more donors were not found or are inactive', 400);
+    }
 
     const item = await db.$transaction(async (tx) => {
       const savedIds = editions.flatMap((edition) => edition.id ? [edition.id] : []);
@@ -72,10 +84,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (editionId) await tx.bookInventoryEdition.update({ where: { id: editionId }, data: { ...data, active: true } });
         else await tx.bookInventoryEdition.create({ data: { ...data, active: true, inventoryItemId: id } });
       }
+      const allocatedDonorIds = resolvedAllocations.map((allocation) => allocation.donorId);
+      await tx.bookInventoryDonorAllocation.updateMany({
+        where: { inventoryItemId: id, ...(allocatedDonorIds.length ? { donorId: { notIn: allocatedDonorIds } } : {}) },
+        data: { stockQuantity: 0 },
+      });
+      for (const allocation of resolvedAllocations) {
+        await tx.bookInventoryDonorAllocation.upsert({
+          where: { inventoryItemId_donorId: { inventoryItemId: id, donorId: allocation.donorId } },
+          create: { inventoryItemId: id, donorId: allocation.donorId, stockQuantity: allocation.stockQuantity },
+          update: { stockQuantity: allocation.stockQuantity },
+        });
+      }
       return tx.bookInventoryItem.update({
         where: { id }, data: { ...rest, sku: input.sku || '', slug: input.sku ? createInventorySlug(input.title, input.sku) : existing.slug,
-          sourceDonationId: sourceDonationId || null, donorId: resolvedDonorId, publishedAt: input.isPublished ? existing.publishedAt || new Date() : null },
-        include: { editions: { where: { active: true }, orderBy: { createdAt: 'asc' } } },
+          sourceDonationId: sourceDonationId || null, donorId: resolvedAllocations[0]?.donorId || resolvedDonorId, publishedAt: input.isPublished ? existing.publishedAt || new Date() : null },
+        include: { editions: { where: { active: true }, orderBy: { createdAt: 'asc' } }, donorAllocations: { include: { donor: true } } },
       });
     });
     return NextResponse.json(item);

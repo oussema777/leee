@@ -9,7 +9,7 @@ import StatusBadge from "../../components/StatusBadge";
 import { useToast } from "../../components/AdminToast";
 import { adminDelete, adminGet, type PaginatedResponse } from "@/lib/admin-api";
 
-interface Donor { id: string; type: "INDIVIDUAL" | "ORGANISATION"; displayName: string; contactName: string | null; phone: string; email: string | null; logoUrl: string | null; logoApproved: boolean; publicRecognition: boolean; active: boolean; _count: { donations: number; inventoryItems: number }; }
+interface Donor { id: string; type: "INDIVIDUAL" | "ORGANISATION"; displayName: string; contactName: string | null; phone: string; email: string | null; logoUrl: string | null; logoApproved: boolean; publicRecognition: boolean; active: boolean; _count: { donations: number; inventoryItems: number; inventoryAllocations: number }; }
 
 export default function BookDonorsPage() {
   const router = useRouter(); const toast = useToast();
@@ -47,7 +47,7 @@ export default function BookDonorsPage() {
     { key: "type", label: "Type", render: (item) => <StatusBadge label={item.type === "ORGANISATION" ? "Organisation" : "Individual"} variant={item.type === "ORGANISATION" ? "info" : "neutral"} /> },
     { key: "phone", label: "Contact", render: (item) => <div><p>{item.phone}</p>{item.email && <p className="text-xs text-gray-400">{item.email}</p>}</div> },
     { key: "publicRecognition", label: "Recognition", render: (item) => item.publicRecognition ? "Public" : "Anonymous" },
-    { key: "donations", label: "Records", render: (item) => `${item._count.donations} donations / ${item._count.inventoryItems} books` },
+    { key: "donations", label: "Records", render: (item) => `${item._count.donations} donations / ${Math.max(item._count.inventoryItems, item._count.inventoryAllocations)} books` },
   ];
   return <div><AdminPageHeader title="Book Donors" actionLabel="Add Donor" actionHref="/admin/book-donors/new" />
     <div className="mb-4"><select value={type} onChange={(event) => { setType(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700/50 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All donor types</option><option value="INDIVIDUAL">Individuals</option><option value="ORGANISATION">Organisations</option></select></div>
@@ -57,7 +57,7 @@ export default function BookDonorsPage() {
       onClose={() => { if (!deleting) setDeleteTarget(null); }}
       onConfirm={handleDelete}
       title="Delete donor?"
-      message={`Are you sure you want to permanently delete "${deleteTarget?.displayName ?? ""}"?${deleteTarget && (deleteTarget._count.donations > 0 || deleteTarget._count.inventoryItems > 0) ? ` The ${deleteTarget._count.donations} donation record(s) and ${deleteTarget._count.inventoryItems} book(s) will be kept, but will no longer be linked to this donor.` : ""} This cannot be undone.`}
+      message={`Are you sure you want to permanently delete "${deleteTarget?.displayName ?? ""}"?${deleteTarget && (deleteTarget._count.donations > 0 || deleteTarget._count.inventoryAllocations > 0) ? " Linked records must be reassigned before this donor can be deleted." : ""} This cannot be undone.`}
       confirmLabel="Delete donor"
       loading={deleting}
       loadingLabel="Deleting..."

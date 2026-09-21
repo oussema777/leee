@@ -69,6 +69,11 @@ export const bookInventorySchema = z
     internalNotes: optionalText(5_000),
     sourceDonationId: optionalText(100),
     donorId: optionalText(100),
+    donorAllocations: z.array(z.object({
+      id: optionalText(100),
+      donorId: z.string().trim().min(1).max(100),
+      stockQuantity: z.coerce.number().int().min(1).max(10_000),
+    })).max(100).default([]),
   })
   .superRefine((value, context) => {
     const editionKeys = value.editions.map((edition) => (edition.label || '').toLocaleLowerCase());
@@ -81,6 +86,14 @@ export const bookInventorySchema = z
     const editionStock = value.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
     if (value.stockQuantity !== editionStock) {
       context.addIssue({ code: 'custom', path: ['stockQuantity'], message: 'Book stock must match the total stock across editions.' });
+    }
+    const donorIds = value.donorAllocations.map((allocation) => allocation.donorId);
+    if (new Set(donorIds).size !== donorIds.length) {
+      context.addIssue({ code: 'custom', path: ['donorAllocations'], message: 'Each donor can only be added once.' });
+    }
+    const allocatedStock = value.donorAllocations.reduce((total, allocation) => total + allocation.stockQuantity, 0);
+    if (value.donorAllocations.length > 0 && allocatedStock !== value.stockQuantity) {
+      context.addIssue({ code: 'custom', path: ['donorAllocations'], message: 'Donor copy allocations must match the total number of copies.' });
     }
     if (value.categories === undefined) {
       if (!value.category) {

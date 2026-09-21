@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       ] } : {}),
     };
     const [data, total] = await Promise.all([
-      db.bookDonor.findMany({ where, skip, take: limit, orderBy: { updatedAt: "desc" }, include: { _count: { select: { donations: true, inventoryItems: true } } } }),
+      db.bookDonor.findMany({ where, skip, take: limit, orderBy: { updatedAt: "desc" }, include: { _count: { select: { donations: true, inventoryItems: true, inventoryAllocations: true } } } }),
       db.bookDonor.count({ where }),
     ]);
     return paginatedResponse(data, total, page, limit);

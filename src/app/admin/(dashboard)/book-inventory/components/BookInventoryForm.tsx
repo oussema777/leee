@@ -16,6 +16,7 @@ interface BookFormData {
   id?: string; sku: string; title: string; titleAr: string; author: string; authorAr: string;
   descriptionEn: string; descriptionAr: string; isbn: string; publisher: string; publicationYear: string;
   editions: { id?: string; label: string; publicationYear: string; stockQuantity: number; coverImageUrl: string }[];
+  donorAllocations: { id?: string; donorId: string; stockQuantity: number; donor?: DonorOption }[];
   categories: string[]; language: string; condition: string; price: string; currency: string;
   stockQuantity: number; shelfLocation: string; coverImageUrl: string; status: string; isPublished: boolean; internalNotes: string; donorId: string;
 }
@@ -24,14 +25,16 @@ type DonorOption = { id: string; displayName: string; type: string; phone: strin
 type NewDonor = { type: "INDIVIDUAL" | "ORGANISATION"; displayName: string; contactName: string; phone: string; email: string; logoUrl: string; logoApproved: boolean; publicRecognition: boolean; active: boolean; adminNotes: string };
 const emptyDonor: NewDonor = { type: "INDIVIDUAL", displayName: "", contactName: "", phone: "", email: "", logoUrl: "", logoApproved: false, publicRecognition: false, active: true, adminNotes: "" };
 
-type BookFormInitial = Omit<Partial<BookFormData>, "publicationYear" | "editions"> & { category?: string; customCategory?: string | null; priceCents?: number; publicationYear?: number | null; donor?: { id: string; displayName?: string; type?: string; phone?: string } | null; editions?: { id: string; label: string | null; publicationYear: number | null; stockQuantity: number; coverImageUrl: string | null }[] };
-const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", editions: [{ label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }], categories: [], language: "ARABIC", condition: "GOOD", price: "5", currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "", donorId: "" };
+type BookFormInitial = Omit<Partial<BookFormData>, "publicationYear" | "editions" | "donorAllocations"> & { category?: string; customCategory?: string | null; priceCents?: number; publicationYear?: number | null; donor?: DonorOption | null; donorAllocations?: { id: string; stockQuantity: number; donor: DonorOption }[]; editions?: { id: string; label: string | null; publicationYear: number | null; stockQuantity: number; coverImageUrl: string | null }[] };
+const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", editions: [{ label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }], donorAllocations: [], categories: [], language: "ARABIC", condition: "GOOD", price: "5", currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "", donorId: "" };
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 const options = (values: readonly string[]) => values.map((value) => ({ value, label: humanize(value) }));
 function toForm(initial?: BookFormInitial) {
   if (!initial) return { ...empty, categories: [] };
   const populatedFields = Object.fromEntries(Object.entries(initial).filter(([, value]) => value != null));
-  return { ...empty, ...populatedFields, donorId: initial.donor?.id || initial.donorId || "", categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions: initial.editions?.map((edition) => ({ ...edition, label: edition.label || "", publicationYear: edition.publicationYear == null ? "" : String(edition.publicationYear), coverImageUrl: edition.coverImageUrl || "" })) || empty.editions } as BookFormData;
+  const donorAllocations = initial.donorAllocations?.map((allocation) => ({ ...allocation, donorId: allocation.donor.id }))
+    || (initial.donor?.id && initial.stockQuantity ? [{ donorId: initial.donor.id, stockQuantity: initial.stockQuantity, donor: initial.donor }] : []);
+  return { ...empty, ...populatedFields, donorId: "", donorAllocations, categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions: initial.editions?.map((edition) => ({ ...edition, label: edition.label || "", publicationYear: edition.publicationYear == null ? "" : String(edition.publicationYear), coverImageUrl: edition.coverImageUrl || "" })) || empty.editions } as BookFormData;
 }
 
 export default function BookInventoryForm({ initial }: { initial?: BookFormInitial }) {
@@ -40,12 +43,26 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
   const [savedCategories, setSavedCategories] = useState<string[]>([]);
   const [donors, setDonors] = useState<DonorOption[]>([]);
   const [donorMode, setDonorMode] = useState<"EXISTING" | "NEW">("EXISTING");
-  const [donorQuery, setDonorQuery] = useState(initial?.donor?.displayName || "");
+  const [donorQuery, setDonorQuery] = useState("");
   const [donorPickerOpen, setDonorPickerOpen] = useState(false);
   const [newDonor, setNewDonor] = useState<NewDonor>(emptyDonor);
   const [creatingDonor, setCreatingDonor] = useState(false);
   const [categoryError, setCategoryError] = useState("");
   const set = <K extends keyof BookFormData>(key: K, value: BookFormData[K]) => setForm((current) => ({ ...current, [key]: value }));
+  const totalCopies = form.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+  const allocatedCopies = form.donorAllocations.reduce((total, allocation) => total + allocation.stockQuantity, 0);
+  const addDonor = (donor: DonorOption) => {
+    if (form.donorAllocations.some((allocation) => allocation.donorId === donor.id)) return;
+    if (form.donorAllocations.length >= totalCopies) return toast.error("Increase total copies before adding another donor.");
+    setForm((current) => {
+      if (!current.donorAllocations.length) return { ...current, donorAllocations: [{ donorId: donor.id, stockQuantity: totalCopies, donor }] };
+      const sourceIndex = current.donorAllocations.findIndex((allocation) => allocation.stockQuantity > 1);
+      if (sourceIndex < 0) return current;
+      return { ...current, donorAllocations: [...current.donorAllocations.map((allocation, index) => index === sourceIndex ? { ...allocation, stockQuantity: allocation.stockQuantity - 1 } : allocation), { donorId: donor.id, stockQuantity: 1, donor }] };
+    });
+    setDonorQuery("");
+    setDonorPickerOpen(false);
+  };
   useEffect(() => {
     adminGet<{ data: string[] }>('/book-inventory/categories')
       .then((result) => setSavedCategories(result.data))
@@ -65,9 +82,7 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
     try {
       const created = await adminPost<DonorOption>("/book-donors", newDonor);
       setDonors((current) => [created, ...current]);
-      set("donorId", created.id);
-      setDonorQuery(created.displayName);
-      setDonorPickerOpen(false);
+      addDonor(created);
       setNewDonor(emptyDonor);
       setDonorMode("EXISTING");
       toast.success(`${created.displayName} created and selected`);
@@ -89,7 +104,7 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
     try {
       const stockQuantity = form.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
       const status = stockQuantity === 0 && form.status === "AVAILABLE" ? "RESERVED" : stockQuantity > 0 && form.status === "RESERVED" ? "AVAILABLE" : form.status;
-      const payload = { ...form, status, stockQuantity, priceCents: Math.round(Math.max(0, Number(form.price) || 0) * 100), publicationYear: form.publicationYear || undefined };
+      const payload = { ...form, donorId: undefined, donorAllocations: form.donorAllocations.map(({ donor: _donor, ...allocation }) => allocation), status, stockQuantity, priceCents: Math.round(Math.max(0, Number(form.price) || 0) * 100), publicationYear: form.publicationYear || undefined };
       if (form.id) await adminPut("/book-inventory/" + form.id, payload); else await adminPost("/book-inventory", payload);
       toast.success(form.id ? "Book updated" : "Book added to inventory"); router.push("/admin/book-inventory");
     } catch (error) { toast.error(error instanceof Error ? error.message : "Failed to save book"); } finally { setLoading(false); }
@@ -107,15 +122,14 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
       <AdminFormField type="number" label="Original publication year (optional)" value={form.publicationYear} onChange={(value) => set("publicationYear", value)} />
     </div>
     <section className="rounded-2xl border border-gray-700/60 p-5">
-      <div><h2 className="font-semibold text-white">Donor</h2><p className="mt-1 text-xs text-gray-400">Choose a saved donor or create one here without leaving this book.</p></div>
+      <div><h2 className="font-semibold text-white">Donors and copies</h2><p className="mt-1 text-xs text-gray-400">Add every donor who supplied this title, then assign the available copies from each.</p></div>
       <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-[#0f172a] p-1">{(["EXISTING", "NEW"] as const).map((mode) => <button key={mode} type="button" onClick={() => setDonorMode(mode)} className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${donorMode === mode ? "bg-brand-blue text-white" : "text-gray-400 hover:text-white"}`}>{mode === "EXISTING" ? "Select existing" : "Create new donor"}</button>)}</div>
       {donorMode === "EXISTING" ? <div className="relative mt-5">
-        <label htmlFor="donor-combobox" className="mb-2 block text-sm font-medium text-gray-300">Search or select donor <span className="font-normal text-gray-500">(optional)</span></label>
-        <input id="donor-combobox" role="combobox" aria-expanded={donorPickerOpen} aria-controls="donor-options" aria-autocomplete="list" autoComplete="off" value={donorQuery} onFocus={() => setDonorPickerOpen(true)} onBlur={() => window.setTimeout(() => setDonorPickerOpen(false), 120)} onChange={(event) => { setDonorQuery(event.target.value); set("donorId", ""); setDonorPickerOpen(true); }} placeholder="Type a name, organisation, phone, or email" className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-brand-blue" />
+        <label htmlFor="donor-combobox" className="mb-2 block text-sm font-medium text-gray-300">Add an existing donor <span className="font-normal text-gray-500">(optional)</span></label>
+        <input id="donor-combobox" role="combobox" aria-expanded={donorPickerOpen} aria-controls="donor-options" aria-autocomplete="list" autoComplete="off" value={donorQuery} onFocus={() => setDonorPickerOpen(true)} onBlur={() => window.setTimeout(() => setDonorPickerOpen(false), 120)} onChange={(event) => { setDonorQuery(event.target.value); setDonorPickerOpen(true); }} placeholder="Type a name, organisation, phone, or email" className="w-full rounded-xl border border-gray-700 bg-[#0f172a] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-brand-blue" />
         {donorPickerOpen && <div id="donor-options" role="listbox" className="absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-gray-700 bg-[#111c31] p-1 shadow-2xl">
-          {donors.length ? donors.map((donor) => <button key={donor.id} type="button" role="option" aria-selected={form.donorId === donor.id} onMouseDown={(event) => event.preventDefault()} onClick={() => { set("donorId", donor.id); setDonorQuery(donor.displayName); setDonorPickerOpen(false); }} className={`flex w-full items-center justify-between gap-4 rounded-lg px-3 py-3 text-start text-sm hover:bg-gray-700/60 ${form.donorId === donor.id ? "bg-brand-blue/20 text-white" : "text-gray-200"}`}><span><strong className="block font-semibold">{donor.displayName}</strong><span className="mt-0.5 block text-xs text-gray-400">{donor.type === "ORGANISATION" ? "Organisation" : "Individual"}{donor.phone ? ` — ${donor.phone}` : ""}</span></span>{form.donorId === donor.id && <span className="text-xs font-semibold text-brand-blue">Selected</span>}</button>) : <p className="px-3 py-4 text-sm text-gray-400">No matching donors.</p>}
+          {donors.length ? donors.map((donor) => { const selected = form.donorAllocations.some((allocation) => allocation.donorId === donor.id); return <button key={donor.id} type="button" role="option" aria-selected={selected} disabled={selected} onMouseDown={(event) => event.preventDefault()} onClick={() => addDonor(donor)} className={`flex w-full items-center justify-between gap-4 rounded-lg px-3 py-3 text-start text-sm hover:bg-gray-700/60 disabled:cursor-default ${selected ? "bg-brand-blue/20 text-white" : "text-gray-200"}`}><span><strong className="block font-semibold">{donor.displayName}</strong><span className="mt-0.5 block text-xs text-gray-400">{donor.type === "ORGANISATION" ? "Organisation" : "Individual"}{donor.phone ? ` — ${donor.phone}` : ""}</span></span>{selected && <span className="text-xs font-semibold text-brand-blue">Added</span>}</button>; }) : <p className="px-3 py-4 text-sm text-gray-400">No matching donors.</p>}
         </div>}
-        {form.donorId && <p className="mt-2 text-xs font-medium text-emerald-400">Donor selected. Clear or edit the field to remove the selection.</p>}
       </div> : <div className="mt-5 space-y-5 rounded-xl bg-[#0f172a] p-5">
         <div className="grid gap-5 md:grid-cols-2">
           <AdminFormField type="select" label="Donor type" value={newDonor.type} onChange={(value) => setNewDonor((current) => ({ ...current, type: value as NewDonor["type"], ...(value === "INDIVIDUAL" ? { contactName: "", logoUrl: "", logoApproved: false } : {}) }))} options={[{ value: "INDIVIDUAL", label: "Individual" }, { value: "ORGANISATION", label: "Organisation" }]} required />
@@ -127,6 +141,14 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
         {newDonor.type === "ORGANISATION" && <><ImageUploader value={newDonor.logoUrl} onChange={(value) => setNewDonor((current) => ({ ...current, logoUrl: value }))} onRemove={() => setNewDonor((current) => ({ ...current, logoUrl: "", logoApproved: false }))} folder="book-donors" label="Organisation logo (optional)" /><AdminFormField type="toggle" label="Logo approved for public display" value={newDonor.logoApproved} onChange={(value) => setNewDonor((current) => ({ ...current, logoApproved: value }))} /></>}
         <AdminFormField type="toggle" label="Public recognition" value={newDonor.publicRecognition} onChange={(value) => setNewDonor((current) => ({ ...current, publicRecognition: value }))} description="Show the donor name with donated books. Contact details remain private." />
         <div className="flex flex-wrap justify-end gap-3"><button type="button" onClick={() => setDonorMode("EXISTING")} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-400 hover:text-white">Cancel</button><button type="button" onClick={createAndSelectDonor} disabled={creatingDonor} className="rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{creatingDonor ? "Creating…" : "Create and select donor"}</button></div>
+      </div>}
+      {form.donorAllocations.length > 0 && <div className="mt-5 space-y-3">
+        {form.donorAllocations.map((allocation, index) => <div key={allocation.donorId} className="grid items-end gap-3 rounded-xl bg-[#0f172a] p-4 md:grid-cols-[1fr_160px_auto]">
+          <div><p className="text-sm font-semibold text-white">{allocation.donor?.displayName || donors.find((donor) => donor.id === allocation.donorId)?.displayName || "Selected donor"}</p><p className="mt-1 text-xs text-gray-400">{allocation.donor?.type === "ORGANISATION" ? "Organisation" : "Individual"}</p></div>
+          <AdminFormField type="number" label="Available copies" value={allocation.stockQuantity} onChange={(value) => set("donorAllocations", form.donorAllocations.map((item, i) => i === index ? { ...item, stockQuantity: Math.max(1, Number(value) || 1) } : item))} required />
+          <button type="button" onClick={() => set("donorAllocations", form.donorAllocations.filter((_, i) => i !== index))} className="min-h-11 rounded-lg border border-red-500/40 px-3 text-sm text-red-300">Remove</button>
+        </div>)}
+        <p className={`text-xs font-semibold ${allocatedCopies === totalCopies ? "text-emerald-400" : "text-amber-300"}`}>{allocatedCopies} of {totalCopies} available copies assigned{allocatedCopies === totalCopies ? "" : " — adjust the donor copy counts before saving"}.</p>
       </div>}
     </section>
     <BookCategoryPicker value={form.categories} savedCategories={savedCategories} error={categoryError} onChange={(categories) => { set("categories", categories); setCategoryError(""); }} />

@@ -31,6 +31,7 @@ export interface CatalogueBook {
   coverImageUrl: string | null;
   status: string;
   donor: { displayName: string; type: string; logoUrl: string | null; logoApproved: boolean; publicRecognition: boolean } | null;
+  donorAllocations: { donor: { displayName: string; type: string; logoUrl: string | null; logoApproved: boolean; publicRecognition: boolean } }[];
 }
 
 

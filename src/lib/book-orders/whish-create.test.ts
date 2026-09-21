@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
     bookWhishPayment: { findUnique: vi.fn(), findMany: vi.fn() },
     bookInventoryItem: { findMany: vi.fn(), updateMany: vi.fn() },
     bookInventoryEdition: { findMany: vi.fn(), updateMany: vi.fn() },
+    bookInventoryDonorAllocation: { findFirst: vi.fn(), updateMany: vi.fn() },
     bookOrder: { create: vi.fn() },
   },
   teamEmail: vi.fn(), customerEmail: vi.fn(),
@@ -44,6 +45,8 @@ beforeEach(() => {
   mocks.db.bookInventoryItem.updateMany.mockResolvedValue({ count: 1 });
   mocks.db.bookInventoryEdition.findMany.mockResolvedValue([{ id: "edition-1", inventoryItemId: "book-1", label: "2021 edition", publicationYear: 2021, stockQuantity: 1 }]);
   mocks.db.bookInventoryEdition.updateMany.mockResolvedValue({ count: 1 });
+  mocks.db.bookInventoryDonorAllocation.findFirst.mockResolvedValue({ id: "allocation-1" });
+  mocks.db.bookInventoryDonorAllocation.updateMany.mockResolvedValue({ count: 1 });
   mocks.db.$transaction.mockImplementation(async callback => callback(mocks.db));
   mocks.db.bookOrder.create.mockImplementation(async ({ data }) => {
     const order = { id: "order-1", reference: "LEE-BK-2026-TEST1234", locale: data.locale };
@@ -59,7 +62,7 @@ describe("Whish order creation", () => {
     expect(saved.accessTokenHash).not.toBe(input.paymentAccessToken);
     const data = mocks.db.bookOrder.create.mock.calls[0][0].data;
     expect(data.priceCents).toBe(500); expect(data).not.toHaveProperty("paymentStatus");
-    expect(data.items.create[0]).toMatchObject({ inventoryItemId: "book-1", editionId: "edition-1" });
+    expect(data.items.create[0]).toMatchObject({ inventoryItemId: "book-1", editionId: "edition-1", donorAllocationId: "allocation-1" });
     expect(mocks.db.bookInventoryEdition.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: "edition-1", inventoryItemId: "book-1" }) }));
     const body = await response.json();
     expect(body.paymentUrl).toContain("#" + input.paymentAccessToken);

@@ -473,40 +473,41 @@ enum BookCurrency {
 }
 
 model BookInventoryItem {
-  id               String                  @id @default(cuid())
-  sku              String                  @unique
-  slug             String                  @unique
+  id               String                         @id @default(cuid())
+  sku              String                         @unique
+  slug             String                         @unique
   title            String
   titleAr          String?
   author           String
   authorAr         String?
-  descriptionEn    String?                 @db.Text
-  descriptionAr    String?                 @db.Text
+  descriptionEn    String?                        @db.Text
+  descriptionAr    String?                        @db.Text
   isbn             String?
   publisher        String?
   publicationYear  Int?
   category         BookCategory
   customCategory   String?
-  categories       String[]                @default([])
+  categories       String[]                       @default([])
   language         BookLanguage
   condition        BookCondition
   priceCents       Int
-  currency         BookCurrency            @default(USD)
-  stockQuantity    Int                     @default(1)
+  currency         BookCurrency                   @default(USD)
+  stockQuantity    Int                            @default(1)
   shelfLocation    String?
   coverImageUrl    String?
-  status           BookInventoryStatus     @default(AVAILABLE)
-  isPublished      Boolean                 @default(false)
+  status           BookInventoryStatus            @default(AVAILABLE)
+  isPublished      Boolean                        @default(false)
   publishedAt      DateTime?
-  internalNotes    String?                 @db.Text
+  internalNotes    String?                        @db.Text
   sourceDonationId String?
-  sourceDonation   BookDonationSubmission? @relation(fields: [sourceDonationId], references: [id], onDelete: SetNull)
+  sourceDonation   BookDonationSubmission?        @relation(fields: [sourceDonationId], references: [id], onDelete: SetNull)
   donorId          String?
-  donor            BookDonor?              @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donor            BookDonor?                     @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donorAllocations BookInventoryDonorAllocation[]
   editions         BookInventoryEdition[]
   orderItems       BookOrderItem[]
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
 
   @@index([status, isPublished, updatedAt])
   @@index([category, language])
@@ -528,6 +529,22 @@ model BookInventoryEdition {
   updatedAt       DateTime          @updatedAt
 
   @@index([inventoryItemId, active])
+}
+
+model BookInventoryDonorAllocation {
+  id              String            @id @default(cuid())
+  inventoryItemId String
+  inventoryItem   BookInventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  donorId         String
+  donor           BookDonor         @relation(fields: [donorId], references: [id], onDelete: Restrict)
+  stockQuantity   Int               @default(1)
+  orderItems      BookOrderItem[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([inventoryItemId, donorId])
+  @@index([donorId])
+  @@index([inventoryItemId, stockQuantity])
 }
 
 enum BookOrderPackage {
@@ -671,19 +688,22 @@ model BookWhishEvent {
 }
 
 model BookOrderItem {
-  id              String                @id @default(cuid())
-  orderId         String
-  order           BookOrder             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  inventoryItemId String
-  inventoryItem   BookInventoryItem     @relation(fields: [inventoryItemId], references: [id])
-  editionId       String?
-  edition         BookInventoryEdition? @relation(fields: [editionId], references: [id], onDelete: Restrict)
-  isFreeExtra     Boolean               @default(false)
-  createdAt       DateTime              @default(now())
+  id                String                        @id @default(cuid())
+  orderId           String
+  order             BookOrder                     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  inventoryItemId   String
+  inventoryItem     BookInventoryItem             @relation(fields: [inventoryItemId], references: [id])
+  editionId         String?
+  edition           BookInventoryEdition?         @relation(fields: [editionId], references: [id], onDelete: Restrict)
+  donorAllocationId String?
+  donorAllocation   BookInventoryDonorAllocation? @relation(fields: [donorAllocationId], references: [id], onDelete: Restrict)
+  isFreeExtra       Boolean                       @default(false)
+  createdAt         DateTime                      @default(now())
 
   @@unique([orderId, inventoryItemId])
   @@index([inventoryItemId])
   @@index([editionId])
+  @@index([donorAllocationId])
 }
 
 // ─────────────────────────────────────────
@@ -851,21 +871,22 @@ enum BookDonorType {
 }
 
 model BookDonor {
-  id                String                   @id @default(cuid())
-  type              BookDonorType            @default(INDIVIDUAL)
-  displayName       String
-  contactName       String?
-  phone             String
-  email             String?
-  logoUrl           String?
-  logoApproved      Boolean                  @default(false)
-  publicRecognition Boolean                  @default(false)
-  active            Boolean                  @default(true)
-  adminNotes        String?                  @db.Text
-  donations         BookDonationSubmission[]
-  inventoryItems    BookInventoryItem[]
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  id                   String                         @id @default(cuid())
+  type                 BookDonorType                  @default(INDIVIDUAL)
+  displayName          String
+  contactName          String?
+  phone                String
+  email                String?
+  logoUrl              String?
+  logoApproved         Boolean                        @default(false)
+  publicRecognition    Boolean                        @default(false)
+  active               Boolean                        @default(true)
+  adminNotes           String?                        @db.Text
+  donations            BookDonationSubmission[]
+  inventoryItems       BookInventoryItem[]
+  inventoryAllocations BookInventoryDonorAllocation[]
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
 
   @@index([displayName])
   @@index([phone])

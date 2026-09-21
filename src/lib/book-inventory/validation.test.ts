@@ -34,6 +34,25 @@ describe("bookInventorySchema", () => {
     expect(result.editions.map((edition) => edition.label)).toEqual(["2015 edition", "2021 edition"]);
     expect(bookInventorySchema.safeParse({ ...validBook, stockQuantity: 5, editions: editions.map((edition) => ({ ...edition, label: "Same" })) }).success).toBe(false);
   });
+
+  it("accepts multiple donors when their allocated copies match stock", () => {
+    const result = bookInventorySchema.safeParse({
+      ...validBook,
+      stockQuantity: 2,
+      editions: [{ label: null, publicationYear: null, stockQuantity: 2, coverImageUrl: null }],
+      donorAllocations: [
+        { donorId: "donor-jana", stockQuantity: 1 },
+        { donorId: "donor-fatima", stockQuantity: 1 },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects duplicate donors and donor copy totals that do not match stock", () => {
+    const duplicate = [{ donorId: "donor-one", stockQuantity: 1 }, { donorId: "donor-one", stockQuantity: 1 }];
+    expect(bookInventorySchema.safeParse({ ...validBook, donorAllocations: duplicate }).success).toBe(false);
+    expect(bookInventorySchema.safeParse({ ...validBook, donorAllocations: [{ donorId: "donor-one", stockQuantity: 2 }] }).success).toBe(false);
+  });
   it("saves multiple standard and custom categories", () => {
     const result = bookInventorySchema.parse({ ...validBook, category: undefined, categories: ["Fiction", "HISTORY", "Poetry"] });
     expect(result.categories).toEqual(["FICTION", "HISTORY", "Poetry"]);

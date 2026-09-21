@@ -39,6 +39,7 @@ export default async function BooksPage({ params }: { params: Promise<{ locale: 
         publicationYear: true, category: true, customCategory: true, categories: true, language: true, condition: true,
         priceCents: true, currency: true, stockQuantity: true, coverImageUrl: true, status: true,
         donor: { select: { displayName: true, type: true, logoUrl: true, logoApproved: true, publicRecognition: true } },
+        donorAllocations: { orderBy: { createdAt: "asc" }, select: { donor: { select: { displayName: true, type: true, logoUrl: true, logoApproved: true, publicRecognition: true } } } },
         editions: { where: { active: true, stockQuantity: { gt: 0 } }, orderBy: { createdAt: "asc" }, select: { id: true, label: true, publicationYear: true, stockQuantity: true, coverImageUrl: true } },
       },
     });
