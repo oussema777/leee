@@ -9,7 +9,7 @@ import { useToast } from "../../../components/AdminToast";
 import { adminGet, adminPost, adminPut } from "@/lib/admin-api";
 import { BOOK_CONDITIONS, BOOK_CURRENCIES, BOOK_INVENTORY_STATUSES, BOOK_LANGUAGES } from "@/lib/book-inventory/validation";
 import { getBookCategories } from "@/lib/book-inventory/categories";
-import { setEditionStockTotal } from "@/lib/book-inventory/stock";
+import { addDonorAllocation, rebalanceDonorAllocations, setEditionStockTotal } from "@/lib/book-inventory/stock";
 import BookCategoryPicker from "./BookCategoryPicker";
 
 interface BookFormData {
@@ -32,9 +32,12 @@ const options = (values: readonly string[]) => values.map((value) => ({ value, l
 function toForm(initial?: BookFormInitial) {
   if (!initial) return { ...empty, categories: [] };
   const populatedFields = Object.fromEntries(Object.entries(initial).filter(([, value]) => value != null));
-  const donorAllocations = initial.donorAllocations?.map((allocation) => ({ ...allocation, donorId: allocation.donor.id }))
+  const loadedDonorAllocations = initial.donorAllocations?.map((allocation) => ({ ...allocation, donorId: allocation.donor.id }))
     || (initial.donor?.id && initial.stockQuantity ? [{ donorId: initial.donor.id, stockQuantity: initial.stockQuantity, donor: initial.donor }] : []);
-  return { ...empty, ...populatedFields, donorId: "", donorAllocations, categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions: initial.editions?.map((edition) => ({ ...edition, label: edition.label || "", publicationYear: edition.publicationYear == null ? "" : String(edition.publicationYear), coverImageUrl: edition.coverImageUrl || "" })) || empty.editions } as BookFormData;
+  const editions = initial.editions?.map((edition) => ({ ...edition, label: edition.label || "", publicationYear: edition.publicationYear == null ? "" : String(edition.publicationYear), coverImageUrl: edition.coverImageUrl || "" })) || empty.editions;
+  const totalCopies = editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+  const donorAllocations = rebalanceDonorAllocations(loadedDonorAllocations, totalCopies);
+  return { ...empty, ...populatedFields, donorId: "", donorAllocations, categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions } as BookFormData;
 }
 
 export default function BookInventoryForm({ initial }: { initial?: BookFormInitial }) {
@@ -55,13 +58,33 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
     if (form.donorAllocations.some((allocation) => allocation.donorId === donor.id)) return;
     if (form.donorAllocations.length >= totalCopies) return toast.error("Increase total copies before adding another donor.");
     setForm((current) => {
-      if (!current.donorAllocations.length) return { ...current, donorAllocations: [{ donorId: donor.id, stockQuantity: totalCopies, donor }] };
-      const sourceIndex = current.donorAllocations.findIndex((allocation) => allocation.stockQuantity > 1);
-      if (sourceIndex < 0) return current;
-      return { ...current, donorAllocations: [...current.donorAllocations.map((allocation, index) => index === sourceIndex ? { ...allocation, stockQuantity: allocation.stockQuantity - 1 } : allocation), { donorId: donor.id, stockQuantity: 1, donor }] };
+      const currentTotal = current.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+      const donorAllocations = addDonorAllocation(current.donorAllocations, { donorId: donor.id, stockQuantity: 1, donor }, currentTotal);
+      return donorAllocations === current.donorAllocations ? current : { ...current, donorAllocations };
     });
     setDonorQuery("");
     setDonorPickerOpen(false);
+  };
+  const updateEditions = (getEditions: (editions: BookFormData["editions"]) => BookFormData["editions"]) => {
+    const previewEditions = getEditions(form.editions);
+    const previewTotal = previewEditions.reduce((total, edition) => total + edition.stockQuantity, 0);
+    if (previewTotal < form.donorAllocations.length) {
+      toast.error("Remove a donor before reducing copies below the number of selected donors.");
+      return;
+    }
+    setForm((current) => {
+      const editions = getEditions(current.editions);
+      const nextTotal = editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+      if (nextTotal < current.donorAllocations.length) return current;
+      return { ...current, editions, donorAllocations: rebalanceDonorAllocations(current.donorAllocations, nextTotal) };
+    });
+  };
+  const removeDonor = (index: number) => {
+    setForm((current) => {
+      const remaining = current.donorAllocations.filter((_, donorIndex) => donorIndex !== index);
+      const currentTotal = current.editions.reduce((total, edition) => total + edition.stockQuantity, 0);
+      return { ...current, donorAllocations: rebalanceDonorAllocations(remaining, currentTotal) };
+    });
   };
   useEffect(() => {
     adminGet<{ data: string[] }>('/book-inventory/categories')
@@ -123,6 +146,7 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
     </div>
     <section className="rounded-2xl border border-gray-700/60 p-5">
       <div><h2 className="font-semibold text-white">Donors and copies</h2><p className="mt-1 text-xs text-gray-400">Add every donor who supplied this title, then assign the available copies from each.</p></div>
+      <div className="mt-4 max-w-48"><AdminFormField type="number" label="Total copies" value={totalCopies} onChange={(value) => updateEditions((editions) => setEditionStockTotal(editions, Number(value)))} required /></div>
       <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-[#0f172a] p-1">{(["EXISTING", "NEW"] as const).map((mode) => <button key={mode} type="button" onClick={() => setDonorMode(mode)} className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${donorMode === mode ? "bg-brand-blue text-white" : "text-gray-400 hover:text-white"}`}>{mode === "EXISTING" ? "Select existing" : "Create new donor"}</button>)}</div>
       {donorMode === "EXISTING" ? <div className="relative mt-5">
         <label htmlFor="donor-combobox" className="mb-2 block text-sm font-medium text-gray-300">Add an existing donor <span className="font-normal text-gray-500">(optional)</span></label>
@@ -145,8 +169,8 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
       {form.donorAllocations.length > 0 && <div className="mt-5 space-y-3">
         {form.donorAllocations.map((allocation, index) => <div key={allocation.donorId} className="grid items-end gap-3 rounded-xl bg-[#0f172a] p-4 md:grid-cols-[1fr_160px_auto]">
           <div><p className="text-sm font-semibold text-white">{allocation.donor?.displayName || donors.find((donor) => donor.id === allocation.donorId)?.displayName || "Selected donor"}</p><p className="mt-1 text-xs text-gray-400">{allocation.donor?.type === "ORGANISATION" ? "Organisation" : "Individual"}</p></div>
-          <AdminFormField type="number" label="Available copies" value={allocation.stockQuantity} onChange={(value) => set("donorAllocations", form.donorAllocations.map((item, i) => i === index ? { ...item, stockQuantity: Math.max(1, Number(value) || 1) } : item))} required />
-          <button type="button" onClick={() => set("donorAllocations", form.donorAllocations.filter((_, i) => i !== index))} className="min-h-11 rounded-lg border border-red-500/40 px-3 text-sm text-red-300">Remove</button>
+          <AdminFormField type="number" label="Available copies" value={allocation.stockQuantity} onChange={(value) => setForm((current) => ({ ...current, donorAllocations: current.donorAllocations.map((item, i) => i === index ? { ...item, stockQuantity: Math.max(1, Number(value) || 1) } : item) }))} required />
+          <button type="button" onClick={() => removeDonor(index)} className="min-h-11 rounded-lg border border-red-500/40 px-3 text-sm text-red-300">Remove</button>
         </div>)}
         <p className={`text-xs font-semibold ${allocatedCopies === totalCopies ? "text-emerald-400" : "text-amber-300"}`}>{allocatedCopies} of {totalCopies} available copies assigned{allocatedCopies === totalCopies ? "" : " — adjust the donor copy counts before saving"}.</p>
       </div>}
@@ -157,16 +181,15 @@ export default function BookInventoryForm({ initial }: { initial?: BookFormIniti
       <AdminFormField type="select" label="Condition" value={form.condition} onChange={(value) => set("condition", value)} options={options(BOOK_CONDITIONS)} required />
       <AdminFormField type="number" label="Price" value={form.price} onChange={(value) => set("price", value)} required />
       <AdminFormField type="select" label="Currency" value={form.currency} onChange={(value) => set("currency", value)} options={options(BOOK_CURRENCIES)} />
-      <AdminFormField type="number" label="Total copies" value={form.editions.reduce((total, edition) => total + edition.stockQuantity, 0)} onChange={(value) => set("editions", setEditionStockTotal(form.editions, Number(value)))} required />
       <AdminFormField type="text" label="Shelf location (optional)" value={form.shelfLocation} onChange={(value) => set("shelfLocation", value)} />
     </div>
     <section className="rounded-2xl border border-gray-700/60 p-5">
-      <div className="flex items-center justify-between gap-4"><div><h2 className="font-semibold text-white">Editions and copies</h2><p className="mt-1 text-xs text-gray-400">Use one row per edition. A separate cover is optional.</p></div><button type="button" onClick={() => set("editions", [...form.editions, { label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }])} className="rounded-lg bg-brand-blue px-3 py-2 text-sm font-semibold text-white">Add edition</button></div>
+      <div className="flex items-center justify-between gap-4"><div><h2 className="font-semibold text-white">Editions and copies</h2><p className="mt-1 text-xs text-gray-400">Use one row per edition. A separate cover is optional.</p></div><button type="button" onClick={() => updateEditions((editions) => [...editions, { label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }])} className="rounded-lg bg-brand-blue px-3 py-2 text-sm font-semibold text-white">Add edition</button></div>
       <div className="mt-5 space-y-5">{form.editions.map((edition, index) => <div key={edition.id || index} className="grid gap-4 rounded-xl bg-[#0f172a] p-4 md:grid-cols-[1fr_160px_160px_auto] md:items-end">
         <AdminFormField type="text" label="Edition name" value={edition.label} onChange={(value) => set("editions", form.editions.map((item, i) => i === index ? { ...item, label: value } : item))} placeholder={form.editions.length === 1 ? "Optional when there is only one" : "e.g. 2nd edition"} />
         <AdminFormField type="number" label="Edition year" value={edition.publicationYear} onChange={(value) => set("editions", form.editions.map((item, i) => i === index ? { ...item, publicationYear: value } : item))} />
-        <AdminFormField type="number" label="Copies" value={edition.stockQuantity} onChange={(value) => set("editions", form.editions.map((item, i) => i === index ? { ...item, stockQuantity: Math.max(0, Number(value) || 0) } : item))} required />
-        <button type="button" disabled={form.editions.length === 1} onClick={() => set("editions", form.editions.filter((_, i) => i !== index))} className="min-h-11 rounded-lg border border-red-500/40 px-3 text-sm text-red-300 disabled:opacity-30">Remove</button>
+        <AdminFormField type="number" label="Copies" value={edition.stockQuantity} onChange={(value) => updateEditions((editions) => editions.map((item, i) => i === index ? { ...item, stockQuantity: Math.max(0, Number(value) || 0) } : item))} required />
+        <button type="button" disabled={form.editions.length === 1} onClick={() => updateEditions((editions) => editions.filter((_, i) => i !== index))} className="min-h-11 rounded-lg border border-red-500/40 px-3 text-sm text-red-300 disabled:opacity-30">Remove</button>
         <div className="md:col-span-4"><ImageUploader value={edition.coverImageUrl} onChange={(value) => set("editions", form.editions.map((item, i) => i === index ? { ...item, coverImageUrl: value } : item))} onRemove={() => set("editions", form.editions.map((item, i) => i === index ? { ...item, coverImageUrl: "" } : item))} folder="book-inventory/editions" label="Edition cover override (optional)" /></div>
       </div>)}</div>
     </section>

@@ -58,10 +58,10 @@ export default function AdminDataTable<T extends { id: string; [key: string]: an
   const hasActions = onEdit || onDelete || onView;
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       {onSearch && (
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative flex-1 max-w-sm">
+        <form onSubmit={handleSearch} className="flex min-w-0 flex-wrap gap-2">
+          <div className="relative min-w-0 max-w-sm flex-1 basis-56">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -80,14 +80,14 @@ export default function AdminDataTable<T extends { id: string; [key: string]: an
         </form>
       )}
 
-      <div className="bg-[#1e293b] rounded-2xl border border-gray-700/50 overflow-hidden">
+      <div className="max-w-full overflow-hidden rounded-2xl border border-gray-700/50 bg-[#1e293b]">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : data.length === 0 ? (
           <div className="p-8 text-center text-gray-400">No records found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="max-w-full overflow-x-auto overscroll-x-contain">
+            <table className="w-full min-w-max">
               <thead>
                 <tr className="border-b border-gray-700/50">
                   {columns.map((col) => (
@@ -172,7 +172,7 @@ export default function AdminDataTable<T extends { id: string; [key: string]: an
         )}
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-700/50">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-700/50 px-4 py-4 sm:px-6">
             <p className="text-sm text-gray-400">
               Showing {(currentPage - 1) * data.length + 1}–{Math.min(currentPage * data.length, total)} of {total}
             </p>

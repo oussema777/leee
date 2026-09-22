@@ -72,7 +72,7 @@ export default function BookInventoryPage() {
     { key: "status", label: "Status", render: (item) => <StatusBadge label={humanize(item.status)} variant={variant(item.status)} /> },
     { key: "isPublished", label: "Published", render: (item) => <StatusBadge label={item.isPublished ? "Live" : "Draft"} variant={item.isPublished ? "success" : "neutral"} /> },
   ];
-  return <div>
+  return <div className="min-w-0 max-w-full">
     <AdminPageHeader title="Book Inventory" actionLabel="Add Book" actionHref="/admin/book-inventory/new" />
     <div className="mb-4 flex flex-wrap gap-3">
       <label className="sr-only" htmlFor="inventory-status">Filter by status</label><select id="inventory-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700/50 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All statuses</option>{options(BOOK_INVENTORY_STATUSES).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
