@@ -7,8 +7,9 @@ import { sendWhishOrderEmail } from "@/lib/book-orders/whish-email";
 import { formatBookOrderSummary, sendBookOrderCustomerEmail } from "@/lib/book-orders/customer-email";
 import { BOOK_PACKAGES, deliveryFeeCents, type BookPackageKey, isFreeExtraIndex } from "@/lib/book-orders/config";
 import { bookOrderSchema } from "@/lib/book-orders/validation";
-import { makeSnapshot, paymentDeadline } from "@/lib/book-orders/whish-config";
-import { expireWhishPayments, getWhishConfig, tokenHash, requestHash, paymentPath, privateJson } from "@/lib/book-orders/whish-server";
+import { makeSnapshot } from "@/lib/book-orders/whish-config";
+import { bankAudiSnapshot } from "@/lib/book-orders/bank-audi-config";
+import { expireWhishPayments, getWhishConfig, getBankAudiConfig, tokenHash, requestHash, paymentPath, privateJson } from "@/lib/book-orders/whish-server";
 
 function orderReference() { return "LEE-BK-" + new Date().getFullYear() + "-" + crypto.randomUUID().slice(0, 8).toUpperCase(); }
 
@@ -19,8 +20,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Please check your order details." }, 400);
     const input = parsed.data;
     if (input.website) return NextResponse.json({ reference: orderReference() }, { status: 201 });
-    const whish = input.paymentMethod === "WHISH";
-    const hash = whish ? tokenHash(input.paymentAccessToken!) : null;
+    const manual = input.paymentMethod === "WHISH" || input.paymentMethod === "BANK_AUDI";
+    const hash = manual ? tokenHash(input.paymentAccessToken!) : null;
     const fingerprint = requestHash(input);
     const replay = async () => {
       if (!hash) return null;
@@ -35,9 +36,10 @@ export async function POST(request: NextRequest) {
     const pack = BOOK_PACKAGES[packageKey];
     const delivery = deliveryFeeCents(packageKey, input.fulfillmentMethod);
     const total = pack.priceCents + delivery;
-    const config = whish ? await getWhishConfig() : null;
-    const snapshot = config ? makeSnapshot(config, total) : null;
-    if (whish && !snapshot) return privateJson({ error: "Whish is currently unavailable. Please choose cash or try again later." }, 409);
+    const config = input.paymentMethod === "WHISH" ? await getWhishConfig() : null;
+    const bankConfig = input.paymentMethod === "BANK_AUDI" ? await getBankAudiConfig() : null;
+    const snapshot = config ? makeSnapshot(config, total) : bankConfig ? bankAudiSnapshot(bankConfig, total) : null;
+    if (manual && !snapshot) return privateJson({ error: "This payment method is currently unavailable. Please choose cash or try again later." }, 409);
     await expireWhishPayments().catch(() => console.error("Book reservation cleanup unavailable"));
     let order;
     let selectedTitles: string[] = [];
@@ -93,26 +95,26 @@ export async function POST(request: NextRequest) {
             giftMessage: input.giftMessage || null, showSenderName: input.showSenderName,
             paymentMethod: input.paymentMethod, termsAccepted: input.termsAccepted, consentTextVersion: "book-order-v2",
             items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, donorAllocationId: donorAllocationIds.get(inventoryItemId), isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
-            ...(snapshot && config && hash ? { whishPayment: { create: {
+            ...(snapshot && hash ? { whishPayment: { create: {
               accessTokenHash: hash, requestHash: fingerprint, snapshot: snapshot as unknown as Prisma.InputJsonValue,
-              expiresAt: paymentDeadline(config, snapshot),
-              events: { create: { action: "CREATED", actor: "customer", details: { amountCents: total, currency: "USD" } } },
+              expiresAt: new Date(Date.now() + (config || bankConfig)!.holdHours * 3600000),
+              events: { create: { action: "CREATED", actor: "customer", details: { amountCents: total, currency: "USD", method: input.paymentMethod } } },
             } } } : {}),
           },
           select: { id: true, reference: true },
         });
       });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002" && whish) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002" && manual) {
         const response = await replay();
         if (response) return response;
       }
       throw e;
     }
-    const privatePath = whish ? paymentPath(input.locale, order.reference, input.paymentAccessToken!) : null;
+    const privatePath = manual ? paymentPath(input.locale, order.reference, input.paymentAccessToken!) : null;
     await Promise.all([sendNotificationEmail({
       subject: "New book order " + order.reference, replyTo: input.customerEmail,
-      html: renderNotification("New book order", whish ? "Awaiting the purchaser's Whish payment. Do not mark paid until receipt is verified." : "A new cash order is ready for review.", [
+      html: renderNotification("New book order", manual ? `Awaiting the purchaser's ${input.paymentMethod === "BANK_AUDI" ? "Bank Audi transfer" : "Whish payment"}. Do not mark paid until receipt is verified.` : "A new cash order is ready for review.", [
         { label: "Reference", value: order.reference }, { label: "Customer", value: input.customerName },
         { label: "Phone", value: input.customerPhone }, { label: "Email", value: input.customerEmail },
         { label: "Purpose", value: input.purpose },
@@ -126,7 +128,7 @@ export async function POST(request: NextRequest) {
     }), ...(input.customerEmail ? [privatePath
       ? sendWhishOrderEmail({
           to: input.customerEmail, locale: input.locale, reference: order.reference,
-          amountCents: total, kind: "CREATED", privatePath,
+          amountCents: total, kind: "CREATED", privatePath, method: input.paymentMethod === "BANK_AUDI" ? "BANK_AUDI" : "WHISH",
           bookSummary: formatBookOrderSummary({
             locale: input.locale, selectionMode: input.selectionMode,
             requestedBookCount: pack.totalBooks, bookTitles: selectedTitles,

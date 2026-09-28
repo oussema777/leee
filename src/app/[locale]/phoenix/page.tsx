@@ -57,7 +57,7 @@ export default async function PhoenixLandingPage({ params }: PhoenixPageProps) {
   const actions = [
     { title: t("heroPrimaryLabel"), text: t("heroPrimaryText"), href: "/books" as const, icon: BookOpen, tone: "bg-[#0D2B66] text-white", linkTone: "bg-[#F2A65A] text-[#0D2B66] hover:bg-[#ffc27d]" },
     { title: t("heroSecondaryLabel"), text: t("heroSecondaryText"), href: "/book-restore" as const, icon: HandHeart, tone: "bg-[#5D95CD] text-white", linkTone: "bg-white text-[#0D2B66] hover:bg-[#FAF9F6]" },
-    { title: t("heroTertiaryLabel"), text: t("heroTertiaryText"), href: "/get-involved" as const, icon: Users, tone: "bg-white text-[#0D2B66] ring-1 ring-[#0D2B66]/10", linkTone: "bg-[#0D2B66] text-white hover:bg-[#173f86]" },
+    { title: t("heroTertiaryLabel"), text: t("heroTertiaryText"), href: "/book-restore/volunteer" as const, icon: Users, tone: "bg-white text-[#0D2B66] ring-1 ring-[#0D2B66]/10", linkTone: "bg-[#0D2B66] text-white hover:bg-[#173f86]" },
   ];
   const features = [
     { title: t("featureOneTitle"), text: t("featureOneText"), icon: BookOpen, image: "/images/phoenix/phoenix-discover.webp", alt: isArabic ? "قارئة تختار كتاباً مستعملاً" : "A reader discovering a pre-loved book" },

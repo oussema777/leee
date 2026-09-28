@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { withAdmin, errorResponse } from "@/lib/api-utils";
 import { accessTokenSchema, shouldExpire } from "./whish-policy";
 import { emptyWhishConfig, parseWhishConfig, snapshotActive, type WhishSnapshot } from "./whish-config";
+import { bankAudiSnapshotActive, emptyBankAudiConfig, parseBankAudiConfig, type BankAudiSnapshot } from "./bank-audi-config";
 
 export const PRIVATE_HEADERS = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow", "Referrer-Policy": "no-referrer" };
 export function privateJson(value: unknown, status = 200) { return NextResponse.json(value, { status, headers: PRIVATE_HEADERS }); }
@@ -21,6 +22,15 @@ export async function getWhishConfig() {
     // Fail closed until the additive schema patch has been applied.
     if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021")) console.error("Whish setup unavailable");
     return emptyWhishConfig();
+  }
+}
+export async function getBankAudiConfig() {
+  try {
+    const row = await db.bookWhishSettings.findUnique({ where: { id: "book-bank-audi" } });
+    return parseBankAudiConfig(row?.config);
+  } catch (e) {
+    if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021")) console.error("Bank Audi setup unavailable");
+    return emptyBankAudiConfig();
   }
 }
 export async function withPaymentAdmin(request: NextRequest) {
@@ -85,18 +95,20 @@ export async function expireWhishPayments() {
   }
 }
 export async function paymentSummary(p: BookWhishPayment & { order: BookOrder }) {
-  const snapshot = p.snapshot as unknown as WhishSnapshot;
+  const bankAudi = p.order.paymentMethod === "BANK_AUDI";
+  const snapshot = p.snapshot as unknown as WhishSnapshot & BankAudiSnapshot;
   const [config, items] = await Promise.all([
-    getWhishConfig(),
+    bankAudi ? getBankAudiConfig() : getWhishConfig(),
     p.order.selectionMode === "LEE_CHOICE" ? Promise.resolve([]) : db.bookOrderItem.findMany({
       where: { orderId: p.orderId }, orderBy: { createdAt: "asc" },
       select: { isFreeExtra: true, edition: { select: { label: true, publicationYear: true, coverImageUrl: true } }, inventoryItem: { select: { id: true, title: true, titleAr: true, author: true, authorAr: true, coverImageUrl: true } } },
     }),
   ]);
   const payable = ["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(p.state) &&
-    p.order.status !== "CANCELLED" && p.expiresAt.getTime() > Date.now() && snapshotActive(config, snapshot);
+    p.order.status !== "CANCELLED" && p.expiresAt.getTime() > Date.now() &&
+    (bankAudi ? bankAudiSnapshotActive(config as Awaited<ReturnType<typeof getBankAudiConfig>>, snapshot) : snapshotActive(config as Awaited<ReturnType<typeof getWhishConfig>>, snapshot));
   return {
-    reference: p.order.reference, state: p.state, orderStatus: p.order.status,
+    reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
     amountCents: p.order.priceCents, currency: p.order.currency,
     selectionMode: p.order.selectionMode,
     books: items.map(item => ({ ...item.inventoryItem, coverImageUrl: item.edition?.coverImageUrl || item.inventoryItem.coverImageUrl, editionLabel: item.edition?.label || null, editionYear: item.edition?.publicationYear || null, isFreeExtra: item.isFreeExtra })),

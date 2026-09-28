@@ -1,5 +1,6 @@
-import { BookOpenCheck, ClipboardCheck, MessagesSquare } from "lucide-react";
+import { BookOpenCheck, ClipboardCheck, MessagesSquare, PackageCheck, Truck, Video, ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
 import { BookDonationForm } from "@/components/sections/book-restore/BookDonationForm";
@@ -83,6 +84,24 @@ export default async function BookRestorePage({ params }: { params: Promise<{ lo
                 <BookDonationForm locale={isAr ? "ar" : "en"} />
               </div>
             </div>
+          </Container>
+        </section>
+
+        <section className="bg-accent-ice py-16 md:py-20" aria-labelledby="book-volunteer-heading">
+          <Container>
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-blue-deeper">BOOK RESTORE</p>
+              <h2 id="book-volunteer-heading" className="mt-3 font-serif text-3xl text-accent-navy md:text-4xl">{isAr ? "عندك وقت تساعدنا؟" : "Help give books their next chapter"}</h2>
+              <p className="mt-4 leading-7 text-text-secondary">{isAr ? "نبحث عن متطوعين لجمع الكتب، تجهيز الطلبات، والمساعدة في مقابلات الشارع وصناعة المحتوى. اختر ما يناسبك وسنتواصل معك للتنسيق." : "Volunteer with Book Restore. Help collect books, prepare orders, or bring community stories to life through street interviews and video."}</p>
+            </div>
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {([
+                { icon: Truck, title: isAr ? "جمع الكتب" : "Collect books", text: isAr ? "ساعد في تنسيق واستلام الكتب من المتبرعين." : "Help coordinate and collect books from donors." },
+                { icon: PackageCheck, title: isAr ? "تجهيز الطلبات" : "Prepare orders", text: isAr ? "فرز الكتب وتحضيرها للقراء والمستفيدين." : "Sort and prepare books for readers and recipients." },
+                { icon: Video, title: isAr ? "قصص من الشارع" : "Share stories", text: isAr ? "شارك في المقابلات والتصوير وصناعة المحتوى." : "Help with street interviews, video, and content." },
+              ]).map(({ icon: Icon, title, text }) => <article key={title} className="rounded-2xl bg-white p-6 shadow-sm"><span className="flex size-12 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue-deeper"><Icon className="size-6" aria-hidden="true" /></span><h3 className="mt-5 font-serif text-xl text-accent-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-text-secondary">{text}</p></article>)}
+            </div>
+            <div className="mt-9 text-center"><Link href="/book-restore/volunteer" className="inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-accent-navy px-7 py-3 font-semibold text-white transition hover:bg-brand-blue-deeper">{isAr ? "تقدّم للتطوع" : "Apply to volunteer"}<ArrowRight className="size-4 rtl:rotate-180" aria-hidden="true" /></Link></div>
           </Container>
         </section>
 

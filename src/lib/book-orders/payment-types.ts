@@ -1,10 +1,11 @@
 import type { WhishSnapshot } from "./whish-config";
+import type { BankAudiSnapshot } from "./bank-audi-config";
 import type { WhishState } from "./whish-policy";
 export type PaymentSummary = {
-  reference: string; state: WhishState; orderStatus: string; amountCents: number; currency: string;
+  reference: string; method?: "WHISH" | "BANK_AUDI"; state: WhishState; orderStatus: string; amountCents: number; currency: string;
   bookCount: number; fulfillmentMethod: string; expiresAt: string; submittedAt: string | null;
   customerNote: string | null; submittedReference: string | null; supportPhone: string;
-  instructions: WhishSnapshot | null;
+  instructions: (WhishSnapshot & Partial<BankAudiSnapshot>) | null;
   selectionMode?: string;
   books?: { id: string; title: string; titleAr: string | null; author: string | null; authorAr: string | null; editionLabel: string | null; editionYear: number | null; coverImageUrl: string | null; isFreeExtra: boolean }[];
 };
@@ -12,6 +13,6 @@ export type AdminWhishPayment = {
   id: string; state: WhishState; updatedAt: string; expiresAt: string;
   submittedReference: string | null; senderPhone: string | null; submittedAt: string | null;
   verifiedReference: string | null; customerNote: string | null; reviewedBy: string | null; reviewedAt: string | null;
-  snapshot: WhishSnapshot;
+  snapshot: WhishSnapshot & Partial<BankAudiSnapshot>;
   events: { id: string; action: string; actor: string; createdAt: string; details: Record<string, unknown> }[];
 };

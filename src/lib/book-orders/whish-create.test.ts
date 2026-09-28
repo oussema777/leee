@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { emptyWhishConfig } from "./whish-config";
+import { emptyBankAudiConfig } from "./bank-audi-config";
 import { POST } from "@/app/api/public/book-orders/route";
 
 const mocks = vi.hoisted(() => ({
@@ -55,6 +56,17 @@ beforeEach(() => {
   });
 });
 describe("Whish order creation", () => {
+  it("creates a distinct pending Bank Audi order only after verified setup", async () => {
+    const bank = { ...emptyBankAudiConfig(), enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };
+    mocks.db.bookWhishSettings.findUnique.mockImplementation(async ({ where }) => ({ config: where.id === "book-bank-audi" ? bank : emptyWhishConfig() }));
+    const response = await POST(request({ paymentMethod: "BANK_AUDI" }));
+    expect(response.status).toBe(201);
+    expect(saved.snapshot).toMatchObject({ amountCents: 500, iban: bank.iban, imageUrl: bank.qrImageUrl });
+    expect(mocks.db.bookOrder.create.mock.calls[0][0].data.paymentMethod).toBe("BANK_AUDI");
+    expect((await response.json()).paymentUrl).toContain("#" + input.paymentAccessToken);
+    saved = null; bank.enabled = false;
+    expect((await POST(request({ paymentMethod: "BANK_AUDI", paymentAccessToken: "ef".repeat(32) }))).status).toBe(409);
+  });
   it("uses the server-calculated pickup amount, stores hashes, and sends the private link only to the purchaser", async () => {
     const response = await POST(request({ priceCents: 1, paymentStatus: "PAID", recipientEmail: "recipient@example.test" }));
     expect(response.status).toBe(201);

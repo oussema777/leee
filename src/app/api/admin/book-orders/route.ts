@@ -15,12 +15,12 @@ export async function GET(request: NextRequest) {
     const purpose = params.get("purpose") || "";
     const paymentMethod = params.get("paymentMethod") || "";
     const paymentState = params.get("paymentState") || "";
-    if (paymentMethod && !["WHISH", "CASH_ON_DELIVERY", "CASH_ARRANGEMENT"].includes(paymentMethod)) return errorResponse("Invalid payment method", 400);
+    if (paymentMethod && !["WHISH", "BANK_AUDI", "CASH_ON_DELIVERY", "CASH_ARRANGEMENT"].includes(paymentMethod)) return errorResponse("Invalid payment method", 400);
     if (paymentState && !["AWAITING_PAYMENT", "UNDER_REVIEW", "CHANGES_REQUESTED", "VERIFIED", "EXPIRED", "CANCELLED", "REFUNDED"].includes(paymentState)) return errorResponse("Invalid payment state", 400);
     if (status && !statuses.includes(status as (typeof statuses)[number])) return errorResponse("Invalid order status", 400);
     if (purpose && !purposes.includes(purpose as (typeof purposes)[number])) return errorResponse("Invalid order purpose", 400);
     const where: import("@prisma/client").Prisma.BookOrderWhereInput = {
-      ...(paymentMethod ? { paymentMethod: paymentMethod as "WHISH" | "CASH_ON_DELIVERY" | "CASH_ARRANGEMENT" } : {}),
+      ...(paymentMethod ? { paymentMethod: paymentMethod as "WHISH" | "BANK_AUDI" | "CASH_ON_DELIVERY" | "CASH_ARRANGEMENT" } : {}),
       ...(paymentState ? { whishPayment: { is: { state: paymentState as import("@prisma/client").BookWhishState } } } : {}),
       ...(status ? { status: status as (typeof statuses)[number] } : {}),
       ...(purpose ? { purpose: purpose as (typeof purposes)[number] } : {}),
@@ -45,4 +45,3 @@ export async function GET(request: NextRequest) {
     return errorResponse("Failed to load book orders");
   }
 }
-

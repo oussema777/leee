@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { getWhishConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
+import { getWhishConfig, getBankAudiConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
 import { normalizedReference, paymentReviewSchema, reviewProblem } from "@/lib/book-orders/whish-policy";
 import { sendWhishOrderEmail } from "@/lib/book-orders/whish-email";
 import { formatBookOrderSummary } from "@/lib/book-orders/customer-email";
@@ -13,7 +13,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!parsed.success) return privateJson({ error: "Check the review details and refresh the order." }, 400);
     const input = parsed.data;
     const { id } = await params;
-    const config = input.action === "REQUEST_CORRECTION" ? await getWhishConfig() : null;
     const order = await db.$transaction(async tx => {
       await lockOrder(tx, id);
       const p = await tx.bookWhishPayment.findUnique({
@@ -21,6 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         include: { order: { include: { items: { include: { inventoryItem: { select: { title: true, titleAr: true } } } } } } },
       });
       if (!p) throw Error("NOT_FOUND");
+      const config = input.action === "REQUEST_CORRECTION" ? p.order.paymentMethod === "BANK_AUDI" ? await getBankAudiConfig() : await getWhishConfig() : null;
       if (p.updatedAt.toISOString() !== input.expectedUpdatedAt) throw Error("STALE_REVIEW");
       const problem = reviewProblem(input, p.state, p.order.priceCents);
       if (problem) throw Error("REVIEW:" + problem);
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
     if (order.customerEmail) await sendWhishOrderEmail({
       to: order.customerEmail, locale: order.locale, reference: order.reference,
-      amountCents: order.priceCents, kind: input.action, note: input.note,
+      amountCents: order.priceCents, kind: input.action, note: input.note, method: order.paymentMethod === "BANK_AUDI" ? "BANK_AUDI" : "WHISH",
       orderClosed: order.status === "CANCELLED",
       bookSummary: formatBookOrderSummary({
         locale: order.locale, selectionMode: order.selectionMode,
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
     return privateJson({ success: true });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") return privateJson({ error: "This Whish transaction has already been confirmed for another order. Check the wallet and both orders." }, 409);
-    if (e instanceof Error && e.message === "NOT_FOUND") return privateJson({ error: "Whish payment not found." }, 404);
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") return privateJson({ error: "This transaction has already been confirmed for another order. Check both orders and the receiving account." }, 409);
+    if (e instanceof Error && e.message === "NOT_FOUND") return privateJson({ error: "Payment not found." }, 404);
     if (e instanceof Error && e.message === "STALE_REVIEW") return privateJson({ error: "This payment changed while you were reviewing it. Reload the order." }, 409);
     if (e instanceof Error && e.message.startsWith("REVIEW:")) return privateJson({ error: e.message.slice(7) }, 400);
     return privateJson({ error: "Could not save the payment review." }, 500);

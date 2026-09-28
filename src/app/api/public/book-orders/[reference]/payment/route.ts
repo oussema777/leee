@@ -66,10 +66,10 @@ export async function POST(request: NextRequest, context: Context) {
     });
     receiptSaved = result.changed && !!receiptPath;
     if (result.changed) await sendNotificationEmail({
-      subject: "Whish payment to verify: " + reference,
-      html: renderNotification("Whish payment awaiting verification", "Check the actual incoming wallet transaction before confirming this payment.", [
+      subject: (result.payment.order.paymentMethod === "BANK_AUDI" ? "Bank Audi transfer" : "Whish payment") + " to verify: " + reference,
+      html: renderNotification("Payment awaiting verification", "Check the actual incoming receiving account transaction before confirming this payment.", [
         { label: "Order", value: reference }, { label: "Amount", value: "USD " + result.payment.order.priceCents / 100 },
-        { label: "Whish reference", value: transactionReference || "Not provided" }, { label: "Sender phone", value: senderPhone },
+        { label: "Transfer reference", value: transactionReference || "Not provided" }, { label: "Customer phone", value: senderPhone },
         { label: "Order status", value: result.payment.order.status },
       ]),
     });

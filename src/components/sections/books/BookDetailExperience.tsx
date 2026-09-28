@@ -253,7 +253,8 @@ export function BookDetailExperience({ book, books, locale }: {
     const [error, setError] = useState("");
     const [reference, setReference] = useState("");
     const [whishAvailable, setWhishAvailable] = useState(false);
-    const [chosenPayment, setChosenPayment] = useState<"CASH" | "WHISH">("CASH");
+    const [bankAudiAvailable, setBankAudiAvailable] = useState(false);
+    const [chosenPayment, setChosenPayment] = useState<"CASH" | "WHISH" | "BANK_AUDI">("CASH");
     const [paymentHref, setPaymentHref] = useState("");
     const [resumeHref, setResumeHref] = useState("");
     const paymentAttempt = useRef<{ fingerprint: string; token: string } | null>(null);
@@ -261,17 +262,16 @@ export function BookDetailExperience({ book, books, locale }: {
     const submitLock = useRef(false);
     useEffect(() => {
         try {
-            const href = localStorage.getItem("book-whish-last-payment") || "";
+            const href = localStorage.getItem("book-last-manual-payment") || localStorage.getItem("book-whish-last-payment") || "";
             if (/^\/(en|ar)\/books\/payment\/[A-Z0-9-]+#[a-f0-9]{64}$/.test(href)) setResumeHref(href);
         } catch {}
     }, []);
     useEffect(() => {
         if (!open) return;
         let cancelled = false;
-        fetch("/api/public/book-orders/whish", { cache: "no-store" })
-            .then(r => r.ok ? r.json() : { available: false })
-            .then(data => { if (!cancelled) { setWhishAvailable(data.available === true); if (!data.available) setChosenPayment("CASH"); } })
-            .catch(() => { if (!cancelled) { setWhishAvailable(false); setChosenPayment("CASH"); } });
+        Promise.all(["whish", "bank-audi"].map(method => fetch("/api/public/book-orders/" + method, { cache: "no-store" })
+            .then(r => r.ok ? r.json() : { available: false }).catch(() => ({ available: false }))))
+            .then(([whish, bank]) => { if (!cancelled) { setWhishAvailable(whish.available === true); setBankAudiAvailable(bank.available === true); setChosenPayment(current => current === "WHISH" && !whish.available || current === "BANK_AUDI" && !bank.available ? "CASH" : current); } });
         return () => { cancelled = true; };
     }, [open]);
 
@@ -355,10 +355,10 @@ export function BookDetailExperience({ book, books, locale }: {
                 governorate: data.get("governorate"), area: data.get("area"), detailedAddress: data.get("detailedAddress"),
                 recipientName: data.get("recipientName"), recipientPhone: data.get("recipientPhone"),
                 giftMessage: data.get("giftMessage"), showSenderName: data.get("showSenderName") === "on",
-                paymentMethod: chosenPayment === "WHISH" ? "WHISH" : purpose === "SELF" ? "CASH_ON_DELIVERY" : "CASH_ARRANGEMENT",
+                paymentMethod: chosenPayment !== "CASH" ? chosenPayment : purpose === "SELF" ? "CASH_ON_DELIVERY" : "CASH_ARRANGEMENT",
                 termsAccepted: consent, website: data.get("website"),
             };
-            if (chosenPayment === "WHISH") {
+            if (chosenPayment !== "CASH") {
                 const fingerprint = JSON.stringify(payload);
                 if (paymentAttempt.current?.fingerprint !== fingerprint) {
                     const bytes = crypto.getRandomValues(new Uint8Array(32));
@@ -372,14 +372,14 @@ export function BookDetailExperience({ book, books, locale }: {
             const result = await response.json().catch(() => ({}));
             if (!response.ok) throw Error(typeof result.error === "string" ? result.error : t.error);
             setReference(result.reference);
-            if (chosenPayment === "WHISH" && typeof result.paymentUrl === "string" &&
+            if (chosenPayment !== "CASH" && typeof result.paymentUrl === "string" &&
                 /^\/(en|ar)\/books\/payment\/[A-Z0-9-]+#[a-f0-9]{64}$/.test(result.paymentUrl)) {
                 setPaymentHref(result.paymentUrl);
-                try { localStorage.setItem("book-whish-last-payment", result.paymentUrl); } catch {}
+                try { localStorage.setItem("book-last-manual-payment", result.paymentUrl); } catch {}
                 window.location.assign(result.paymentUrl);
                 return;
             }
-            if (chosenPayment === "WHISH") throw Error(isArabic ? "تعذر فتح الدفع. حاول مجدداً لاستعادة رابطك." : "Could not open payment. Retry to recover your payment link.");
+            if (chosenPayment !== "CASH") throw Error(isArabic ? "تعذر فتح الدفع. حاول مجدداً لاستعادة رابطك." : "Could not open payment. Retry to recover your payment link.");
             setStep("success");
         } catch (error) {
             setError(error instanceof Error ? error.message : t.error);
@@ -387,7 +387,7 @@ export function BookDetailExperience({ book, books, locale }: {
     }
     const stepNumber = step === "package" ? 1 : step === "purpose" ? 2 : step === "books" ? 3 : 4;
     return (<main className="min-h-screen bg-surface-primary">
-{resumeHref && <Container className="py-3"><a href={resumeHref} className="text-sm font-semibold text-brand-blue-deeper underline underline-offset-4">{isArabic ? "العودة إلى طلب Whish الأخير" : "Return to your last Whish order"}</a></Container>}
+{resumeHref && <Container className="py-3"><a href={resumeHref} className="text-sm font-semibold text-brand-blue-deeper underline underline-offset-4">{isArabic ? "العودة إلى طلب الدفع الأخير" : "Return to your last payment order"}</a></Container>}
       <section className="relative overflow-hidden bg-accent-navy text-white">
         <div className="pointer-events-none absolute -end-40 -top-48 h-96 w-96 rounded-full bg-brand-blue/20 blur-3xl"/>
         <Container className="relative py-8 md:py-12">
@@ -656,13 +656,14 @@ export function BookDetailExperience({ book, books, locale }: {
 <fieldset className="mt-6 border-t border-white/15 pt-5">
 <legend className="sr-only">{isArabic ? "طريقة الدفع" : "Payment method"}</legend>
 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/65">{isArabic ? "طريقة الدفع" : "Payment method"}</p>
-<div className="space-y-3">{(whishAvailable ? ["CASH", "WHISH"] as const : ["CASH"] as const).map(method => {
+<div className="space-y-3">{(["CASH", ...(whishAvailable ? ["WHISH"] : []), "BANK_AUDI"] as ("CASH" | "WHISH" | "BANK_AUDI")[]).map(method => {
 const active = chosenPayment === method;
+const unavailable = method === "BANK_AUDI" && !bankAudiAvailable;
 const Icon = method === "WHISH" ? Wallet : Banknote;
-return <label key={method} className={`relative flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition duration-200 focus-within:ring-2 focus-within:ring-brand-blue-light focus-within:ring-offset-2 focus-within:ring-offset-accent-navy ${active ? "border-white bg-white text-accent-navy shadow-md" : "border-white/20 bg-white/5 text-white hover:border-white/50 hover:bg-white/10"}`}>
-<input type="radio" name="paymentChoice" value={method} checked={active} onChange={() => setChosenPayment(method)} className="sr-only" />
+return <label key={method} aria-disabled={unavailable || undefined} className={`relative flex items-center gap-3 rounded-2xl border p-4 transition duration-200 focus-within:ring-2 focus-within:ring-brand-blue-light focus-within:ring-offset-2 focus-within:ring-offset-accent-navy ${unavailable ? "cursor-not-allowed border-white/15 bg-white/5 text-white/55" : active ? "cursor-pointer border-white bg-white text-accent-navy shadow-md" : "cursor-pointer border-white/20 bg-white/5 text-white hover:border-white/50 hover:bg-white/10"}`}>
+<input type="radio" name="paymentChoice" value={method} checked={active} disabled={unavailable} onChange={() => setChosenPayment(method)} className="sr-only" />
 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${active ? method === "WHISH" ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-700" : "bg-white/10 text-white/80"}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
-<span className="min-w-0 flex-1"><strong className="block text-sm">{method === "WHISH" ? "Whish Pay" : purpose === "SELF" ? fulfillment === "PICKUP" ? (isArabic ? "نقداً عند الاستلام" : "Cash at pickup") : (isArabic ? "الدفع عند التوصيل" : "Cash on delivery") : t.cash}</strong><span className={`mt-1 block text-xs leading-5 ${active ? "text-text-secondary" : "text-white/65"}`}>{method === "WHISH" ? (isArabic ? "امسح الرمز وأرسل تفاصيل الدفع" : "Scan the QR and submit payment details") : (isArabic ? "بدون دفع إلكتروني مسبق" : "No online payment needed")}</span></span>
+<span className="min-w-0 flex-1"><strong className="block text-sm">{method === "WHISH" ? "Whish Pay" : method === "BANK_AUDI" ? (isArabic ? "تحويل مصرفي عبر بنك عودة" : "Bank Audi transfer") : purpose === "SELF" ? fulfillment === "PICKUP" ? (isArabic ? "نقداً عند الاستلام" : "Cash at pickup") : (isArabic ? "الدفع عند التوصيل" : "Cash on delivery") : t.cash}</strong><span className={`mt-1 block text-xs leading-5 ${active ? "text-text-secondary" : "text-white/65"}`}>{unavailable ? (isArabic ? "غير متاح حالياً" : "Currently unavailable") : method === "WHISH" ? (isArabic ? "امسح الرمز وأرسل تفاصيل الدفع" : "Scan the QR and submit payment details") : method === "BANK_AUDI" ? (isArabic ? "حوّل المبلغ وأرسل إيصال العملية للتحقق" : "Transfer the amount and submit your receipt for verification") : (isArabic ? "بدون دفع إلكتروني مسبق" : "No online payment needed")}</span></span>
 <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${active ? "border-brand-blue bg-brand-blue text-white" : "border-white/40"}`}>{active && <Check className="h-3 w-3" />}</span>
 </label>;
 })}</div>
@@ -670,14 +671,14 @@ return <label key={method} className={`relative flex cursor-pointer items-center
 </div>
 <div className="order-last lg:order-none">
 <label className="mt-4 flex items-start gap-3 rounded-xl bg-white p-4 text-sm leading-6 text-text-secondary">
-<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/><span>{t.consent}<span aria-hidden="true" className="ms-1 font-bold text-red-600">*</span><span className="sr-only">{isArabic ? " (مطلوب)" : " (required)"}</span></span></label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : chosenPayment === "WHISH" ? (isArabic ? "تابع للدفع عبر Whish" : "Continue to Whish payment") : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
+<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/><span>{t.consent}<span aria-hidden="true" className="ms-1 font-bold text-red-600">*</span><span className="sr-only">{isArabic ? " (مطلوب)" : " (required)"}</span></span></label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : chosenPayment === "WHISH" ? (isArabic ? "تابع للدفع عبر Whish" : "Continue to Whish payment") : chosenPayment === "BANK_AUDI" ? (isArabic ? "تابع للتحويل المصرفي" : "Continue to bank transfer") : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
 <button type="button" onClick={() => setStep(activePackage.totalBooks > 1 && selectionMode === "CUSTOM" ? "books" : "purpose")} className="mt-2 w-full px-3 py-2 text-sm font-bold text-text-secondary">{t.back}</button>
 </div>
 </aside>
 </form>
 </motion.div>}
 
-                {step === "checkout" && (paymentHref || (submitting && chosenPayment === "WHISH")) && <PaymentLoading isArabic={isArabic} href={paymentHref || undefined} />}
+                {step === "checkout" && (paymentHref || (submitting && chosenPayment !== "CASH")) && <PaymentLoading isArabic={isArabic} href={paymentHref || undefined} />}
 {step === "success" && <motion.div key="success" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto max-w-xl py-10 text-center">
 <motion.div initial={{ scale: 0, rotate: -15 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", delay: .15 }} className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
 <CheckCircle2 className="h-12 w-12"/>

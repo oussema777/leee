@@ -2,7 +2,7 @@ import { z } from "zod";
 export const accessTokenSchema = z.string().regex(/^[a-f0-9]{64}$/);
 export const paymentReportSchema = z.object({
   transactionReference: z.string().trim().max(100)
-    .refine(value => value === "" || (value.length >= 3 && /^[A-Za-z0-9 _./:-]+$/.test(value)), "Enter a valid Whish reference or leave it blank."),
+    .refine(value => value === "" || (value.length >= 3 && /^[A-Za-z0-9 _./:-]+$/.test(value)), "Enter a valid transfer reference or leave it blank."),
   senderPhone: z.string().trim().min(6).max(30).regex(/^[+\d\s().-]+$/)
     .refine(value => /^\d{6,15}$/.test(value.replace(/\D/g, "")), "Enter the phone number used to pay."),
 });
@@ -27,8 +27,8 @@ export function canFulfilWhish(state: WhishState | undefined, paymentStatus: str
 export function reviewProblem(input: z.infer<typeof paymentReviewSchema>, state: WhishState, amountCents: number): string | null {
   if (input.action === "VERIFY") {
     if (state !== "UNDER_REVIEW") return "This payment must be awaiting review.";
-    if (!input.checkedWallet) return "Confirm that you checked the receiving wallet.";
-    if (!input.transactionReference || !paymentReportSchema.shape.transactionReference.safeParse(input.transactionReference).success) return "Enter the actual wallet transaction reference.";
+    if (!input.checkedWallet) return "Confirm that you checked the receiving account.";
+    if (!input.transactionReference || !paymentReportSchema.shape.transactionReference.safeParse(input.transactionReference).success) return "Enter the actual transaction reference.";
     if (input.receivedAmountCents !== amountCents || input.currency !== "USD") return "The received amount and USD currency must exactly match the order.";
   } else if (input.action === "REQUEST_CORRECTION") {
     if (state !== "UNDER_REVIEW") return "Only a payment awaiting review can be returned for correction.";

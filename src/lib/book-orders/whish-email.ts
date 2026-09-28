@@ -4,6 +4,7 @@ type OrderEmail = {
   to: string; locale: string; reference: string; amountCents: number;
   kind: "CREATED" | "VERIFY" | "REQUEST_CORRECTION" | "REFUND";
   privatePath?: string; note?: string; orderClosed?: boolean; bookSummary?: string;
+  method?: "WHISH" | "BANK_AUDI";
 };
 
 export async function sendWhishOrderEmail(input: OrderEmail) {
@@ -19,7 +20,10 @@ export async function sendWhishOrderEmail(input: OrderEmail) {
     REQUEST_CORRECTION: ["Please check your payment details", "Read the note below and return to your saved payment link to correct the details. Contact LEE before sending another payment."],
     REFUND: ["Refund recorded", "LEE has recorded a completed refund. Contact us if you need help."],
   };
-  const [heading, intro] = copy[input.kind];
+  const [heading, baseIntro] = copy[input.kind];
+  const intro = input.method === "BANK_AUDI" && input.kind === "CREATED"
+    ? (ar ? "طلبك بانتظار التحويل المصرفي. افتح رابط الدفع الخاص بك للاطلاع على المبلغ وبيانات الحساب، ثم أرسل إيصال التحويل. سيؤكد فريق LEE الطلب بعد التحقق من وصول المبلغ." : "Your order is awaiting a Bank Audi transfer. Open your private payment link for the exact amount and account details, then submit your transfer receipt. LEE will confirm your order after checking the bank account.")
+    : baseIntro;
   let origin = "https://theleeexperience.com";
   try {
     const configured = new URL(process.env.NEXT_PUBLIC_SITE_URL || origin);

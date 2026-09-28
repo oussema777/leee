@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight, BookOpen, Check, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
+import { ArrowUpRight, BookOpen, Check, ChevronLeft, ChevronRight, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
-import { bookCategoryLabel, bookHasCategory, getBookCategories, normalizeBookCategories } from "@/lib/book-inventory/categories";
+import { bookCategoryLabel, getBookCategories } from "@/lib/book-inventory/categories";
 
 export interface CatalogueBook {
   id: string;
@@ -144,27 +145,51 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
   );
 }
 
-export function BooksCatalogue({ books, locale, loadError = false }: { books: CatalogueBook[]; locale: string; loadError?: boolean }) {
+interface CatalogueProps {
+  books: CatalogueBook[];
+  locale: string;
+  loadError?: boolean;
+  total: number;
+  totalPublished: number;
+  page: number;
+  totalPages: number;
+  categories: string[];
+  languages: string[];
+  filters: { search: string; category: string; language: string };
+}
+
+export function BooksCatalogue({ books, locale, loadError = false, total, totalPublished, page, totalPages, categories, languages, filters }: CatalogueProps) {
   const isArabic = locale === "ar";
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("ALL");
-  const [language, setLanguage] = useState("ALL");
-  const availableCategories = useMemo(() => normalizeBookCategories(books.flatMap(getBookCategories)), [books]);
-  const availableLanguages = useMemo(() => Array.from(new Set(books.map((book) => book.language))), [books]);
-
-  const filteredBooks = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase(locale);
-    return books.filter((book) => {
-      const searchable = [book.title, book.titleAr, book.author, book.authorAr, book.publisher, book.isbn, ...book.editions.map((edition) => edition.label)]
-        .filter(Boolean).join(" ").toLocaleLowerCase(locale);
-      return (!normalizedQuery || searchable.includes(normalizedQuery))
-        && (category === "ALL" || bookHasCategory(book, category))
-        && (language === "ALL" || book.language === language);
-    });
-  }, [books, category, language, locale, query]);
-
-  const hasFilters = Boolean(query || category !== "ALL" || language !== "ALL");
-  const resetFilters = () => { setQuery(""); setCategory("ALL"); setLanguage("ALL"); };
+  const router = useRouter();
+  const [query, setQuery] = useState(filters.search);
+  useEffect(() => { setQuery(filters.search); }, [filters.search]);
+  const navigate = (next: { search?: string; category?: string; language?: string; page?: number }) => {
+    const params = new URLSearchParams();
+    const search = next.search ?? filters.search;
+    const category = next.category ?? filters.category;
+    const language = next.language ?? filters.language;
+    if (search.trim()) params.set("search", search.trim());
+    if (category) params.set("category", category);
+    if (language) params.set("language", language);
+    if (next.page && next.page > 1) params.set("page", String(next.page));
+    router.push(`/${locale}/books${params.size ? `?${params.toString()}` : ""}`, { scroll: false });
+  };
+  useEffect(() => {
+    if (query === filters.search) return;
+    const timer = setTimeout(() => navigate({ search: query, page: 1 }), 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, filters.search]);
+  const hasFilters = Boolean(filters.search || filters.category || filters.language);
+  const resetFilters = () => { setQuery(""); router.push(`/${locale}/books`, { scroll: false }); };
+  const pageHref = (nextPage: number) => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set("search", filters.search);
+    if (filters.category) params.set("category", filters.category);
+    if (filters.language) params.set("language", filters.language);
+    if (nextPage > 1) params.set("page", String(nextPage));
+    return `/books${params.size ? `?${params.toString()}` : ""}`;
+  };
 
   return (
     <div className="min-h-screen bg-surface-primary selection:bg-brand-blue selection:text-white">
@@ -185,11 +210,11 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
 
             <div className="border-y border-white/15 py-6 lg:border-y-0 lg:border-s lg:py-2 lg:ps-8">
               <p className="font-serif text-2xl leading-snug text-white">
-                {books.length === 0
+                {totalPublished === 0
                   ? (isArabic ? "الرف ينتظر كتابه الأول." : "The shelf is waiting for its first book.")
                   : isArabic
-                    ? `${books.length} ${books.length === 1 ? "كتاب متاح الآن" : "كتب متاحة الآن"}`
-                    : `${books.length} ${books.length === 1 ? "book is" : "books are"} ready for a new reader.`}
+                    ? `${totalPublished} ${totalPublished === 1 ? "كتاب متاح الآن" : "كتب متاحة الآن"}`
+                    : `${totalPublished} ${totalPublished === 1 ? "book is" : "books are"} ready for a new reader.`}
               </p>
               <Link href="/book-restore" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-blue-light underline decoration-brand-blue/60 underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-light">
                 <HeartHandshake className="h-4 w-4" aria-hidden="true" />
@@ -207,17 +232,17 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
             <label className="relative block">
               <span className="sr-only">{isArabic ? "التصنيف" : "Category"}</span>
               <SlidersHorizontal className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
-              <select value={category} onChange={(event) => setCategory(event.target.value)} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
-                <option value="ALL">{isArabic ? "جميع التصنيفات" : "All categories"}</option>
-                {availableCategories.map((value) => <option key={value} value={value}>{bookCategoryLabel(value, isArabic)}</option>)}
+              <select value={filters.category} onChange={(event) => navigate({ category: event.target.value, search: query, page: 1 })} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
+                <option value="">{isArabic ? "جميع التصنيفات" : "All categories"}</option>
+                {categories.map((value) => <option key={value} value={value}>{bookCategoryLabel(value, isArabic)}</option>)}
               </select>
             </label>
             <label className="relative block">
               <span className="sr-only">{isArabic ? "اللغة" : "Language"}</span>
               <Languages className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
-              <select value={language} onChange={(event) => setLanguage(event.target.value)} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
-                <option value="ALL">{isArabic ? "جميع اللغات" : "All languages"}</option>
-                {availableLanguages.map((value) => <option key={value} value={value}>{localizedLabel(languageLabels, value, isArabic)}</option>)}
+              <select value={filters.language} onChange={(event) => navigate({ language: event.target.value, search: query, page: 1 })} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
+                <option value="">{isArabic ? "جميع اللغات" : "All languages"}</option>
+                {languages.map((value) => <option key={value} value={value}>{localizedLabel(languageLabels, value, isArabic)}</option>)}
               </select>
             </label>
           </div>
@@ -228,7 +253,7 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
         <Container>
           <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm font-semibold text-accent-navy" aria-live="polite">
-              {isArabic ? `${filteredBooks.length} ${filteredBooks.length === 1 ? "نتيجة" : "نتائج"}` : `${filteredBooks.length} ${filteredBooks.length === 1 ? "result" : "results"}`}
+              {isArabic ? `${total} ${total === 1 ? "نتيجة" : "نتائج"}` : `${total} ${total === 1 ? "result" : "results"}`}
             </p>
             {hasFilters && (
               <button type="button" onClick={resetFilters} className="inline-flex items-center gap-2 rounded-sm px-3 py-2 text-sm font-semibold text-brand-blue-deeper transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue">
@@ -249,10 +274,24 @@ export function BooksCatalogue({ books, locale, loadError = false }: { books: Ca
                 {isArabic ? "تحديث الصفحة" : "Refresh page"}
               </button>
             </div>
-          ) : filteredBooks.length > 0 ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              {filteredBooks.map((book) => <BookCard key={book.id} book={book} isArabic={isArabic} />)}
-            </div>
+          ) : books.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {books.map((book) => <BookCard key={book.id} book={book} isArabic={isArabic} />)}
+              </div>
+              {totalPages > 1 && (
+                <nav aria-label={isArabic ? "صفحات الكتب" : "Book pages"} className="mt-10 flex flex-wrap items-center justify-center gap-2">
+                  {page > 1 && <Link href={pageHref(page - 1)} className="inline-flex min-h-10 items-center gap-1 rounded-sm border border-surface-tertiary bg-white px-3 text-sm font-semibold text-accent-navy hover:border-brand-blue" aria-label={isArabic ? "الصفحة السابقة" : "Previous page"}><ChevronLeft className="h-4 w-4 rtl:rotate-180" />{isArabic ? "السابق" : "Previous"}</Link>}
+                  {Array.from(new Set([1, page - 1, page, page + 1, totalPages].filter((value) => value >= 1 && value <= totalPages))).sort((a, b) => a - b).map((value, index, values) => (
+                    <span key={value} className="contents">
+                      {index > 0 && value - values[index - 1] > 1 && <span className="px-1 text-text-muted" aria-hidden="true">…</span>}
+                      <Link href={pageHref(value)} aria-current={value === page ? "page" : undefined} aria-label={isArabic ? `الصفحة ${value}` : `Page ${value}`} className={`inline-flex h-10 min-w-10 items-center justify-center rounded-sm px-2 text-sm font-semibold ${value === page ? "bg-accent-navy text-white" : "border border-surface-tertiary bg-white text-accent-navy hover:border-brand-blue"}`}>{value}</Link>
+                    </span>
+                  ))}
+                  {page < totalPages && <Link href={pageHref(page + 1)} className="inline-flex min-h-10 items-center gap-1 rounded-sm border border-surface-tertiary bg-white px-3 text-sm font-semibold text-accent-navy hover:border-brand-blue" aria-label={isArabic ? "الصفحة التالية" : "Next page"}>{isArabic ? "التالي" : "Next"}<ChevronRight className="h-4 w-4 rtl:rotate-180" /></Link>}
+                </nav>
+              )}
+            </>
           ) : (
             <div className="rounded-2xl bg-white px-6 py-16 text-center md:px-12">
               <BookOpen className="mx-auto h-10 w-10 text-brand-blue" aria-hidden="true" />

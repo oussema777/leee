@@ -55,11 +55,31 @@ const copy = {
     verification: "يُؤكَّد الدفع بعد تحقق فريق LEE من صورة الإيصال.", txHint: "اختياري. إذا كان متاحاً، استخدم رقم العملية من إيصال Whish وليس رقم طلب الكتب.",
   },
 } as const;
+const bankCopy = {
+  en: { ...copy.en,
+    title: "Complete your Bank Audi transfer", payTitle: "Bank Audi transfer",
+    qr: "Scan the account QR in a compatible banking app",
+    samePhone: "Enter the exact USD total and use your order reference as the transfer description. Copy the IBAN below if your app cannot scan the QR or you are paying on the same phone. Confirm the beneficiary before sending.",
+    tx: "Bank transaction reference", sender: "Your phone number",
+    senderHint: "Enter a phone number LEE can use to clarify this bank transfer.",
+    txHint: "Optional. Use the reference shown on your bank receipt, if available.",
+    verification: "LEE confirms payment after checking the actual incoming bank transfer; a screenshot alone is not proof of receipt.",
+  },
+  ar: { ...copy.ar,
+    title: "أكمل التحويل عبر بنك عودة", payTitle: "التحويل عبر بنك عودة",
+    qr: "امسح رمز الحساب بتطبيق مصرفي متوافق",
+    samePhone: "أدخل المبلغ بالدولار كما هو معروض، وضع رقم الطلب في وصف التحويل. يمكنك نسخ رقم IBAN أدناه إذا تعذّر مسح الرمز أو كنت تستخدم الهاتف نفسه. تحقق من اسم المستفيد قبل الإرسال.",
+    tx: "رقم مرجع التحويل المصرفي", sender: "رقم هاتفك",
+    senderHint: "أدخل رقم هاتف يمكن لفريق LEE الاتصال بك عليه بخصوص هذا التحويل.",
+    txHint: "اختياري. استخدم المرجع الظاهر على إيصال البنك إن وجد.",
+    verification: "يؤكد فريق LEE الدفع بعد التحقق من وصول التحويل إلى الحساب المصرفي. صورة الإيصال وحدها لا تثبت وصول المبلغ.",
+  },
+};
 const inputClass = "mt-2 w-full rounded-xl border border-surface-tertiary bg-white px-4 py-3 text-accent-navy outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30";
 const buttonClass = "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-navy px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-blue-deeper focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-blue/30 disabled:opacity-50";
 
 export function WhishPaymentPage({ reference, locale }: { reference: string; locale: string }) {
-  const ar = locale === "ar"; const t = ar ? copy.ar : copy.en;
+  const ar = locale === "ar";
   const [stage, setStage] = useState<1 | 2>(1);
   const [receipt, setReceipt] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState("");
@@ -79,6 +99,8 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
   }
   const [token, setToken] = useState(""); const [ready, setReady] = useState(false);
   const [payment, setPayment] = useState<PaymentSummary | null>(null);
+  const bankAudi = payment?.method === "BANK_AUDI";
+  const t = bankAudi ? ar ? bankCopy.ar : bankCopy.en : ar ? copy.ar : copy.en;
   const [error, setError] = useState(""); const [notice, setNotice] = useState("");
   const [refreshing, setRefreshing] = useState(false); const [submitting, setSubmitting] = useState(false);
   const [transactionReference, setTransactionReference] = useState(""); const [senderPhone, setSenderPhone] = useState("");
@@ -172,7 +194,7 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
               <div className="mt-5 rounded-2xl border border-brand-blue/15 bg-accent-ice/50 p-4">
                 <div className="order-2 sm:order-1">
                   <p className="text-center text-sm font-semibold text-accent-navy">{t.qr}</p>
-                  <img src={instructions.imageUrl} alt={ar ? "رمز QR الدائم للدفع عبر Whish" : "Permanent Whish payment QR"} width={320} height={320} className="mx-auto mt-3 aspect-square w-full max-w-80 object-contain" />
+                  <img src={instructions.imageUrl} alt={bankAudi ? ar ? "رمز حساب بنك عودة" : "Bank Audi account QR" : ar ? "رمز QR الدائم للدفع عبر Whish" : "Permanent Whish payment QR"} width={320} height={320} className="mx-auto mt-3 aspect-square w-full max-w-80 object-contain" />
                 </div>
                   <p className="rounded-xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">{ar ? <>أدخل المبلغ يدوياً: <bdi>{payment.amountCents / 100} USD</bdi>. إذا اختلف المستلم، توقف وتواصل مع LEE. لا تدفع مرتين.</> : <>Enter this amount manually: <bdi>{payment.amountCents / 100} USD</bdi>. If the recipient differs, stop and contact LEE. Do not pay twice.</>}</p>
               </div>
@@ -185,7 +207,7 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
               </div>
               <dl className="mt-6 space-y-4">
                 <div><dt className="text-xs text-text-secondary">{t.account}</dt><dd className="mt-1 font-bold text-accent-navy">{instructions.accountName}</dd></div>
-                {[{ label: t.number, value: instructions.accountNumber }, { label: t.amount, value: String(payment.amountCents / 100) }].map(item => <div key={item.label}><dt className="text-xs text-text-secondary">{item.label}</dt><dd className="mt-1 flex items-center gap-2"><span dir="ltr" className="select-all font-bold text-accent-navy">{item.value}{item.label === t.amount ? " USD" : ""}</span><button type="button" aria-label={t.copy + " " + item.label} onClick={() => copyText(item.value)} className="rounded-lg p-3 text-brand-blue-deeper hover:bg-accent-ice"><Copy className="h-4 w-4" /></button></dd></div>)}
+                {[{ label: t.number, value: instructions.accountNumber }, ...(bankAudi && instructions.iban ? [{ label: "IBAN", value: instructions.iban }] : []), { label: t.amount, value: String(payment.amountCents / 100) }, ...(bankAudi ? [{ label: t.reference, value: reference }] : [])].map(item => <div key={item.label}><dt className="text-xs text-text-secondary">{item.label}</dt><dd className="mt-1 flex items-center gap-2"><span dir="ltr" className="select-all break-all font-bold text-accent-navy">{item.value}{item.label === t.amount ? " USD" : ""}</span><button type="button" aria-label={t.copy + " " + item.label} onClick={() => copyText(item.value)} className="rounded-lg p-3 text-brand-blue-deeper hover:bg-accent-ice"><Copy className="h-4 w-4" /></button></dd></div>)}
               </dl>
 
               <p className="mt-5 text-xs leading-5 text-text-secondary">{t.verification}</p>

@@ -5,7 +5,7 @@ import { BOOK_PACKAGES, BOOK_PACKAGE_KEYS, LEBANON_GOVERNORATES } from "./config
 export const BOOK_ORDER_PURPOSES = ["SELF", "GIFT", "DONATION"] as const;
 export const BOOK_SELECTION_MODES = ["CUSTOM", "LEE_CHOICE"] as const;
 export const BOOK_FULFILLMENT_METHODS = ["DELIVERY", "PICKUP", "LEE_DISTRIBUTION"] as const;
-export const BOOK_PAYMENT_METHODS = ["CASH_ON_DELIVERY", "CASH_ARRANGEMENT", "WHISH"] as const;
+export const BOOK_PAYMENT_METHODS = ["CASH_ON_DELIVERY", "CASH_ARRANGEMENT", "WHISH", "BANK_AUDI"] as const;
 
 const optionalText = (max: number) => z.preprocess(
   (value) => (value == null || (typeof value === "string" && value.trim() === "") ? undefined : value),
@@ -45,7 +45,7 @@ export const bookOrderSchema = z.object({
   if (value.fulfillmentMethod === 'DELIVERY' && value.governorate && !LEBANON_GOVERNORATES.includes(value.governorate as (typeof LEBANON_GOVERNORATES)[number])) {
     context.addIssue({ code: 'custom', path: ['governorate'], message: 'Choose a Lebanese governorate' });
   }
-  if (value.paymentMethod === "WHISH" && !value.paymentAccessToken) context.addIssue({ code: "custom", path: ["paymentAccessToken"], message: "Start a new payment session." });
+  if (["WHISH", "BANK_AUDI"].includes(value.paymentMethod) && !value.paymentAccessToken) context.addIssue({ code: "custom", path: ["paymentAccessToken"], message: "Start a new payment session." });
   const packageDetails = BOOK_PACKAGES[value.package as keyof typeof BOOK_PACKAGES];
   if (new Set(value.selectedBookIds).size !== value.selectedBookIds.length) {
     context.addIssue({ code: "custom", path: ["selectedBookIds"], message: "A book can only be selected once" });
@@ -71,7 +71,7 @@ export const bookOrderSchema = z.object({
   }
   if (value.purpose === "SELF") {
     if (value.fulfillmentMethod === "LEE_DISTRIBUTION") context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "Choose delivery or pickup" });
-    if (value.paymentMethod !== "CASH_ON_DELIVERY" && value.paymentMethod !== "WHISH") context.addIssue({ code: "custom", path: ["paymentMethod"], message: "Choose cash or Whish payment" });
+    if (value.paymentMethod !== "CASH_ON_DELIVERY" && value.paymentMethod !== "WHISH" && value.paymentMethod !== "BANK_AUDI") context.addIssue({ code: "custom", path: ["paymentMethod"], message: "Choose a payment method" });
   }
   if (value.purpose === "GIFT") {
     if (value.fulfillmentMethod !== "DELIVERY") context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "Gift orders are delivered" });
@@ -81,7 +81,7 @@ export const bookOrderSchema = z.object({
   if (value.purpose === "DONATION" && value.fulfillmentMethod !== "LEE_DISTRIBUTION") {
     context.addIssue({ code: "custom", path: ["fulfillmentMethod"], message: "LEE distributes donated books" });
   }
-  if (value.purpose !== "SELF" && value.paymentMethod !== "CASH_ARRANGEMENT" && value.paymentMethod !== "WHISH") {
+  if (value.purpose !== "SELF" && value.paymentMethod !== "CASH_ARRANGEMENT" && value.paymentMethod !== "WHISH" && value.paymentMethod !== "BANK_AUDI") {
     context.addIssue({ code: "custom", path: ["paymentMethod"], message: "LEE will arrange payment with the purchaser" });
   }
   if (value.fulfillmentMethod === "DELIVERY") {

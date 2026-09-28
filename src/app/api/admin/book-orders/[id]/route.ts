@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       const current = await tx.bookOrder.findUnique({ where: { id }, include: { whishPayment: true, items: true } });
       if (!current) throw Error("NOT_FOUND");
       if (current.status === "CANCELLED" && status !== "CANCELLED") throw Error("CANCELLED_FINAL");
-      if (current.paymentMethod === "WHISH") {
+      if (current.paymentMethod === "WHISH" || current.paymentMethod === "BANK_AUDI") {
         if (body.expectedUpdatedAt !== current.updatedAt.toISOString()) throw Error("STALE");
         if (paymentStatus !== current.paymentStatus) throw Error("PAYMENT_REVIEW_REQUIRED");
         if (!["NEW", "CANCELLED"].includes(status) && !canFulfilWhish(current.whishPayment?.state, current.paymentStatus)) throw Error("PAYMENT_REQUIRED");
@@ -89,8 +89,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const messages: Record<string, string> = {
       NOT_FOUND: "Order not found", CANCELLED_FINAL: "A cancelled order cannot be reopened.",
       STALE: "This order has changed. Reload before saving.",
-      PAYMENT_REVIEW_REQUIRED: "Use the Whish payment review to confirm receipt or record a refund.",
-      PAYMENT_REQUIRED: "Verify the Whish payment before confirming or fulfilling this order.",
+      PAYMENT_REVIEW_REQUIRED: "Use payment review to confirm receipt or record a refund.",
+      PAYMENT_REQUIRED: "Verify payment before confirming or fulfilling this order.",
       RETURN_REQUIRED: "Dispatched or completed books cannot be returned to inventory by cancelling. Arrange and record the physical return first.",
     };
     if (e instanceof Error && messages[e.message]) return errorResponse(messages[e.message], e.message === "NOT_FOUND" ? 404 : 409);
