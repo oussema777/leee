@@ -17,6 +17,8 @@ interface AdminDataTableProps<T> {
   totalPages: number;
   currentPage: number;
   total: number;
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
   search?: string;
   onSearch?: (value: string) => void;
   onPageChange: (page: number) => void;
@@ -36,6 +38,8 @@ export default function AdminDataTable<T extends { id: string; [key: string]: an
   totalPages,
   currentPage,
   total,
+  pageSize = 20,
+  onPageSizeChange,
   search = "",
   onSearch,
   onPageChange,
@@ -171,30 +175,43 @@ export default function AdminDataTable<T extends { id: string; [key: string]: an
           </div>
         )}
 
-        {totalPages > 1 && (
+        {(totalPages > 1 || onPageSizeChange) && (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-700/50 px-4 py-4 sm:px-6">
             <p className="text-sm text-gray-400">
-              Showing {(currentPage - 1) * data.length + 1}–{Math.min(currentPage * data.length, total)} of {total}
+              {loading ? "Loading records…" : `Showing ${data.length ? (currentPage - 1) * pageSize + 1 : 0}–${data.length ? Math.min((currentPage - 1) * pageSize + data.length, total) : 0} of ${total}`}
             </p>
-            <div className="flex items-center gap-2">
+            <nav aria-label="Table pagination" className="flex flex-wrap items-center gap-2">
+              {onPageSizeChange && <label className="me-3 flex items-center gap-2 text-sm text-gray-400">
+                Per page
+                <select value={pageSize} disabled={loading} onChange={event => onPageSizeChange(Number(event.target.value))} className="min-h-10 rounded-lg border border-gray-600 bg-[#0f172a] px-2 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue">
+                  {[10, 20, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
+                </select>
+              </label>}
               <button
+                type="button"
+                aria-label="Previous page"
                 onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
+                disabled={loading || currentPage <= 1}
                 className="p-2 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="text-sm text-gray-300">
-                {currentPage} / {totalPages}
-              </span>
+              {Array.from(new Set([1, currentPage - 1, currentPage, currentPage + 1, Math.max(1, totalPages)].filter(page => page >= 1 && page <= Math.max(1, totalPages)))).sort((a, b) => a - b).map((page, index, pages) => (
+                <span key={page} className="contents">
+                  {index > 0 && page - pages[index - 1] > 1 && <span aria-hidden="true" className="text-gray-500">…</span>}
+                  <button type="button" aria-label={`Page ${page}`} aria-current={page === currentPage ? "page" : undefined} disabled={loading} onClick={() => onPageChange(page)} className={cn("min-h-10 min-w-10 rounded-lg px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue disabled:opacity-50", page === currentPage ? "bg-brand-blue text-white" : "text-gray-300 hover:bg-gray-700")}>{page}</button>
+                </span>
+              ))}
               <button
+                type="button"
+                aria-label="Next page"
                 onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
+                disabled={loading || currentPage >= totalPages}
                 className="p-2 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight size={18} />
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </div>

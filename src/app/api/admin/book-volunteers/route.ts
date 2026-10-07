@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   };
   try {
     const [data, total] = await Promise.all([
-      db.bookVolunteerSubmission.findMany({ where, skip, take: limit, orderBy: { createdAt: "desc" },
+      db.bookVolunteerSubmission.findMany({ where, skip, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: { id: true, reference: true, fullName: true, governorate: true, area: true, interests: true, availability: true, status: true, isRead: true, createdAt: true } }),
       db.bookVolunteerSubmission.count({ where }),
     ]);

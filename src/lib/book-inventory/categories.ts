@@ -63,8 +63,14 @@ export function bookHasCategory(book: CategorizedBook, category: string): boolea
 
 export function getBookCategoryOptions(saved: readonly string[] = []): string[] {
   return normalizeBookCategories([...BOOK_SELECTABLE_CATEGORIES, ...saved]).filter(
-    (category) => !['OTHER', 'CHILDREN', 'RELIGION'].includes(category)
+    (category) => category !== 'OTHER'
   );
+}
+
+export function canCreateBookCategory(query: string, categories: readonly string[]): boolean {
+  const normalized = normalizeBookCategory(query);
+  return Boolean(normalized) && normalized !== 'OTHER'
+    && !categories.some((category) => normalizeBookCategory(category).toLowerCase() === normalized.toLowerCase());
 }
 
 export function primaryBookCategory(categories: readonly string[]) {

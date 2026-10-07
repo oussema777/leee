@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminPageHeader from "../../components/AdminPageHeader";
 import AdminDataTable, { type Column } from "../../components/AdminDataTable";
@@ -13,18 +13,23 @@ type Volunteer = { id: string; reference: string; fullName: string; governorate:
 const human = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, char => char.toUpperCase());
 export default function BookVolunteersPage() {
   const router = useRouter(); const toast = useToast();
+  const [pageSize, setPageSize] = useState(20);
+  const requestId = useRef(0);
   const [items, setItems] = useState<Volunteer[]>([]); const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0); const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState(""); const [status, setStatus] = useState(""); const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: String(page), search }); if (status) params.set("status", status);
+      const params = new URLSearchParams({ page: String(page), limit: String(pageSize), search }); if (status) params.set("status", status);
       const result = await adminGet<PaginatedResponse<Volunteer>>(`/book-volunteers?${params}`);
+      if (currentRequest !== requestId.current) return;
+      if (page > Math.max(1, result.pagination.totalPages)) { setPage(Math.max(1, result.pagination.totalPages)); return; }
       setItems(result.data); setTotal(result.pagination.total); setTotalPages(result.pagination.totalPages);
-    } catch { toast.error("Could not load volunteer applications"); }
-    finally { setLoading(false); }
-  }, [page, search, status, toast]);
+    } catch { if (currentRequest === requestId.current) toast.error("Could not load volunteer applications"); }
+    finally { if (currentRequest === requestId.current) setLoading(false); }
+  }, [pageSize, page, search, status, toast]);
   useEffect(() => { void load(); }, [load]);
   const columns: Column<Volunteer>[] = [
     { key: "reference", label: "Reference", render: item => <span className={item.isRead ? "text-gray-300" : "font-semibold text-white"}>{!item.isRead && <span className="me-2 inline-block size-2 rounded-full bg-brand-blue" />}{item.reference}</span> },
@@ -37,6 +42,6 @@ export default function BookVolunteersPage() {
   ];
   return <div><AdminPageHeader title="Book Restore Volunteers" />
     <div className="mb-4"><label htmlFor="volunteer-status" className="sr-only">Filter by status</label><select id="volunteer-status" value={status} onChange={event => { setStatus(event.target.value); setPage(1); }} className="rounded-xl border border-gray-700 bg-[#1e293b] px-3 py-2.5 text-sm text-white"><option value="">All statuses</option>{BOOK_VOLUNTEER_STATUSES.map(value => <option key={value} value={value}>{human(value)}</option>)}</select></div>
-    <AdminDataTable columns={columns} data={items} totalPages={totalPages} currentPage={page} total={total} search={search} onSearch={value => { setSearch(value); setPage(1); }} onPageChange={setPage} onView={item => router.push(`/admin/book-volunteers/${item.id}`)} loading={loading} />
+    <AdminDataTable columns={columns} data={items} totalPages={totalPages} currentPage={page} total={total} search={search} onSearch={value => { setSearch(value); setPage(1); }} pageSize={pageSize} onPageSizeChange={value => { setPageSize(value); setPage(1); }} onPageChange={setPage} onView={item => router.push(`/admin/book-volunteers/${item.id}`)} loading={loading} />
   </div>;
 }

@@ -2,7 +2,7 @@ import { expireWhishPayments } from "@/lib/book-orders/whish-server";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { BooksCatalogue, type CatalogueBook } from "@/components/sections/books/BooksCatalogue";
-import { BOOK_CATEGORIES } from "@/lib/book-inventory/categories";
+import { catalogueCategoryWhere, parseCatalogueCategories } from "@/lib/book-inventory/catalogue-filters";
 import { BookLanguage, type Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +29,13 @@ const PAGE_SIZE = 12;
 
 export default async function BooksPage({ params, searchParams }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; search?: string; category?: string; language?: string }>;
+  searchParams: Promise<{ page?: string; search?: string; category?: string | string[]; match?: string; language?: string }>;
 }) {
   const { locale } = await params;
   const filters = await searchParams;
   const search = (filters.search || "").trim().slice(0, 120);
-  const category = (filters.category || "").trim().slice(0, 100);
+  const selectedCategories = parseCatalogueCategories(filters.category);
+  const match = filters.match === "all" ? "all" : "any";
   const rawLanguage = (filters.language || "").trim().slice(0, 50);
   const language = Object.values(BookLanguage).includes(rawLanguage as BookLanguage) ? rawLanguage : "";
   const requestedPage = Number(filters.page);
@@ -61,13 +62,7 @@ export default async function BooksPage({ params, searchParams }: {
         { isbn: { contains: search, mode: "insensitive" } },
         { editions: { some: { label: { contains: search, mode: "insensitive" } } } },
       ] } : {}),
-      ...(category ? { AND: [{ OR: [
-        { categories: { has: category } },
-        { categories: { isEmpty: true }, customCategory: category },
-        ...(BOOK_CATEGORIES.includes(category as (typeof BOOK_CATEGORIES)[number])
-          ? [{ categories: { isEmpty: true }, category: category as (typeof BOOK_CATEGORIES)[number] }]
-          : []),
-      ] }] } : {}),
+      AND: [catalogueCategoryWhere(selectedCategories, match)],
       ...(language ? { language: language as Prisma.EnumBookLanguageFilter["equals"] } : {}),
     };
 
@@ -111,5 +106,5 @@ export default async function BooksPage({ params, searchParams }: {
     loadError = true;
   }
 
-  return <BooksCatalogue books={books} locale={locale} loadError={loadError} total={total} totalPublished={totalPublished} page={currentPage} totalPages={totalPages} categories={categories} languages={languages} filters={{ search, category, language }} />;
+  return <BooksCatalogue books={books} locale={locale} loadError={loadError} total={total} totalPublished={totalPublished} page={currentPage} totalPages={totalPages} categories={categories} languages={languages} filters={{ search, categories: selectedCategories, match, language }} />;
 }

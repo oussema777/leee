@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bookCategoryLabel, bookHasCategory, getBookCategories, getBookCategoryOptions, normalizeBookCategories } from "./categories";
+import { bookCategoryLabel, bookHasCategory, canCreateBookCategory, getBookCategories, getBookCategoryOptions, normalizeBookCategories } from "./categories";
 
 describe("book category compatibility", () => {
   it("keeps original standard and custom categories on existing books", () => {
@@ -28,12 +28,22 @@ describe("book category compatibility", () => {
     expect(bookCategoryLabel("Poetry", true)).toBe("Poetry");
   });
 
-  it("offers saved tags once and keeps removed defaults out of the picker", () => {
+  it("offers saved tags once, including explicitly created Children and Religion", () => {
     const options = getBookCategoryOptions(["Poetry", "poetry", "Fiction", "Children", "Religion"]);
     expect(options.filter((value) => value.toLowerCase() === "poetry")).toHaveLength(1);
     expect(options.filter((value) => value === "FICTION")).toHaveLength(1);
-    expect(options).not.toContain("CHILDREN");
-    expect(options).not.toContain("RELIGION");
+    expect(options).toContain("CHILDREN");
+    expect(options).toContain("RELIGION");
     expect(options).not.toContain("OTHER");
+  });
+
+  it("allows Children to be created even when longer names match the search", () => {
+    const options = getBookCategoryOptions(["Children's stories", "Children's education"]);
+    expect(canCreateBookCategory("children", options)).toBe(true);
+    expect(canCreateBookCategory(" Children ", [...options, "CHILDREN"])).toBe(false);
+    expect(canCreateBookCategory("children's STORIES", options)).toBe(false);
+    expect(canCreateBookCategory("Religion", options)).toBe(true);
+    expect(canCreateBookCategory("Other", options)).toBe(false);
+    expect(canCreateBookCategory("  ", options)).toBe(false);
   });
 });

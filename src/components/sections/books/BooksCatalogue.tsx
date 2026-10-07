@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { ArrowUpRight, BookOpen, Check, ChevronLeft, ChevronRight, HeartHandshake, Languages, RotateCcw, Search, SlidersHorizontal, Tag } from "lucide-react";
+import { CategoryExplorer } from "./CategoryExplorer";
+import { ArrowUpRight, BookOpen, Check, ChevronLeft, ChevronRight, HeartHandshake, Languages, RotateCcw, Search, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
@@ -155,37 +156,43 @@ interface CatalogueProps {
   totalPages: number;
   categories: string[];
   languages: string[];
-  filters: { search: string; category: string; language: string };
+  filters: { search: string; categories: string[]; match: "any" | "all"; language: string };
 }
 
 export function BooksCatalogue({ books, locale, loadError = false, total, totalPublished, page, totalPages, categories, languages, filters }: CatalogueProps) {
   const isArabic = locale === "ar";
   const router = useRouter();
+  const [pending, startTransition] = useTransition();
   const [query, setQuery] = useState(filters.search);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { setQuery(filters.search); }, [filters.search]);
-  const navigate = (next: { search?: string; category?: string; language?: string; page?: number }) => {
+  const navigate = (next: { search?: string; categories?: string[]; match?: "any" | "all"; language?: string; page?: number }) => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
     const params = new URLSearchParams();
     const search = next.search ?? filters.search;
-    const category = next.category ?? filters.category;
+    const selected = next.categories ?? filters.categories;
+    const match = next.match ?? filters.match;
     const language = next.language ?? filters.language;
     if (search.trim()) params.set("search", search.trim());
-    if (category) params.set("category", category);
+    selected.forEach(category => params.append("category", category));
+    if (selected.length && match === "all") params.set("match", match);
     if (language) params.set("language", language);
     if (next.page && next.page > 1) params.set("page", String(next.page));
-    router.push(`/${locale}/books${params.size ? `?${params.toString()}` : ""}`, { scroll: false });
+    startTransition(() => router.push(`/${locale}/books${params.size ? `?${params.toString()}` : ""}`, { scroll: false }));
   };
   useEffect(() => {
     if (query === filters.search) return;
-    const timer = setTimeout(() => navigate({ search: query, page: 1 }), 300);
-    return () => clearTimeout(timer);
+    searchTimer.current = setTimeout(() => navigate({ search: query, page: 1 }), 300);
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, filters.search]);
-  const hasFilters = Boolean(filters.search || filters.category || filters.language);
-  const resetFilters = () => { setQuery(""); router.push(`/${locale}/books`, { scroll: false }); };
+  }, [query, filters.search, filters.categories, filters.match, filters.language]);
+  const hasFilters = Boolean(filters.search || filters.categories.length || filters.language);
+  const resetFilters = () => { if (searchTimer.current) clearTimeout(searchTimer.current); setQuery(""); startTransition(() => router.push(`/${locale}/books`, { scroll: false })); };
   const pageHref = (nextPage: number) => {
     const params = new URLSearchParams();
     if (filters.search) params.set("search", filters.search);
-    if (filters.category) params.set("category", filters.category);
+    filters.categories.forEach(category => params.append("category", category));
+    if (filters.categories.length && filters.match === "all") params.set("match", "all");
     if (filters.language) params.set("language", filters.language);
     if (nextPage > 1) params.set("page", String(nextPage));
     return `/books${params.size ? `?${params.toString()}` : ""}`;
@@ -223,36 +230,27 @@ export function BooksCatalogue({ books, locale, loadError = false, total, totalP
             </div>
           </div>
 
-          <div className="mt-10 grid gap-3 border-t border-white/15 pt-6 md:grid-cols-[minmax(0,1fr)_220px_220px]">
+          <div className="mt-10 grid gap-3 border-t border-white/15 pt-6 md:grid-cols-[minmax(0,1fr)_auto]">
             <label className="relative block">
               <span className="sr-only">{isArabic ? "البحث في الكتب" : "Search books"}</span>
               <Search className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
               <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isArabic ? "ابحث بالعنوان أو اسم المؤلف" : "Search by title or author"} className="h-12 w-full rounded-sm border border-white/20 bg-white/10 ps-11 pe-4 text-sm text-white caret-brand-blue-light outline-none placeholder:text-white/45 transition-colors focus:border-brand-blue-light" />
             </label>
-            <label className="relative block">
-              <span className="sr-only">{isArabic ? "التصنيف" : "Category"}</span>
-              <SlidersHorizontal className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
-              <select value={filters.category} onChange={(event) => navigate({ category: event.target.value, search: query, page: 1 })} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
-                <option value="">{isArabic ? "جميع التصنيفات" : "All categories"}</option>
-                {categories.map((value) => <option key={value} value={value}>{bookCategoryLabel(value, isArabic)}</option>)}
-              </select>
-            </label>
-            <label className="relative block">
-              <span className="sr-only">{isArabic ? "اللغة" : "Language"}</span>
-              <Languages className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
-              <select value={filters.language} onChange={(event) => navigate({ language: event.target.value, search: query, page: 1 })} className="h-12 w-full appearance-none rounded-sm border border-white/20 bg-accent-navy ps-11 pe-9 text-sm text-white outline-none transition-colors focus:border-brand-blue-light">
-                <option value="">{isArabic ? "جميع اللغات" : "All languages"}</option>
-                {languages.map((value) => <option key={value} value={value}>{localizedLabel(languageLabels, value, isArabic)}</option>)}
-              </select>
-            </label>
+            <fieldset className="flex flex-wrap items-center gap-2">
+              <legend className="sr-only">{isArabic ? "اللغة" : "Language"}</legend>
+              <Languages aria-hidden="true" className="me-1 size-4 text-white/70" />
+              {["", ...languages].map(value => <button key={value} type="button" disabled={pending} aria-pressed={filters.language === value} onClick={() => navigate({ language: value, search: query, page: 1 })} className={`min-h-11 rounded-full border px-4 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-light disabled:opacity-60 ${filters.language === value ? "border-white bg-white text-accent-navy" : "border-white/25 text-white/80 hover:border-white hover:text-white"}`}>{value ? localizedLabel(languageLabels, value, isArabic) : (isArabic ? "كل اللغات" : "All languages")}</button>)}
+            </fieldset>
           </div>
+          <CategoryExplorer categories={categories} selected={filters.categories} match={filters.match} isArabic={isArabic} pending={pending} onApply={(categories, match) => navigate({ categories, match, search: query, page: 1 })} />
         </Container>
       </section>
 
-      <section className="py-12 md:py-16">
+      <section aria-busy={pending} className={`py-12 transition-opacity md:py-16 ${pending ? "opacity-60" : ""}`}>
         <Container>
           <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm font-semibold text-accent-navy" aria-live="polite">
+              {pending && <span className="me-2">{isArabic ? "جارٍ تحديث الرف…" : "Updating your shelf…"}</span>}
               {isArabic ? `${total} ${total === 1 ? "نتيجة" : "نتائج"}` : `${total} ${total === 1 ? "result" : "results"}`}
             </p>
             {hasFilters && (

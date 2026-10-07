@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Plus, Search, X } from "lucide-react";
-import { MAX_BOOK_CATEGORIES, bookCategoryLabel, getBookCategoryOptions, normalizeBookCategory } from "@/lib/book-inventory/categories";
+import { MAX_BOOK_CATEGORIES, bookCategoryLabel, canCreateBookCategory, getBookCategoryOptions, normalizeBookCategory } from "@/lib/book-inventory/categories";
 
 interface Props {
   value: string[];
@@ -23,9 +23,7 @@ export default function BookCategoryPicker({ value, savedCategories, onChange, e
     bookCategoryLabel(category).toLowerCase().includes(query.trim().toLowerCase())
     || category.toLowerCase().includes(normalizedQuery.toLowerCase())
   );
-  const canCreate = Boolean(normalizedQuery)
-    && !["OTHER", "CHILDREN", "RELIGION"].includes(normalizedQuery)
-    && !categories.some((category) => category.toLowerCase() === normalizedQuery.toLowerCase());
+  const canCreate = canCreateBookCategory(query, categories);
   const atLimit = value.length >= MAX_BOOK_CATEGORIES;
 
   useEffect(() => {
@@ -153,7 +151,7 @@ export default function BookCategoryPicker({ value, savedCategories, onChange, e
                   className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-blue-200 hover:bg-[#263b53] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue disabled:opacity-50"
                 >
                   <Plus aria-hidden="true" className="h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-words">Create &ldquo;{normalizedQuery}&rdquo;</span>
+                  <span className="min-w-0 break-words">Create &ldquo;{bookCategoryLabel(normalizedQuery)}&rdquo;</span>
                 </button>
               )}
               {!filtered.length && !canCreate && <p className="px-3 py-3 text-sm text-gray-400">No matching categories. Try a different name.</p>}

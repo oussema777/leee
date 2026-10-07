@@ -53,12 +53,22 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Book Restore",
+    items: [
+      { label: "Book Inventory", href: "/admin/book-inventory", icon: BookOpen },
+      { label: "Book Donors", href: "/admin/book-donors", icon: BookHeart },
+      { label: "Book Donations", href: "/admin/book-donations", icon: BookHeart },
+      { label: "Book Volunteers", href: "/admin/book-volunteers", icon: UserPlus },
+      { label: "Book Orders", href: "/admin/book-orders", icon: ShoppingBag },
+      { label: "Whish Payments", href: "/admin/book-whish", icon: ShoppingBag },
+      { label: "Bank Audi Payments", href: "/admin/book-bank-audi", icon: ShoppingBag },
+    ],
+  },
+  {
     label: "Content",
     items: [
       { label: "Sliders", href: "/admin/sliders", icon: Layers },
       { label: "Programs", href: "/admin/programs", icon: Briefcase },
-      { label: "Book Inventory", href: "/admin/book-inventory", icon: BookOpen },
-      { label: "Book Donors", href: "/admin/book-donors", icon: BookHeart },
       { label: "Events", href: "/admin/events", icon: Calendar },
       { label: "Blog Posts", href: "/admin/blog", icon: FileText },
       { label: "Gallery", href: "/admin/gallery", icon: Image },
@@ -84,11 +94,6 @@ const navGroups: NavGroup[] = [
       { label: "Testimonials Inbox", href: "/admin/testimonial-submissions", icon: Quote },
       { label: "Team Submissions", href: "/admin/team-submissions", icon: UserCheck, superAdminOnly: true },
       { label: "Expert Applications", href: "/admin/expert-submissions", icon: Award },
-      { label: "Book Donations", href: "/admin/book-donations", icon: BookHeart },
-      { label: "Book Volunteers", href: "/admin/book-volunteers", icon: UserPlus },
-      { label: "Book Orders", href: "/admin/book-orders", icon: ShoppingBag },
-      { label: "Whish Payments", href: "/admin/book-whish", icon: ShoppingBag },
-      { label: "Bank Audi Payments", href: "/admin/book-bank-audi", icon: ShoppingBag },
     ],
   },
   {

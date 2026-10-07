@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     };
     const [data, total] = await Promise.all([
       db.bookOrder.findMany({
-        where, skip, take: limit, orderBy: { createdAt: "desc" },
+        where, skip, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: { id: true, reference: true, customerName: true, customerPhone: true, package: true, purpose: true, requestedBookCount: true, priceCents: true, currency: true, paymentStatus: true, paymentMethod: true, whishPayment: { select: { state: true, submittedAt: true } }, status: true, isRead: true, createdAt: true },
       }),
       db.bookOrder.count({ where }),
