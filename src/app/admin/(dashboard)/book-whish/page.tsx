@@ -66,7 +66,8 @@ export default function BookWhishSettingsPage() {
         {uploading ? "Uploading…" : config.qrImageUrl ? "Replace QR image" : "Upload QR image"}
         <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading || saving} onChange={uploadQr} className="sr-only" />
       </label>
-      <label className="mt-6 flex items-start gap-3 text-sm leading-6 text-gray-300"><input type="checkbox" checked={config.qrVerified} disabled={!config.qrImageUrl || identityDirty || saving || uploading} onChange={e => setConfig(c => ({ ...c, enabled: false, qrVerified: e.target.checked }))} className="mt-1 h-5 w-5" />I scanned the saved QR in Whish and confirmed the correct recipient, USD currency, reusable/non-expiring behavior, and that the customer can enter the amount.</label>
+      <label className="mt-6 flex items-start gap-3 text-sm leading-6 text-gray-300"><input type="checkbox" checked={config.qrVerified} disabled={!config.qrImageUrl || identityDirty || saving || uploading} onChange={e => setConfig(c => ({ ...c, enabled: false, qrVerified: e.target.checked }))} className="mt-1 h-5 w-5" />I completed a controlled payment using the saved QR, confirmed that Whish showed the correct recipient and USD amount, and verified receipt in the receiving wallet. I confirmed whether the QR can be reused.</label>
+      <p className="mt-3 text-xs leading-5 text-amber-200">A QR that only opens a blank Whish Pay page does not pass this check. Keep Whish disabled until a working QR or payment method is supplied and tested.</p>
       {identityDirty && <p className="mt-3 text-xs text-amber-200">Save the receiving details and QR first. Then scan the saved image and verify it.</p>}
     </section>
     <section className="mt-7 rounded-2xl bg-[#1e293b] p-6">

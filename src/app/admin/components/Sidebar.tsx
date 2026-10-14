@@ -47,6 +47,14 @@ type NavGroup = {
 
 const navGroups: NavGroup[] = [
   {
+    label: "Ebooks",
+    items: [
+      { label: "Ebook Catalog", href: "/admin/ebooks", icon: BookOpen },
+      { label: "Ebook Orders", href: "/admin/ebook-orders", icon: ShoppingBag },
+      { label: "Reader Access", href: "/admin/ebook-readers", icon: Users },
+    ],
+  },
+  {
     label: "Overview",
     items: [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },

@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: isArabic ? "مكتبة الكتب | تجربة LEE" : "Book Library | The LEE Experience",
     description: isArabic
-      ? "تصفّح الكتب المتاحة التي تبرّع بها مجتمع تجربة LEE."
-      : "Browse books donated by The LEE Experience community and available for a new reader.",
+      ? "تصفّح كتب مجتمع تجربة LEE والكتب الإلكترونية للقراءة على الموقع."
+      : "Browse community books and ebooks to read online from The LEE Experience.",
     alternates: {
       canonical: `https://theleeexperience.com/${locale}/books`,
       languages: {
@@ -29,7 +29,7 @@ const PAGE_SIZE = 12;
 
 export default async function BooksPage({ params, searchParams }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; search?: string; category?: string | string[]; match?: string; language?: string }>;
+  searchParams: Promise<{ page?: string; search?: string; category?: string | string[]; match?: string; language?: string; format?: string }>;
 }) {
   const { locale } = await params;
   const filters = await searchParams;
@@ -39,6 +39,7 @@ export default async function BooksPage({ params, searchParams }: {
   const rawLanguage = (filters.language || "").trim().slice(0, 50);
   const language = Object.values(BookLanguage).includes(rawLanguage as BookLanguage) ? rawLanguage : "";
   const requestedPage = Number(filters.page);
+  const format = filters.format === "ebook" || filters.format === "physical" ? filters.format : "";
   const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   await expireWhishPayments().catch(() => console.error("Book payment cleanup unavailable"));
   let books: CatalogueBook[] = [];
@@ -53,6 +54,7 @@ export default async function BooksPage({ params, searchParams }: {
   try {
     const where: Prisma.BookInventoryItemWhereInput = {
       isPublished: true,
+      ...(format === "ebook" ? { id: { in: [] } } : {}),
       ...(search ? { OR: [
         { title: { contains: search, mode: "insensitive" } },
         { titleAr: { contains: search, mode: "insensitive" } },
@@ -66,7 +68,14 @@ export default async function BooksPage({ params, searchParams }: {
       ...(language ? { language: language as Prisma.EnumBookLanguageFilter["equals"] } : {}),
     };
 
-    const [matchingCount, publishedCount, categoryRows, languageRows] = await Promise.all([
+    const ebookWhere: Prisma.EbookWhereInput = {
+      published: true, activeVersion: { ready: true },
+      ...(format === "physical" ? { id: { in: [] } } : {}),
+      ...(search ? { OR: ["titleEn", "titleAr", "author"].map(field => ({ [field]: { contains: search, mode: "insensitive" } })) } : {}),
+      ...(language ? { language: language as BookLanguage } : {}),
+      ...(selectedCategories.length ? { categories: match === "all" ? { hasEvery: selectedCategories } : { hasSome: selectedCategories } } : {}),
+    };
+    const [matchingCount, publishedCount, categoryRows, languageRows, ebookCount, publishedEbooks] = await Promise.all([
       db.bookInventoryItem.count({ where }),
       db.bookInventoryItem.count({ where: { isPublished: true } }),
       db.$queryRaw<{ category: string }[]>`
@@ -78,19 +87,29 @@ export default async function BooksPage({ params, searchParams }: {
         ) AS values WHERE value IS NOT NULL AND value <> '' ORDER BY value
       `,
       db.bookInventoryItem.findMany({ where: { isPublished: true }, distinct: ["language"], select: { language: true } }),
+      db.ebook.count({ where: ebookWhere }),
+      db.ebook.findMany({ where: { published: true, activeVersion: { ready: true } }, select: { categories: true, language: true } }),
     ]);
-    total = matchingCount;
-    totalPublished = publishedCount;
+    total = matchingCount + ebookCount;
+    totalPublished = publishedCount + publishedEbooks.length;
     totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     currentPage = Math.min(page, totalPages);
-    categories = categoryRows.map((row) => row.category);
-    languages = languageRows.map((row) => row.language);
+    categories = [...new Set([...categoryRows.map(row => row.category), ...publishedEbooks.flatMap(b => b.categories)])].sort();
+    languages = [...new Set([...languageRows.map(row => row.language), ...publishedEbooks.map(b => b.language)])].sort();
 
-    books = await db.bookInventoryItem.findMany({
-      where,
-      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }, { id: "desc" }],
-      skip: (currentPage - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+    // Merge lightweight keys before pagination, then load only this page's records.
+    const take = currentPage * PAGE_SIZE;
+    const [physicalKeys, ebookKeys] = await Promise.all([
+      db.bookInventoryItem.findMany({ where, take, orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }, { id: "desc" }], select: { id: true, publishedAt: true, updatedAt: true } }),
+      db.ebook.findMany({ where: ebookWhere, take, orderBy: [{ createdAt: "desc" }, { updatedAt: "desc" }, { id: "desc" }], select: { id: true, createdAt: true, updatedAt: true } }),
+    ]);
+    const keys = [
+      ...physicalKeys.map(b => ({ id: b.id, format: "physical", date: b.publishedAt?.getTime() ?? 0, updated: b.updatedAt.getTime() })),
+      ...ebookKeys.map(b => ({ id: b.id, format: "ebook", date: b.createdAt.getTime(), updated: b.updatedAt.getTime() })),
+    ].sort((a, b) => b.date - a.date || b.updated - a.updated || b.id.localeCompare(a.id))
+      .slice((currentPage - 1) * PAGE_SIZE, take);
+    const physicalBooks = await db.bookInventoryItem.findMany({
+      where: { id: { in: keys.filter(k => k.format === "physical").map(k => k.id) } },
       select: {
         id: true, slug: true, title: true, titleAr: true, author: true, authorAr: true,
         descriptionEn: true, descriptionAr: true, isbn: true, publisher: true,
@@ -101,10 +120,20 @@ export default async function BooksPage({ params, searchParams }: {
         editions: { where: { active: true, stockQuantity: { gt: 0 } }, orderBy: { createdAt: "asc" }, select: { id: true, label: true, publicationYear: true, stockQuantity: true, coverImageUrl: true } },
       },
     });
+    const ebooks = await db.ebook.findMany({ where: { id: { in: keys.filter(k => k.format === "ebook").map(k => k.id) } } });
+    const mappedEbooks: CatalogueBook[] = ebooks.map(b => ({
+      id: b.id, slug: b.slug, format: "ebook", title: b.titleEn, titleAr: b.titleAr, author: b.author, authorAr: null,
+      descriptionEn: b.descriptionEn, descriptionAr: b.descriptionAr, isbn: null, publisher: null,
+      publicationYear: null, editions: [], category: "OTHER", customCategory: null, categories: b.categories,
+      language: b.language, condition: "", priceCents: b.priceCents, currency: "USD", stockQuantity: 0,
+      coverImageUrl: b.coverUrl, status: "AVAILABLE", donor: null, donorAllocations: [],
+    }));
+    const records = new Map<string, CatalogueBook>([...physicalBooks, ...mappedEbooks].map(b => [b.id, b]));
+    books = keys.map(k => records.get(k.id)).filter((b): b is CatalogueBook => !!b);
   } catch (error) {
     console.error("Public book catalogue failed to load", error);
     loadError = true;
   }
 
-  return <BooksCatalogue books={books} locale={locale} loadError={loadError} total={total} totalPublished={totalPublished} page={currentPage} totalPages={totalPages} categories={categories} languages={languages} filters={{ search, categories: selectedCategories, match, language }} />;
+  return <BooksCatalogue books={books} locale={locale} loadError={loadError} total={total} totalPublished={totalPublished} page={currentPage} totalPages={totalPages} categories={categories} languages={languages} filters={{ search, categories: selectedCategories, match, language, format }} />;
 }

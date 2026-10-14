@@ -8,6 +8,173 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
+// Digital publishing is independent of physical Book Restore inventory/orders.
+model Ebook {
+  id String @id @default(cuid())
+  slug String @unique
+  titleEn String
+  titleAr String @default("")
+  author String
+  descriptionEn String @default("") @db.Text
+  descriptionAr String @default("") @db.Text
+  coverUrl String @default("")
+  priceCents Int
+  direction String @default("rtl")
+  language BookLanguage @default(ARABIC)
+  categories String[] @default([])
+  published Boolean @default(false)
+  activeVersionId String? @unique
+  activeVersion EbookVersion? @relation("ActiveVersion", fields: [activeVersionId], references: [id], onDelete: Restrict)
+  versions EbookVersion[] @relation("Versions")
+  orders EbookOrder[]
+  access EbookAccess[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EbookVersion {
+  id String @id @default(cuid())
+  ebookId String
+  ebook Ebook @relation("Versions", fields: [ebookId], references: [id], onDelete: Restrict)
+  activeFor Ebook? @relation("ActiveVersion")
+  label String
+  pageCount Int
+  ready Boolean @default(false)
+  pages EbookPage[]
+  createdAt DateTime @default(now())
+  @@index([ebookId])
+}
+
+model EbookPage {
+  id String @id @default(cuid())
+  versionId String
+  version EbookVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  number Int
+  storagePath String
+  @@unique([versionId, number])
+}
+
+model EbookReader {
+  id String @id @default(cuid())
+  email String @unique
+  sessions EbookSession[]
+  orders EbookOrder[]
+  access EbookAccess[]
+  createdAt DateTime @default(now())
+}
+
+model EbookLoginCode {
+  email String @id
+  digest String
+  attempts Int @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model EbookSession {
+  id String @id
+  readerId String
+  reader EbookReader @relation(fields: [readerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  @@index([readerId])
+}
+
+model EbookRateLimit {
+  key String @id
+  count Int
+  expiresAt DateTime
+}
+
+enum EbookOrderState {
+  AWAITING_PAYMENT
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  VERIFIED
+  CANCELLED
+  REFUNDED
+}
+
+model EbookOrder {
+  id String @id @default(cuid())
+  reference String @unique
+  readerId String
+  reader EbookReader @relation(fields: [readerId], references: [id], onDelete: Restrict)
+  ebookId String
+  ebook Ebook @relation(fields: [ebookId], references: [id], onDelete: Restrict)
+  title String
+  customerName String
+  locale String
+  priceCents Int
+  method String
+  snapshot Json
+  state EbookOrderState @default(AWAITING_PAYMENT)
+  submittedReference String?
+  verifiedReference String? @unique
+  customerNote String @default("")
+  receiptPath String?
+  termsVersion String @default("ebook-online-v1")
+  events EbookOrderEvent[]
+  emails EbookEmail[]
+  access EbookAccess?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([readerId, ebookId])
+  @@index([state, createdAt])
+}
+
+model EbookAccess {
+  id String @id @default(cuid())
+  readerId String
+  reader EbookReader @relation(fields: [readerId], references: [id], onDelete: Restrict)
+  ebookId String
+  ebook Ebook @relation(fields: [ebookId], references: [id], onDelete: Restrict)
+  orderId String @unique
+  order EbookOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  active Boolean @default(true)
+  lastPage Int @default(1)
+  progressVersionId String?
+  bookmarks EbookBookmark[]
+  updatedAt DateTime @updatedAt
+  @@unique([readerId, ebookId])
+}
+
+model EbookBookmark {
+  accessId String
+  access EbookAccess @relation(fields: [accessId], references: [id], onDelete: Cascade)
+  versionId String
+  page Int
+  label String @default("")
+  createdAt DateTime @default(now())
+  @@id([accessId, versionId, page])
+}
+
+model EbookOrderEvent {
+  id String @id @default(cuid())
+  orderId String
+  order EbookOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  actor String
+  action String
+  details Json
+  createdAt DateTime @default(now())
+  @@index([orderId, createdAt])
+}
+
+model EbookEmail {
+  id String @id @default(cuid())
+  orderId String
+  order EbookOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  to String
+  subject String
+  html String @db.Text
+  attempts Int @default(0)
+  cancelled Boolean @default(false)
+  sentAt DateTime?
+  nextAttemptAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([sentAt, nextAttemptAt])
+  @@index([orderId])
+}
+
 // ─────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────

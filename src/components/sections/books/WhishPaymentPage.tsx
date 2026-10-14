@@ -11,7 +11,7 @@ const copy = {
   en: {
     title: "Complete your Whish payment", reference: "Order reference", total: "Order total",
     intro: "Your order is awaiting payment. Complete the transfer, then submit your payment details for LEE to verify.",
-    payTitle: "Pay with Whish", qr: "Scan the permanent QR with Whish", open: "Open payment link", samePhone: "The QR does not fill in the price. Enter the exact order total yourself in Whish, check the recipient, then return here.",
+    payTitle: "Pay with Whish", qr: "QR scan (optional)", open: "Open payment link", samePhone: "Use the receiving phone number below in Whish and enter the exact order total. Check the recipient before sending. If the QR opens a blank payment page, use the number or contact LEE; do not retry a payment blindly.",
     account: "Receiving account", number: "Account number", amount: "Amount", deadline: "Payment window ends",
     saved: "Keep your private payment link", saveHint: "Use this link to return after switching apps. Anyone with it can access this payment page.",
     copy: "Copy", copyLink: "Copy my payment link", copied: "Copied", copyFailed: "Could not copy automatically. Select and copy the text instead.",
@@ -34,7 +34,7 @@ const copy = {
   ar: {
     title: "أكمل الدفع عبر Whish", reference: "رقم الطلب", total: "إجمالي الطلب",
     intro: "طلبك بانتظار الدفع. أكمل التحويل ثم أرسل تفاصيل العملية ليتحقق منها فريق LEE.",
-    payTitle: "الدفع عبر Whish", qr: "امسح رمز QR الدائم عبر Whish", open: "افتح رابط الدفع", samePhone: "لا يملأ رمز QR السعر تلقائياً. أدخل إجمالي الطلب المحدد بنفسك في Whish، وتحقق من المستلم، ثم عد إلى هنا.",
+    payTitle: "الدفع عبر Whish", qr: "مسح رمز QR (اختياري)", open: "افتح رابط الدفع", samePhone: "استخدم رقم هاتف الحساب المستلم أدناه في Whish وأدخل إجمالي الطلب المحدد. تحقق من اسم المستلم قبل الإرسال. إذا فتح الرمز صفحة دفع فارغة، استخدم الرقم أو تواصل مع LEE ولا تكرر الدفع دون تحقق.",
     account: "الحساب المستلم", number: "رقم الحساب", amount: "المبلغ", deadline: "تنتهي مهلة الدفع في",
     saved: "احتفظ برابط الدفع الخاص بك", saveHint: "استخدم هذا الرابط للعودة بعد الانتقال إلى التطبيق. يمكن لمن يملك الرابط الوصول إلى صفحة الدفع.",
     copy: "انسخ", copyLink: "انسخ رابط الدفع", copied: "تم النسخ", copyFailed: "تعذر النسخ تلقائياً. حدد النص وانسخه يدوياً.",
@@ -58,8 +58,8 @@ const copy = {
 const bankCopy = {
   en: { ...copy.en,
     title: "Complete your Bank Audi transfer", payTitle: "Bank Audi transfer",
-    qr: "Scan the account QR in a compatible banking app",
-    samePhone: "Enter the exact USD total and use your order reference as the transfer description. Copy the IBAN below if your app cannot scan the QR or you are paying on the same phone. Confirm the beneficiary before sending.",
+    qr: "Bank account QR (optional)",
+    samePhone: "Copy the IBAN below into your banking app. Enter the exact USD total and use your order reference as the transfer description. Confirm the beneficiary before sending. The QR may show account details without starting a transfer.",
     tx: "Bank transaction reference", sender: "Your phone number",
     senderHint: "Enter a phone number LEE can use to clarify this bank transfer.",
     txHint: "Optional. Use the reference shown on your bank receipt, if available.",
@@ -67,8 +67,8 @@ const bankCopy = {
   },
   ar: { ...copy.ar,
     title: "أكمل التحويل عبر بنك عودة", payTitle: "التحويل عبر بنك عودة",
-    qr: "امسح رمز الحساب بتطبيق مصرفي متوافق",
-    samePhone: "أدخل المبلغ بالدولار كما هو معروض، وضع رقم الطلب في وصف التحويل. يمكنك نسخ رقم IBAN أدناه إذا تعذّر مسح الرمز أو كنت تستخدم الهاتف نفسه. تحقق من اسم المستفيد قبل الإرسال.",
+    qr: "رمز QR للحساب المصرفي (اختياري)",
+    samePhone: "انسخ رقم IBAN أدناه إلى تطبيقك المصرفي. أدخل المبلغ بالدولار كما هو معروض وضع رقم الطلب في وصف التحويل. تحقق من اسم المستفيد قبل الإرسال. قد يُظهر الرمز تفاصيل الحساب دون بدء تحويل.",
     tx: "رقم مرجع التحويل المصرفي", sender: "رقم هاتفك",
     senderHint: "أدخل رقم هاتف يمكن لفريق LEE الاتصال بك عليه بخصوص هذا التحويل.",
     txHint: "اختياري. استخدم المرجع الظاهر على إيصال البنك إن وجد.",
@@ -191,24 +191,16 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
             {payment.customerNote && <p className="whitespace-pre-wrap rounded-2xl border border-amber-200 bg-amber-50 p-5 leading-7 text-amber-950">{payment.customerNote}</p>}
             {currentStage === 1 && instructions ? <section className="rounded-2xl bg-white p-6 shadow-sm">
               <h2 className="flex items-center gap-2 font-serif text-xl text-accent-navy"><QrCode className="h-5 w-5" />{t.payTitle}</h2>
-              <div className="mt-5 rounded-2xl border border-brand-blue/15 bg-accent-ice/50 p-4">
-                <div className="order-2 sm:order-1">
-                  <p className="text-center text-sm font-semibold text-accent-navy">{t.qr}</p>
-                  <img src={instructions.imageUrl} alt={bankAudi ? ar ? "رمز حساب بنك عودة" : "Bank Audi account QR" : ar ? "رمز QR الدائم للدفع عبر Whish" : "Permanent Whish payment QR"} width={320} height={320} className="mx-auto mt-3 aspect-square w-full max-w-80 object-contain" />
-                </div>
-                  <p className="rounded-xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">{ar ? <>أدخل المبلغ يدوياً: <bdi>{payment.amountCents / 100} USD</bdi>. إذا اختلف المستلم، توقف وتواصل مع LEE. لا تدفع مرتين.</> : <>Enter this amount manually: <bdi>{payment.amountCents / 100} USD</bdi>. If the recipient differs, stop and contact LEE. Do not pay twice.</>}</p>
-              </div>
-              <div className="mt-5 flex flex-col gap-5">
-
-                <div className="order-1 sm:order-2">
-                  <p className="mb-4 text-sm leading-6 text-text-secondary">{t.samePhone}</p>
-
-                </div>
-              </div>
-              <dl className="mt-6 space-y-4">
+              <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">{ar ? <>أدخل المبلغ يدوياً: <bdi>{payment.amountCents / 100} USD</bdi>. إذا اختلف المستلم، توقف وتواصل مع LEE. لا تدفع مرتين.</> : <>Enter this amount manually: <bdi>{payment.amountCents / 100} USD</bdi>. If the recipient differs, stop and contact LEE. Do not pay twice.</>}</p>
+              <p className="mt-5 text-sm leading-6 text-text-secondary">{t.samePhone}</p>
+              <dl className="mt-5 space-y-4 rounded-2xl border border-brand-blue/15 bg-accent-ice/50 p-4">
                 <div><dt className="text-xs text-text-secondary">{t.account}</dt><dd className="mt-1 font-bold text-accent-navy">{instructions.accountName}</dd></div>
                 {[{ label: t.number, value: instructions.accountNumber }, ...(bankAudi && instructions.iban ? [{ label: "IBAN", value: instructions.iban }] : []), { label: t.amount, value: String(payment.amountCents / 100) }, ...(bankAudi ? [{ label: t.reference, value: reference }] : [])].map(item => <div key={item.label}><dt className="text-xs text-text-secondary">{item.label}</dt><dd className="mt-1 flex items-center gap-2"><span dir="ltr" className="select-all break-all font-bold text-accent-navy">{item.value}{item.label === t.amount ? " USD" : ""}</span><button type="button" aria-label={t.copy + " " + item.label} onClick={() => copyText(item.value)} className="rounded-lg p-3 text-brand-blue-deeper hover:bg-accent-ice"><Copy className="h-4 w-4" /></button></dd></div>)}
               </dl>
+              <details className="mt-5 rounded-2xl border border-brand-blue/15 bg-white p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-brand-blue-deeper">{t.qr}</summary>
+                <img src={instructions.imageUrl} alt={bankAudi ? ar ? "رمز حساب بنك عودة" : "Bank Audi account QR" : ar ? "رمز QR الدائم للدفع عبر Whish" : "Permanent Whish payment QR"} width={320} height={320} className="mx-auto mt-4 aspect-square w-full max-w-80 object-contain" />
+              </details>
 
               <p className="mt-5 text-xs leading-5 text-text-secondary">{t.verification}</p>
               <button type="button" onClick={() => goToStage(2)} className={buttonClass + " mt-6 w-full"}>{ar ? "لقد دفعت — التالي" : "I've paid — next"}</button>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { Menu, X, ChevronDown, Search, Sparkles } from "lucide-react";
+import { Menu, X, ChevronDown, Search, BookOpen } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import Image from "next/image";
 
@@ -22,6 +22,14 @@ export function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const navItems: NavItem[] = [
+    {
+      label: locale === "ar" ? "الكتب" : "Books",
+      href: "/books",
+      children: [
+        { label: locale === "ar" ? "تصفح الكتب" : "Browse Books", href: "/books" },
+        { label: locale === "ar" ? "كتبي الإلكترونية" : "My Ebooks", href: "/ebooks/library" },
+      ],
+    },
     {
       label: t("about"),
       href: "/about",
@@ -159,16 +167,15 @@ export function Navbar() {
             <Link
               href="/phoenix"
               className={cn(
-                "inline-flex h-10 items-center gap-2 rounded-full border px-3.5 text-[12px] font-bold transition-colors",
+                "inline-flex min-h-11 items-center gap-2 rounded-md px-2.5 text-start transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
                 isActive("/phoenix")
-                  ? "border-[#F2A65A] bg-[#F2A65A] text-[#0D2B66]"
-                  : "border-[#F2A65A]/55 bg-[#F2A65A]/10 text-[#F2A65A] hover:bg-[#F2A65A]/20"
+                  ? "bg-white/15 text-white"
+                  : "text-brand-blue-light hover:bg-white/10 hover:text-white"
               )}
             >
-              <Sparkles className="size-3.5" aria-hidden="true" />
-              <span className="uppercase tracking-[0.08em]">{t("phoenix")}</span>
-              <span className="h-3 w-px bg-current opacity-30" aria-hidden="true" />
-              <span className="text-[10px] font-semibold opacity-75">{t("phoenixValue")}</span>
+              <BookOpen className="size-4 shrink-0" aria-hidden="true" />
+              <span className="grid gap-0.5"><span className="text-[13px] font-semibold leading-tight">{t("phoenix")}</span>
+              <span className="text-[10px] leading-tight text-blue-100/80">{locale === "ar" ? "شراء الكتب والتبرّع بها" : "Buy & donate books"}</span></span>
             </Link>
 
             {/* Ask Us Button */}
@@ -286,12 +293,11 @@ export function Navbar() {
                 <Link
                   href="/phoenix"
                   onClick={() => setMobileOpen(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-sm border border-[#F2A65A]/60 bg-[#F2A65A]/10 px-4 py-2.5 text-[#F2A65A]"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-brand-blue-light hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white"
                 >
-                  <Sparkles className="size-4" aria-hidden="true" />
-                  <span className="text-sm font-extrabold uppercase tracking-[0.08em]">{t("phoenix")}</span>
-                  <span className="opacity-35" aria-hidden="true">•</span>
-                  <span className="text-xs font-semibold opacity-75">{t("phoenixValue")}</span>
+                  <BookOpen className="size-5 shrink-0" aria-hidden="true" />
+                  <span className="grid gap-1"><span className="text-sm font-semibold">{t("phoenix")}</span>
+                  <span className="text-xs text-blue-100/80">{locale === "ar" ? "شراء الكتب والتبرّع بها" : "Buy & donate books"}</span></span>
                 </Link>
                 <Link
                   href="/get-involved"

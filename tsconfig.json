@@ -33,7 +33,13 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next-ebook-preview/types/**/*.ts",
+    ".next-ebook-preview/dev/types/**/*.ts",
+    ".next-ebook-live/types/**/*.ts",
+    ".next-ebook-live/dev/types/**/*.ts",
+    ".next-ebook-build/types/**/*.ts",
+    ".next-ebook-build/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

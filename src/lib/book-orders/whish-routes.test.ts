@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
     bookWhishSettings: { findUnique: fn(), updateMany: fn(), findUniqueOrThrow: fn(), create: fn() },
     bookWhishPayment: { findFirst: fn(), findUnique: fn(), findUniqueOrThrow: fn(), update: fn() },
     bookOrder: { update: fn(), findUnique: fn() },
+    ebookOrder: { findFirst: fn() },
     bookOrderItem: { findMany: fn() },
     bookInventoryItem: { update: fn(), updateMany: fn() },
     bookInventoryEdition: { update: fn() },

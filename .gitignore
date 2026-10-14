@@ -9,6 +9,7 @@
 
 # next.js
 /.next/
+/.next-ebook-*/
 /out/
 
 # production
@@ -48,5 +49,6 @@ track record with links Manal oussama.xlsx
 # internal planning docs / binaries (not for deploy)
 /DESIGN.json
 /DESIGN.md
+/private-ebooks/
 /PRODUCT.md
 docs/*.docx

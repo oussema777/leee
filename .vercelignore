@@ -1,5 +1,7 @@
 # Local source-media and design artifacts are not needed by the Next.js build.
 newimages/
+private-ebooks/
+.next-ebook-*/
 QR codes/
 .claude/
 .impeccable/

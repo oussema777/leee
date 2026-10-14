@@ -1,0 +1,41 @@
+import { chromium } from "@playwright/test";
+import { PrismaClient } from "@prisma/client";
+import { readFile, mkdir } from "node:fs/promises";
+const url = process.env.EBOOK_TEST_DATABASE_URL;
+if (!url || !["localhost", "127.0.0.1"].includes(new URL(url).hostname)) throw Error("Local database required");
+const db = new PrismaClient({ datasourceUrl: url });
+const fixture = JSON.parse(await readFile("private-ebooks/preview.json", "utf8"));
+const browser = await chromium.launch({ headless: true });
+const origin = "http://localhost:3107";
+await mkdir("private-ebooks/checks", { recursive: true });
+try {
+  const admin = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  await admin.addCookies([{ name: "admin-token", value: fixture.adminToken, url: origin }]);
+  const page = await admin.newPage();
+  await page.goto(origin + "/admin/ebooks/" + fixture.bookId);
+  await page.getByLabel("English title", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Preview version", exact: true }).click();
+  await page.locator('img[alt="Book preview page 1"]').waitFor();
+  await page.screenshot({ path: "private-ebooks/checks/manal-admin.png", fullPage: true });
+  const reader = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await reader.addCookies([{ name: "ebook-reader", value: fixture.readerToken, url: origin }]);
+  const reading = await reader.newPage();
+  await reading.goto(origin + "/ar/ebooks/read/" + fixture.bookId);
+  await reading.getByRole("spinbutton", { name: "رقم الصفحة" }).fill("30");
+  await reading.locator('img[alt="صفحة 30"]').waitFor();
+  await reading.locator('img[alt="صفحة 30"]').evaluate(img => img.decode());
+  if (await reading.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) throw Error("Arabic reader overflows mobile viewport");
+  await reading.screenshot({ path: "private-ebooks/checks/manal-reader-ar-mobile.png", fullPage: true });
+  await reading.setViewportSize({ width: 1280, height: 1000 });
+  await reading.screenshot({ path: "private-ebooks/checks/manal-reader-ar-desktop.png", fullPage: true });
+  await db.ebook.update({ where: { id: fixture.bookId }, data: { published: true } });
+  await reading.goto(origin + "/en/ebooks/manal-366-days");
+  await reading.getByRole("heading", { name: "366 Mistakes That Lead to Business Failure" }).waitFor();
+  await reading.screenshot({ path: "private-ebooks/checks/manal-store-desktop.png", fullPage: true });
+  await reading.setViewportSize({ width: 390, height: 844 });
+  await reading.screenshot({ path: "private-ebooks/checks/manal-store-mobile.png", fullPage: true });
+  console.log("PASS: Manal draft preview, actual protected page rendering, Arabic mobile/desktop reader and $5 storefront. Screenshots saved under private-ebooks/checks.");
+} finally {
+  await db.ebook.update({ where: { id: fixture.bookId }, data: { published: false } });
+  await browser.close(); await db.$disconnect();
+}

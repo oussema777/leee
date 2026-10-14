@@ -7,13 +7,13 @@ export function PaymentLoading({ isArabic = false, href }: { isArabic?: boolean;
     return isArabic
       ? [
           "جارٍ إنشاء طلب الدفع بشكل آمن",
-          "نؤهبأحضير QR الخاص بـ Whish",
+          "جارٍ تجهيز تعليمات الدفع",
           "جارٍ تثبيت المبلغ وتفاصيل الكتب",
           "لحظات قليلة فقط، صفحة الدفع تجهز الآن",
         ]
       : [
           "Building your secure payment request",
-          "Creating your Whish QR code",
+          "Preparing payment instructions",
           "Locking amount and book details",
           "Finalizing safe payment step",
         ];
@@ -77,8 +77,8 @@ export function PaymentLoading({ isArabic = false, href }: { isArabic?: boolean;
       <p className="mt-6 inline-flex items-center justify-center gap-2 text-xs leading-5 text-text-secondary">
         <ShieldCheck className="h-4 w-4 shrink-0" />
         {isArabic
-          ? "أنت ستكمّل التحويل داخل Whish"
-          : "You will complete the transfer in Whish, so keep this screen open for a few seconds."}
+          ? "ستكمل التحويل باستخدام طريقة الدفع التي اخترتها."
+          : "You will complete the transfer using your chosen payment method."}
       </p>
       {href && (
         <a

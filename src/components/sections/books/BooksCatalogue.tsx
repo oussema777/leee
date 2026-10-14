@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { CategoryExplorer } from "./CategoryExplorer";
-import { ArrowUpRight, BookOpen, Check, ChevronLeft, ChevronRight, HeartHandshake, Languages, RotateCcw, Search, Tag } from "lucide-react";
+import { ArrowUpRight, BookOpen, Check, ChevronLeft, ChevronRight, HeartHandshake, Languages, RotateCcw, Search, Tablet, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/ui/Container";
 import { bookCategoryLabel, getBookCategories } from "@/lib/book-inventory/categories";
 
 export interface CatalogueBook {
+  format?: "physical" | "ebook";
   id: string;
   slug: string;
   title: string;
@@ -71,7 +72,9 @@ function displayedCategory(book: CatalogueBook, isArabic: boolean) {
 function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }) {
   const title = isArabic && book.titleAr ? book.titleAr : book.title;
   const author = isArabic && book.authorAr ? book.authorAr : book.author;
-  const isAvailable = book.status === "AVAILABLE" && book.stockQuantity > 0;
+  const digital = book.format === "ebook";
+  const href = `/${digital ? "ebooks" : "books"}/${book.slug}`;
+  const isAvailable = digital || book.status === "AVAILABLE" && book.stockQuantity > 0;
   const conditionTone = book.condition === "EXCELLENT"
     ? "bg-emerald-50 text-emerald-800"
     : book.condition === "GOOD"
@@ -89,7 +92,7 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
               alt={isArabic ? `غلاف كتاب ${title}` : `Cover of ${title}`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-              className="object-cover"
+              className={digital ? "object-contain" : "object-cover"}
             />
           ) : (
             <div className="flex h-full items-center justify-center px-8 text-center text-accent-navy/45">
@@ -99,26 +102,27 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
               </div>
             </div>
           )}
-          <span className={`absolute start-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${isAvailable ? "bg-emerald-600 text-white" : "bg-accent-slate text-white"}`}>
-            {isAvailable && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-            {isAvailable ? (isArabic ? "متاح" : "Available") : (isArabic ? "غير متاح" : "Unavailable")}
+          <span className={`absolute start-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${digital ? "bg-accent-navy text-white" : isAvailable ? "bg-emerald-600 text-white" : "bg-accent-slate text-white"}`}>
+            {digital ? <Tablet className="h-3.5 w-3.5" aria-hidden="true" /> : isAvailable && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+            {digital ? (isArabic ? "كتاب إلكتروني" : "EBOOK") : isAvailable ? (isArabic ? "متاح" : "Available") : (isArabic ? "غير متاح" : "Unavailable")}
           </span>
         </div>
 
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-4 flex h-7 min-w-0 gap-2 overflow-hidden">
-            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${conditionTone}`}>
-              {localizedLabel(conditionLabels, book.condition, isArabic)}
+            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${digital ? "bg-blue-50 text-blue-900" : conditionTone}`}>
+              {digital ? (isArabic ? "قراءة على الموقع" : "Read online") : localizedLabel(conditionLabels, book.condition, isArabic)}
             </span>
             <span title={displayedCategory(book, isArabic)} className="min-w-0 truncate whitespace-nowrap rounded-full bg-brand-blue-light px-3 py-1 text-xs font-semibold text-accent-navy">
               {displayedCategory(book, isArabic)}
             </span>
           </div>
           <h2 className="line-clamp-2 min-h-[3.25rem] font-serif text-xl leading-tight text-text-primary">
-            <Link href={`/books/${book.slug}`} className="transition-colors hover:text-brand-blue-deeper">{title}</Link>
+            <Link href={href} className="transition-colors hover:text-brand-blue-deeper">{title}</Link>
           </h2>
           <p className="mt-2 line-clamp-1 min-h-5 text-sm font-medium text-text-secondary">{isArabic ? "بقلم" : "by"} {author}</p>
           {book.editions.length > 1 && <p className="mt-1 text-xs font-semibold text-brand-blue-deeper">{book.editions.length} {isArabic ? "طبعات متاحة" : "editions available"}</p>}
+          {digital && <p className="mb-3 mt-2 text-xs leading-5 text-text-secondary">{isArabic ? "وصول بعد التحقق من الدفع · دون تنزيل" : "Access after payment approval · No download"}</p>}
 
           <dl className="mt-auto grid grid-cols-2 gap-x-4 gap-y-3 border-t border-surface-tertiary pt-5">
             <div>
@@ -136,8 +140,8 @@ function BookCard({ book, isArabic }: { book: CatalogueBook; isArabic: boolean }
               <dd className="mt-1 text-sm font-bold tabular-nums text-brand-blue-deeper">{formatPrice(book.priceCents, book.currency, isArabic)}</dd>
             </div>
           </dl>
-          <Link href={`/books/${book.slug}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-navy px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue-deeper focus-visible:ring-2 focus-visible:ring-brand-blue">
-            {isArabic ? "عرض الكتاب وطلبه" : "View & order this book"}
+          <Link href={href} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-navy px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue-deeper focus-visible:ring-2 focus-visible:ring-brand-blue">
+            {digital ? (isArabic ? "عرض الكتاب الإلكتروني" : "View ebook") : (isArabic ? "عرض الكتاب وطلبه" : "View & order this book")}
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:rotate-[-90deg]" aria-hidden="true" />
           </Link>
         </div>
@@ -156,7 +160,7 @@ interface CatalogueProps {
   totalPages: number;
   categories: string[];
   languages: string[];
-  filters: { search: string; categories: string[]; match: "any" | "all"; language: string };
+  filters: { search: string; categories: string[]; match: "any" | "all"; language: string; format: "" | "physical" | "ebook" };
 }
 
 export function BooksCatalogue({ books, locale, loadError = false, total, totalPublished, page, totalPages, categories, languages, filters }: CatalogueProps) {
@@ -166,13 +170,15 @@ export function BooksCatalogue({ books, locale, loadError = false, total, totalP
   const [query, setQuery] = useState(filters.search);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { setQuery(filters.search); }, [filters.search]);
-  const navigate = (next: { search?: string; categories?: string[]; match?: "any" | "all"; language?: string; page?: number }) => {
+  const navigate = (next: { search?: string; categories?: string[]; match?: "any" | "all"; language?: string; format?: "" | "physical" | "ebook"; page?: number }) => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     const params = new URLSearchParams();
     const search = next.search ?? filters.search;
     const selected = next.categories ?? filters.categories;
     const match = next.match ?? filters.match;
     const language = next.language ?? filters.language;
+    const format = next.format ?? filters.format;
+    if (format) params.set("format", format);
     if (search.trim()) params.set("search", search.trim());
     selected.forEach(category => params.append("category", category));
     if (selected.length && match === "all") params.set("match", match);
@@ -185,12 +191,13 @@ export function BooksCatalogue({ books, locale, loadError = false, total, totalP
     searchTimer.current = setTimeout(() => navigate({ search: query, page: 1 }), 300);
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, filters.search, filters.categories, filters.match, filters.language]);
-  const hasFilters = Boolean(filters.search || filters.categories.length || filters.language);
+  }, [query, filters.search, filters.categories, filters.match, filters.language, filters.format]);
+  const hasFilters = Boolean(filters.search || filters.categories.length || filters.language || filters.format);
   const resetFilters = () => { if (searchTimer.current) clearTimeout(searchTimer.current); setQuery(""); startTransition(() => router.push(`/${locale}/books`, { scroll: false })); };
   const pageHref = (nextPage: number) => {
     const params = new URLSearchParams();
     if (filters.search) params.set("search", filters.search);
+    if (filters.format) params.set("format", filters.format);
     filters.categories.forEach(category => params.append("category", category));
     if (filters.categories.length && filters.match === "all") params.set("match", "all");
     if (filters.language) params.set("language", filters.language);
@@ -210,8 +217,8 @@ export function BooksCatalogue({ books, locale, loadError = false, total, totalP
               <div className="mt-6 h-0.5 w-12 bg-brand-blue" />
               <p className="mt-6 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
                 {isArabic
-                  ? "تبرّع مجتمعنا بهذه الكتب لتنتقل المعرفة من قارئ إلى آخر. تصفّح الرف واختر ما يرافقك في رحلتك القادمة."
-                  : "Our community donated these books so knowledge can move from one reader to the next. Browse the shelf and find what belongs in your next chapter."}
+                  ? "اكتشف كتب مجتمعنا والكتب الإلكترونية على رف واحد. اختر كتابًا ورقيًا أو اشترِ كتابًا إلكترونيًا للقراءة هنا بعد التحقق من الدفع."
+                  : "Discover community books and ebooks on one shelf. Choose a printed book, or purchase an ebook to read here after payment is verified."}
               </p>
             </div>
 
@@ -241,6 +248,10 @@ export function BooksCatalogue({ books, locale, loadError = false, total, totalP
               <Languages aria-hidden="true" className="me-1 size-4 text-white/70" />
               {["", ...languages].map(value => <button key={value} type="button" disabled={pending} aria-pressed={filters.language === value} onClick={() => navigate({ language: value, search: query, page: 1 })} className={`min-h-11 rounded-full border px-4 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-light disabled:opacity-60 ${filters.language === value ? "border-white bg-white text-accent-navy" : "border-white/25 text-white/80 hover:border-white hover:text-white"}`}>{value ? localizedLabel(languageLabels, value, isArabic) : (isArabic ? "كل اللغات" : "All languages")}</button>)}
             </fieldset>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            {(["", "physical", "ebook"] as const).map(value => <button key={value} type="button" disabled={pending} aria-pressed={filters.format === value} onClick={() => navigate({ format: value, search: query, page: 1 })} className={`min-h-11 rounded-full border px-4 text-sm font-semibold ${filters.format === value ? "border-white bg-white text-accent-navy" : "border-white/25 text-white/80 hover:border-white"}`}>{value === "ebook" ? (isArabic ? "كتب إلكترونية" : "Ebooks") : value === "physical" ? (isArabic ? "كتب ورقية" : "Printed books") : (isArabic ? "كل الكتب" : "All books")}</button>)}
+            <Link href="/ebooks/library" className="ms-auto px-3 py-2 text-sm font-semibold text-brand-blue-light underline underline-offset-4">{isArabic ? "كتبي الإلكترونية" : "My ebooks"}</Link>
           </div>
           <CategoryExplorer categories={categories} selected={filters.categories} match={filters.match} isArabic={isArabic} pending={pending} onApply={(categories, match) => navigate({ categories, match, search: query, page: 1 })} />
         </Container>

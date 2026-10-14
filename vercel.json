@@ -1,5 +1,6 @@
 {
   "crons": [
+    { "path": "/api/cron/ebook-emails", "schedule": "0 5 * * *" },
     { "path": "/api/cron/newsletter-drain", "schedule": "0 3 * * *" },
     { "path": "/api/cron/book-payments", "schedule": "0 4 * * *" }
   ]

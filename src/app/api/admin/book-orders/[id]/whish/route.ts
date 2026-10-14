@@ -24,6 +24,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (p.updatedAt.toISOString() !== input.expectedUpdatedAt) throw Error("STALE_REVIEW");
       const problem = reviewProblem(input, p.state, p.order.priceCents);
       if (problem) throw Error("REVIEW:" + problem);
+      if (input.action === "VERIFY") {
+        const reference = normalizedReference(input.transactionReference!);
+        await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtextextended(${"payment-reference:" + reference}, 0))::text`);
+        // The two catalogs are independent, but cannot spend the same transfer twice.
+        const ebook = await tx.ebookOrder.findFirst({ where: { verifiedReference: reference }, select: { id: true } });
+        if (ebook) throw Error("REVIEW:This transaction was already used for an ebook order.");
+      }
       const now = new Date();
       const state = input.action === "VERIFY" ? "VERIFIED" : input.action === "REFUND" ? "REFUNDED" : "CHANGES_REQUESTED";
       await tx.bookWhishPayment.update({

@@ -1,0 +1,14 @@
+.account { position: relative; color: #e0e9f3; flex-shrink: 0; }
+.account .trigger { display: inline-flex; align-items: center; gap: 10px; padding: 5px 10px 5px 5px; min-height: 44px; border: 1px solid #47627e; border-radius: 28px; background: #1b3a5c; color: #e8f1fb; font-size: 13px; font-weight: 600; cursor: pointer; }
+.account[data-compact=true] .trigger { min-width: 44px; padding: 4px; border-color: transparent; background: transparent; }
+.account .trigger:hover, .account .trigger[aria-expanded=true] { background: #284c70; border-color: #8eb7df; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: #365c82; color: #edf5fc; display: grid; place-items: center; font-size: 12px; letter-spacing: .03em; }
+.popover { position: absolute; inset-inline-end: 0; top: calc(100% + 10px); width: min(290px, calc(100vw - 32px)); background: #142b44; border: 1px solid #36516d; border-radius: 16px; box-shadow: 0 16px 48px #0005; padding: 8px; z-index: 30; text-align: start; }
+.identity { padding: 14px 12px 16px; border-bottom: 1px solid #36516d; margin-bottom: 6px; }
+.identity span { display: block; font-size: 11px; color: #aec2d6; margin-bottom: 6px; }
+.identity strong { display: block; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; text-align: start; }
+.account .item { display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; min-height: 44px; padding: 11px 12px; background: transparent; border: 0; border-radius: 8px; color: #e0e9f3; text-decoration: none; font-size: 13px; cursor: pointer; }
+.account .item:hover { background: #244463; }
+.account :is(button,a):focus-visible { outline: 2px solid #a8cbee; outline-offset: 2px; }
+.account button:disabled { opacity: .6; cursor: wait; }
+.error { padding: 8px 12px; font-size: 12px; color: #ffcebe; }
