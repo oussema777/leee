@@ -2,7 +2,19 @@
 .wrap { max-width: 1180px; margin: auto; padding: 28px 32px 72px; }
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 32px; font-size: 14px; }
 .nav a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
-.nav a:last-child { font-weight: 650; }
+.libraryShortcut { position: relative; flex: none; }
+.libraryLink { font-weight: 650; }
+.libraryNudge { animation: libraryNudge .6s ease-in-out .12s 1; }
+.libraryHint { position: absolute; z-index: 20; inset-inline-end: 0; top: calc(100% + 9px); width: min(280px, calc(100vw - 40px)); display: flex; align-items: flex-start; gap: 8px; padding: 16px 12px 16px 18px; border: 1px solid #cddde9; border-radius: 12px; background: #fff; box-shadow: 0 8px 28px #18354d1a; color: #18354d; animation: libraryHint 7s ease both; }
+.libraryHint::before { content: ""; position: absolute; top: -6px; inset-inline-end: 25px; width: 10px; height: 10px; border-top: 1px solid #cddde9; border-inline-start: 1px solid #cddde9; background: #fff; transform: rotate(45deg); }
+[dir="rtl"] .libraryHint::before { transform: rotate(-45deg); }
+.libraryHint strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.libraryHint p { margin: 0; font-size: 12px; line-height: 1.7; color: #536a7e; }
+.hintClose { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: #536a7e; cursor: pointer; }
+.hintClose:hover { background: #edf3f8; }
+@keyframes libraryNudge { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 75% { transform: translateX(-1px); } }
+@keyframes libraryHint { 0%, 100% { opacity: 0; transform: translateY(-4px); } 5%, 91% { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .libraryNudge, .libraryHint { animation: none; } }
 .hero { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
 .coverStage { border: 1px solid #e2e8ec; background: #e8eff4; border-radius: 18px; padding: 38px 32px 24px; text-align: center; }
 .coverStage img { display: block; width: auto; max-width: 100%; height: 440px; object-fit: contain; margin: auto; box-shadow: 8px 14px 28px #18354d28; border-radius: 2px 6px 6px 2px; }

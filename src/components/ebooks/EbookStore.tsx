@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, FileText, Languages, Library, Tablet } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, FileText, Languages, Tablet } from "lucide-react";
 import { EbookOrderDialog } from "./EbookOrderDialog";
+import { EbookLibraryHint } from "./EbookLibraryHint";
 import { ProductSkeleton } from "./EbookSkeleton";
 import { EbookImage } from "./EbookImage";
 import { ebookFetch, money } from "./client";
@@ -44,7 +45,7 @@ export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
     <div className={p.wrap}>
       <nav className={p.nav} aria-label={ar ? "روابط الكتب" : "Book navigation"}>
         <Link href={`/${locale}/books`}><ArrowLeft size={16} className="rtl:rotate-180" aria-hidden="true" />{ar ? "متجر الكتب" : "Book store"}</Link>
-        <Link href={`/${locale}/ebooks/library`}><Library size={16} aria-hidden="true" />{ar ? "كتبي الإلكترونية" : "My ebooks"}</Link>
+        <EbookLibraryHint locale={locale} ready={!!book && !ordering} />
       </nav>
       {catalog?.testMode && <p className={p.paused} style={{ marginBottom: 24 }}>{ar ? "اختبار مؤقت: رموز الدفع الحالية غير معتمدة بعد. الطلبات والبريد والوصول تُسجَّل في قاعدة بيانات الموقع الفعلية." : "Temporary test mode: the saved payment QRs are not yet validated. Orders, emails and reading access use the real website database."}</p>}
       {error ? <div role="alert" className={s.error}>{error} <button className={p.textButton} onClick={() => void load()}>{ar ? "إعادة المحاولة" : "Retry"}</button></div>

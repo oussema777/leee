@@ -55,9 +55,18 @@ export async function limited(key: string, max: number, seconds: number) {
 export function sameOrigin(request: NextRequest) {
   if (["GET", "HEAD"].includes(request.method)) return;
   const origin = request.headers.get("origin");
-  const expected = new URL(process.env.NEXT_PUBLIC_SITE_URL || request.url)
-    .origin;
-  if (!origin || origin !== expected)
+  const expected = new URL(process.env.NEXT_PUBLIC_SITE_URL || request.url);
+  const allowed = new Set([expected.origin]);
+  // Hosting may redirect the configured apex domain to www (or vice versa).
+  // Allow only that exact alias, retaining the configured protocol and port.
+  if (expected.hostname.includes(".") && !/^[\d.]+$/.test(expected.hostname)) {
+    const alias = new URL(expected.origin);
+    alias.hostname = expected.hostname.startsWith("www.")
+      ? expected.hostname.slice(4)
+      : "www." + expected.hostname;
+    allowed.add(alias.origin);
+  }
+  if (!origin || !allowed.has(origin))
     throw new EbookError("Please reload the website and try again.", 403);
 }
 export async function readerSession(request: NextRequest) {
