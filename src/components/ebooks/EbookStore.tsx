@@ -45,7 +45,7 @@ export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
     <div className={p.wrap}>
       <nav className={p.nav} aria-label={ar ? "روابط الكتب" : "Book navigation"}>
         <Link href={`/${locale}/books`}><ArrowLeft size={16} className="rtl:rotate-180" aria-hidden="true" />{ar ? "متجر الكتب" : "Book store"}</Link>
-        <EbookLibraryHint locale={locale} ready={!!book && !ordering} />
+        <EbookLibraryHint locale={locale} ready={!!book && !ordering} coverUrl={book?.coverUrl || ""} />
       </nav>
       {catalog?.testMode && <p className={p.paused} style={{ marginBottom: 24 }}>{ar ? "اختبار مؤقت: رموز الدفع الحالية غير معتمدة بعد. الطلبات والبريد والوصول تُسجَّل في قاعدة بيانات الموقع الفعلية." : "Temporary test mode: the saved payment QRs are not yet validated. Orders, emails and reading access use the real website database."}</p>}
       {error ? <div role="alert" className={s.error}>{error} <button className={p.textButton} onClick={() => void load()}>{ar ? "إعادة المحاولة" : "Retry"}</button></div>

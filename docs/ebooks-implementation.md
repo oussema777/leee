@@ -1,5 +1,11 @@
 # Ebook module — 12 October 2026
 
+## Reading-space introduction and sharing — 15 October 2026
+
+The product-page library introduction now uses a navy/gold panel with the actual cover, a soft highlight on the existing library link, one brief icon gesture, and a nine-second reading timer. Hovering or focusing the panel pauses dismissal; close and Escape restore focus when appropriate. It appears once per tab under a new versioned key and closes before checkout. English, Arabic, 320 px mobile, keyboard dismissal and reduced-motion behavior were checked with browser fixtures; the library link keeps its original dimensions.
+
+Published, ready ebook pages now provide server-generated localized title, description, canonical/hreflang links, Open Graph and Twitter metadata. Social images use the public `/[locale]/ebooks/[slug]/share-cover` route, which converts only the product's public cover to JPEG, preserving its aspect ratio. Cover fetches are restricted to the website or configured Supabase origin; unpublished/missing products expose no cover. No reader pages or private source files are used. The image URL includes the product update timestamp. Checks with the WhatsApp crawler user agent verify the book-specific metadata in the initial HTML head in both languages, JPEG delivery and missing-product denial. Messaging clients may retain earlier cached previews; already-sent messages cannot be updated by this application.
+
 ## Production sign-in domain correction — 15 October 2026
 
 The public apex domain redirects to `www.theleeexperience.com`, while the configured site URL uses `theleeexperience.com`. The ebook mutation origin check previously rejected the browser's `www` origin with a 403 reload message before email validation or delivery. The check now accepts the configured domain and its exact apex/`www` counterpart, preserving protocol and port restrictions. Other subdomains, unrelated origins, missing origins and malformed values remain blocked. Localhost and IP origins retain their existing restrictions. Regression coverage verifies all ebook mutation methods and that rejected requests never execute their handlers. Payment availability is independent of this correction.
