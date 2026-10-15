@@ -1,9 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const saved = vi.hoisted(() => ({ enabled: false, qrVerified: false, termsVerified: true, accountName: "Saved account" }));
+const management = vi.hoisted(() => ({ config: null as null | { enabled: unknown } }));
+vi.mock("@/lib/db", () => ({ db: { bookWhishSettings: { findUnique: vi.fn(async () => management.config ? { config: management.config } : null) } } }));
 vi.mock("@/lib/book-orders/whish-server", () => ({ getWhishConfig: async () => saved, getBankAudiConfig: async () => saved }));
 import { ebookPaymentSettings, ebookPaymentTestActive } from "./payment-settings";
 
 afterEach(() => vi.unstubAllEnvs());
+beforeEach(() => { management.config = null; });
 function configure() {
   vi.stubEnv("NODE_ENV", "development");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3107");
@@ -41,5 +44,28 @@ describe("temporary ebook QR testing", () => {
     expect(normal.testMode).toBe(false);
     expect(normal.whish.enabled).toBe(false);
     expect(normal.bank.qrVerified).toBe(false);
+  });
+  it("allows explicitly enabled hosted management testing without changing shared settings", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://www.theleeexperience.com");
+    vi.stubEnv("EBOOK_PAYMENT_TEST_UNTIL", "");
+    management.config = { enabled: true };
+    const result = await ebookPaymentSettings();
+    expect(result.testMode).toBe(true);
+    expect(result.testUntil).toBeNull();
+    expect(result.whish.enabled && result.whish.qrVerified).toBe(true);
+    expect(result.bank.enabled && result.bank.qrVerified).toBe(true);
+    expect(result.whish.accountName).toBe(saved.accountName);
+    expect(saved.enabled).toBe(false);
+    expect(saved.qrVerified).toBe(false);
+    management.config = { enabled: false };
+    expect((await ebookPaymentSettings()).testMode).toBe(false);
+  });
+  it("requires a literal enabled flag for management testing", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    for (const enabled of [false, "true", 1, null]) {
+      management.config = { enabled };
+      expect((await ebookPaymentSettings()).testMode).toBe(false);
+    }
   });
 });

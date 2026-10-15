@@ -4,6 +4,12 @@
 
 The public apex domain redirects to `www.theleeexperience.com`, while the configured site URL uses `theleeexperience.com`. The ebook mutation origin check previously rejected the browser's `www` origin with a 403 reload message before email validation or delivery. The check now accepts the configured domain and its exact apex/`www` counterpart, preserving protocol and port restrictions. Other subdomains, unrelated origins, missing origins and malformed values remain blocked. Localhost and IP origins retain their existing restrictions. Regression coverage verifies all ebook mutation methods and that rejected requests never execute their handlers. Payment availability is independent of this correction.
 
+## Hosted management checkout testing — 15 October 2026
+
+The user authorized opening deployed ebook checkout for management testing with the saved receiving methods. `BookWhishSettings` record `ebook-management-testing`, with `config.enabled: true`, enables ebook-only test copies of Whish and Bank Audi settings. Shared receiving settings and their verification records remain unchanged, so printed-book checkout retains its saved availability. The existing account/IBAN/QR consistency checks still apply. Test notices appear on ebook product, checkout and payment pages, and new orders use `EB-TEST-` references and the test snapshot/audit flag. Email verification, reference submission and manual approval remain required; this setting never grants reading access by itself.
+
+Testing remains enabled until explicitly disabled. Inspect with `node scripts/manage-ebook-payment-test.mjs`; use `--enable` or `--disable` to change the ebook-only flag. Disabling restores the saved payment availability for new checkout and payment instructions without deleting test orders or revoking approved access. The script verifies that the two shared receiving-setting records are unchanged. This hosted setting supersedes the earlier local-only test limitation; the development environment deadline mechanism remains available separately.
+
 Ebooks appear alongside printed books in the public store, with shared search, category/language filters, pagination and an All books / Printed books / Ebooks selector. Ebook administration, orders and reader identities remain separate. Physical inventory, bundles, delivery and stock do not apply to ebooks. The shared Whish and Bank Audi receiving-account settings are reused; both payment-review flows reject transaction references already used in the other catalog.
 
 ## Pages and administration
