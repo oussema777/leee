@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ebookFetch, money, stateLabel } from "./client";
+import { canVerifyEbookPayment } from "@/lib/ebooks/policy";
 import s from "./ebooks.module.css";
 type Order = {
   id: string;
@@ -104,6 +105,7 @@ export function AdminEbookOrders({ readers = false }: { readers?: boolean }) {
                   <th>Reader</th>
                   <th>Payment</th>
                   <th>Reading access</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,6 +133,11 @@ export function AdminEbookOrders({ readers = false }: { readers?: boolean }) {
                           ? "Active"
                           : "Revoked"
                         : "Not granted"}
+                    </td>
+                    <td>
+                      <Link className={s.secondary} href={`/admin/ebook-orders/${o.id}`}>
+                        {canVerifyEbookPayment(o.state) ? "Validate payment" : "View order"}
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -179,6 +186,8 @@ export function AdminEbookOrder({ id }: { id: string }) {
   const load = useCallback(async () => {
     const data = await ebookFetch<Detail>(`/api/admin/ebook-orders/${id}`);
     setOrder(data);
+    setChecked(false);
+    setAmount("");
     setReference(data.submittedReference || "");
     setAction(
       data.state === "VERIFIED"
@@ -285,10 +294,9 @@ export function AdminEbookOrder({ id }: { id: string }) {
             </section>
             <section className={s.card}>
               <h2>Review & access</h2>
-              {!["UNDER_REVIEW", "VERIFIED"].includes(order.state) ? (
+              {!canVerifyEbookPayment(order.state) && order.state !== "VERIFIED" ? (
                 <p className={s.muted}>
-                  Review actions become available after the customer submits
-                  payment details. Refunded orders cannot have access restored.
+                  Cancelled and refunded orders cannot be validated or have access restored.
                 </p>
               ) : (
                 <form
@@ -298,6 +306,16 @@ export function AdminEbookOrder({ id }: { id: string }) {
                     void submit();
                   }}
                 >
+                  {["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(order.state) && (
+                    <p className={s.notice}>
+                      {order.state === "AWAITING_PAYMENT"
+                        ? "The customer has not submitted payment details yet."
+                        : "The customer has been asked to correct their payment details."}{" "}
+                      If you have received the payment, enter the actual transaction
+                      reference and exact amount from the receiving account below
+                      to validate this order and grant reading access.
+                    </p>
+                  )}
                   <label>
                     Action
                     <select
@@ -307,14 +325,14 @@ export function AdminEbookOrder({ id }: { id: string }) {
                         setChecked(false);
                       }}
                     >
-                      {order.state === "UNDER_REVIEW" ? (
+                      {canVerifyEbookPayment(order.state) ? (
                         <>
                           <option value="VERIFY">
                             Confirm payment & grant access
                           </option>
-                          <option value="REQUEST_CORRECTION">
+                          {order.state === "UNDER_REVIEW" && <option value="REQUEST_CORRECTION">
                             Request a correction
-                          </option>
+                          </option>}
                         </>
                       ) : (
                         <>
@@ -391,7 +409,7 @@ export function AdminEbookOrder({ id }: { id: string }) {
                     </label>
                   )}
                   <button disabled={busy} className={s.button}>
-                    {busy ? "Saving…" : "Apply action"}
+                    {busy ? "Saving…" : action === "VERIFY" ? "Confirm payment & grant access" : "Apply action"}
                   </button>
                 </form>
               )}

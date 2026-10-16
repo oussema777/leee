@@ -18,6 +18,12 @@ Testing remains enabled until explicitly disabled. Inspect with `node scripts/ma
 
 Ebooks appear alongside printed books in the public store, with shared search, category/language filters, pagination and an All books / Printed books / Ebooks selector. Ebook administration, orders and reader identities remain separate. Physical inventory, bundles, delivery and stock do not apply to ebooks. The shared Whish and Bank Audi receiving-account settings are reused; both payment-review flows reject transaction references already used in the other catalog.
 
+## Admin payment validation — 16 October 2026
+
+The ebook order list now includes a visible **Validate payment** link. Admins can confirm receipt for open orders in `AWAITING_PAYMENT`, `UNDER_REVIEW` or `CHANGES_REQUESTED`, including payments checked directly with the receiving account before the customer submits details. Confirmation still requires the actual transaction reference, exact USD amount and an explicit receiving-account check. Duplicate-reference checks, concurrency protection, audit events and access notifications use the existing review endpoint. Cancelled, refunded and already verified orders cannot be verified again. Opening the form never changes payment or access status.
+
+Validation: 255 automated tests and TypeScript passed. `node scripts/ebook-admin-review-check.mjs` passed the admin browser flow with intercepted API fixtures and created no real order, approval or email. The change has not been deployed.
+
 ## Pages and administration
 
 - Public store: `/en/books`, `/ar/books`; `?format=ebook` filters to digital editions. Old `/[locale]/ebooks` catalog links redirect to that filter. Ebook detail pages, `/ebooks/library`, `/ebooks/orders/[id]`, `/ebooks/read/[id]` remain under each locale.

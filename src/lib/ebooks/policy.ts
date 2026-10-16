@@ -49,6 +49,9 @@ export const reviewSchema = z.object({
   currency: z.literal("USD").optional(),
   checkedWallet: z.boolean().optional(),
 });
+export function canVerifyEbookPayment(state: string) {
+  return ["AWAITING_PAYMENT", "UNDER_REVIEW", "CHANGES_REQUESTED"].includes(state);
+}
 export function reviewError(
   input: z.infer<typeof reviewSchema>,
   state: string,
@@ -57,8 +60,8 @@ export function reviewError(
 ) {
   switch (input.action) {
     case "VERIFY":
-      if (state !== "UNDER_REVIEW")
-        return "Only a submitted payment can be verified.";
+      if (!canVerifyEbookPayment(state))
+        return "Only an unpaid, open order can have its payment verified.";
       if (!input.checkedWallet || !input.transactionReference)
         return "Check the receiving account and enter its transaction reference.";
       if (input.receivedAmountCents !== amount || input.currency !== "USD")

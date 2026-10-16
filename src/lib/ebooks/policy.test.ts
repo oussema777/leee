@@ -39,7 +39,16 @@ describe("ebook access and payment policy", () => {
     expect(
       reviewError({ ...input, checkedWallet: false }, "UNDER_REVIEW", 500),
     ).toBeTruthy();
-    expect(reviewError(input, "AWAITING_PAYMENT", 500)).toBeTruthy();
+    for (const state of ["AWAITING_PAYMENT", "CHANGES_REQUESTED"]) {
+      expect(reviewError(input, state, 500)).toBeNull();
+      expect(reviewError({ ...input, checkedWallet: false }, state, 500)).toBeTruthy();
+      expect(reviewError({ ...input, transactionReference: undefined }, state, 500)).toBeTruthy();
+      expect(reviewError({ ...input, receivedAmountCents: 499 }, state, 500)).toBeTruthy();
+      expect(reviewError({ ...input, currency: undefined }, state, 500)).toBeTruthy();
+    }
+    for (const state of ["VERIFIED", "REFUNDED", "CANCELLED"]) {
+      expect(reviewError(input, state, 500)).toBeTruthy();
+    }
   });
   it("cannot restore a refunded purchase or revoke without a reason", () => {
     const input = {
