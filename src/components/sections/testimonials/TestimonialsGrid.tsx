@@ -1,314 +1,277 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useLocale } from "next-intl";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Quote, UserX, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Expand, MessageSquareQuote, Quote, X } from "lucide-react";
 import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { testimonialCategories } from "./testimonialsData";
 import type { TestimonialListItem } from "@/lib/data/testimonials";
 
-function FeaturedTestimonial({ item, isAr }: { item: TestimonialListItem; isAr: boolean }) {
-  // If it's an original designed card, show the image as-is
-  if (item.isOriginalCard) {
-    return (
-      <div className="relative mb-14 overflow-hidden rounded-xl shadow-lg">
-        <Image
-          src={item.imageUrl}
-          alt={isAr ? item.nameAr : item.nameEn}
-          width={1200}
-          height={800}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="w-full h-auto"
-        />
-      </div>
-    );
-  }
+function localized(en: string, ar: string, isAr: boolean) {
+  return (isAr ? ar.trim() : en.trim()) || (isAr ? en.trim() : ar.trim());
+}
+
+function TestimonialCard({
+  item,
+  isAr,
+  eager,
+  onOpen,
+}: {
+  item: TestimonialListItem;
+  isAr: boolean;
+  eager: boolean;
+  onOpen: () => void;
+}) {
+  const t = useTranslations("testimonials");
+  const [imageFailed, setImageFailed] = useState(false);
+  const name = localized(item.nameEn, item.nameAr, isAr);
+  const quote = localized(item.quoteEn, item.quoteAr, isAr);
+  const program = localized(item.programEn, item.programAr, isAr);
+  const role = localized(item.roleEn, item.roleAr, isAr);
+  const showArtwork = item.isOriginalCard && item.imageUrl && !imageFailed;
 
   return (
-    <div className="relative mb-14 overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[400px]">
-        {/* Image side */}
-        <div className="relative lg:col-span-2 h-72 lg:h-auto">
-          <Image
-            src={item.imageUrl}
-            alt={isAr ? item.nameAr : item.nameEn}
-            fill
-            sizes="(max-width: 1024px) 100vw, 40vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-brand-blue-deeper/80 to-transparent" />
-        </div>
-
-        {/* Quote side */}
-        <div className="lg:col-span-3 bg-gradient-to-br from-brand-blue-deeper via-brand-blue-dark to-brand-blue p-8 lg:p-12 flex flex-col justify-center relative">
-          {/* Large decorative quote */}
-          <Quote className="absolute top-6 end-6 w-24 h-24 text-white/5 scale-x-[-1]" />
-
-          <div className="flex gap-1 mb-4">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" />
-            ))}
-          </div>
-
-          <blockquote className="text-white text-lg lg:text-xl leading-relaxed mb-8 font-light italic">
-            &ldquo;{isAr ? item.quoteAr : item.quoteEn}&rdquo;
-          </blockquote>
-
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/30 shrink-0 relative">
-              <Image
-                src={item.imageUrl}
-                alt={isAr ? item.nameAr : item.nameEn}
-                fill
-                sizes="56px"
-                className="object-cover"
-              />
+    <article className="min-w-0">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={t("openStory", { name })}
+        aria-haspopup="dialog"
+        className="group block w-full overflow-hidden rounded-xl border border-accent-navy/10 bg-white text-start transition-[border-color,box-shadow] hover:border-brand-blue/50 hover:shadow-lg focus-visible:outline-offset-4"
+      >
+        {/* Every story has the same canvas, including the first and image-only uploads. */}
+        <div className="relative aspect-video overflow-hidden">
+          {showArtwork ? (
+            <Image
+              src={item.imageUrl}
+              alt={t("artworkAlt", { name })}
+              fill
+              loading={eager ? "eager" : "lazy"}
+              sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1280px) 50vw, 608px"
+              className="object-contain"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <div className="flex h-full flex-col justify-center p-5 sm:p-6 lg:p-8">
+              <Quote aria-hidden="true" className="mb-3 size-6 shrink-0 text-brand-blue rtl:-scale-x-100 lg:mb-4 lg:size-8" />
+              <blockquote dir="auto" className="line-clamp-3 text-[15px] leading-relaxed text-accent-navy sm:line-clamp-4 sm:text-base lg:text-lg">
+                {quote || t("imageUnavailable")}
+              </blockquote>
             </div>
-            <div>
-              <p className="text-white font-semibold text-base">
-                {isAr ? item.nameAr : item.nameEn}
-              </p>
-              <p className="text-white/60 text-sm">
-                {isAr ? item.roleAr : item.roleEn}
-              </p>
-              <p className="text-white/40 text-xs mt-0.5">
-                {isAr ? item.programAr : item.programEn}
-              </p>
+          )}
+        </div>
+        <div className="flex h-24 items-center gap-3 border-t border-accent-navy/10 px-5 sm:px-6">
+          <div className="min-w-0 flex-1">
+            <h3 dir="auto" className="line-clamp-1 text-sm font-semibold text-accent-navy sm:text-base">
+              {name}
+            </h3>
+            <p dir="auto" className="mt-1 line-clamp-2 text-xs text-text-secondary sm:text-sm">
+              {program || role || t("communityStory")}
+            </p>
+          </div>
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-accent-navy/15 text-brand-blue-deeper transition-colors group-hover:bg-accent-ice">
+            <Expand aria-hidden="true" className="size-4" />
+          </span>
+        </div>
+      </button>
+    </article>
+  );
+}
+
+function StoryDialog({
+  item,
+  isAr,
+  onClose,
+}: {
+  item: TestimonialListItem;
+  isAr: boolean;
+  onClose: () => void;
+}) {
+  const t = useTranslations("testimonials");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const name = localized(item.nameEn, item.nameAr, isAr);
+  const quote = localized(item.quoteEn, item.quoteAr, isAr);
+  const role = localized(item.roleEn, item.roleAr, isAr);
+  const program = localized(item.programEn, item.programAr, isAr);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    dialog?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="testimonial-dialog-title"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) dialogRef.current?.close();
+      }}
+      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-6xl overflow-y-auto rounded-xl bg-white p-0 text-text-primary shadow-2xl backdrop:bg-accent-navy/75"
+    >
+      <div className="relative">
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-accent-navy/10 bg-white px-5 py-4 sm:px-8">
+          <div className="min-w-0">
+            <h2 id="testimonial-dialog-title" dir="auto" className="text-lg font-semibold text-accent-navy">
+              {name}
+            </h2>
+            {program && <p dir="auto" className="mt-1 text-sm text-text-secondary">{program}</p>}
+          </div>
+          <button
+            type="button"
+            autoFocus
+            onClick={() => dialogRef.current?.close()}
+            aria-label={t("closeStory")}
+            className="flex size-11 shrink-0 items-center justify-center rounded-full border border-accent-navy/15 text-accent-navy hover:bg-accent-ice"
+          >
+            <X aria-hidden="true" className="size-5" />
+          </button>
+        </div>
+        {item.isOriginalCard && item.imageUrl && (
+          <div className="border-b border-accent-navy/10">
+            <Image
+              src={item.imageUrl}
+              alt={t("artworkAlt", { name })}
+              width={1600}
+              height={900}
+              loading="eager"
+              sizes="(max-width: 1152px) 100vw, 1152px"
+              className="max-h-[70dvh] w-full object-contain"
+            />
+            <div className="px-5 pb-4 text-end sm:px-8">
+              <a
+                href={item.imageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-blue-deeper underline underline-offset-4"
+              >
+                {t("fullSizeImage")}
+                <ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" />
+              </a>
             </div>
           </div>
-        </div>
+        )}
+        {(quote || role) && (
+          <div className="mx-auto max-w-3xl px-6 py-8 sm:px-10 sm:py-10">
+            {quote && (
+              <>
+                <Quote aria-hidden="true" className="mb-4 size-8 text-brand-blue rtl:-scale-x-100" />
+                <blockquote dir="auto" className="whitespace-pre-line break-words text-lg leading-relaxed text-accent-navy sm:text-xl">
+                  {quote}
+                </blockquote>
+              </>
+            )}
+            {role && <p dir="auto" className="mt-5 text-sm text-text-secondary">{role}</p>}
+          </div>
+        )}
       </div>
-    </div>
+    </dialog>
   );
 }
 
 export function TestimonialsGrid({ testimonials }: { testimonials: TestimonialListItem[] }) {
-  const locale = useLocale();
-  const isAr = locale === "ar";
+  const isAr = useLocale() === "ar";
+  const t = useTranslations("testimonials");
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [selected, setSelected] = useState<TestimonialListItem | null>(null);
+  const [isPending, startTransition] = useTransition();
   const currentCategory = searchParams.get("category") || "";
-
   const filteredTestimonials = currentCategory
-    ? testimonials.filter((t) => t.categorySlug === currentCategory)
+    ? testimonials.filter((item) => item.categorySlug === currentCategory)
     : testimonials;
-
-  // Featured: first testimonial from filtered, rest in grid
-  const featured = filteredTestimonials[0] || null;
-  const rest = filteredTestimonials.slice(1);
+  const filters = [
+    { slug: "", name: t("allStories"), count: testimonials.length },
+    ...testimonialCategories.map((category) => ({
+      slug: category.slug,
+      name: isAr ? category.nameAr : category.nameEn,
+      count: testimonials.filter((item) => item.categorySlug === category.slug).length,
+    })),
+  ];
 
   const updateCategory = useCallback(
     (slug: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (slug) {
-        params.set("category", slug);
-      } else {
-        params.delete("category");
-      }
-      router.push(`?${params.toString()}`, { scroll: false });
+      if (slug) params.set("category", slug);
+      else params.delete("category");
+      startTransition(() => router.push(`?${params.toString()}`, { scroll: false }));
     },
     [router, searchParams]
   );
 
-  // Alternating card colors
-  const cardStyles = [
-    "bg-white border border-gray-100",
-    "bg-brand-blue-light/30 border border-brand-blue/10",
-    "bg-gradient-to-br from-brand-blue-deeper to-brand-blue-dark text-white",
-  ];
-
   return (
     <>
-      {/* Category Tabs */}
-      <div className="flex items-center gap-1 flex-wrap mb-8 overflow-x-auto pb-2">
-        <button
-          onClick={() => updateCategory("")}
-          className={cn(
-            "px-5 py-2.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap",
-            !currentCategory
-              ? "border-brand-blue text-brand-blue bg-brand-blue-light/50"
-              : "border-transparent text-text-secondary hover:text-brand-blue hover:border-brand-blue/30"
-          )}
-        >
-          {isAr ? "الكل" : "All"}
-        </button>
-        {testimonialCategories.map((cat) => (
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="font-serif text-2xl text-accent-navy sm:text-3xl">{t("galleryTitle")}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-text-secondary">{t("galleryHint")}</p>
+        </div>
+        <p role="status" className="text-sm text-text-secondary">
+          {t("storyCount", { count: filteredTestimonials.length })}
+        </p>
+      </div>
+
+      <div role="group" aria-label={t("filterLabel")} className="mb-8 flex flex-wrap gap-2">
+        {filters.map((filter) => (
           <button
-            key={cat.slug}
-            onClick={() => updateCategory(cat.slug)}
+            key={filter.slug}
+            type="button"
+            onClick={() => updateCategory(filter.slug)}
+            aria-pressed={currentCategory === filter.slug}
+            aria-controls="testimonial-gallery"
             className={cn(
-              "px-5 py-2.5 text-sm font-semibold transition-all border-b-2 whitespace-nowrap",
-              currentCategory === cat.slug
-                ? "border-brand-blue text-brand-blue bg-brand-blue-light/50"
-                : "border-transparent text-text-secondary hover:text-brand-blue hover:border-brand-blue/30"
+              "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+              currentCategory === filter.slug
+                ? "border-accent-navy bg-accent-navy text-white"
+                : "border-accent-navy/15 bg-transparent text-accent-navy hover:border-brand-blue hover:bg-white/60"
             )}
           >
-            {isAr ? cat.nameAr : cat.nameEn}
+            {filter.name}
+            <span className="text-xs tabular-nums opacity-75">{filter.count}</span>
           </button>
         ))}
       </div>
 
-      {filteredTestimonials.length > 0 ? (
-        <>
-          {/* Featured hero testimonial */}
-          {featured && <FeaturedTestimonial item={featured} isAr={isAr} />}
-
-          {/* Remaining testimonials — masonry-style mixed layout */}
-          {rest.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rest.map((item, index) => {
-                const styleIdx = index % 3;
-                const isDark = styleIdx === 2;
-
-                // Original designed card — render as full image
-                if (item.isOriginalCard) {
-                  return (
-                    <div
-                      key={item.id}
-                      className="group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
-                    >
-                      <Image
-                        src={item.imageUrl}
-                        alt={isAr ? item.nameAr : item.nameEn}
-                        width={600}
-                        height={400}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  );
-                }
-
-                return (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      "group p-6 transition-all hover:shadow-lg relative overflow-hidden",
-                      cardStyles[styleIdx],
-                      // Make every 4th card span 2 columns for visual variety
-                      index % 4 === 3 && "md:col-span-2 lg:col-span-1"
-                    )}
-                  >
-                    {/* Decorative quote watermark */}
-                    <Quote
-                      className={cn(
-                        "absolute -top-2 -end-2 w-20 h-20 scale-x-[-1]",
-                        isDark ? "text-white/5" : "text-brand-blue/5"
-                      )}
-                    />
-
-                    {/* Stars */}
-                    <div className="flex gap-0.5 mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "w-3.5 h-3.5",
-                            isDark ? "text-yellow-400" : "text-yellow-500"
-                          )}
-                          fill="currentColor"
-                        />
-                      ))}
-                    </div>
-
-                    {/* Quote */}
-                    <blockquote
-                      className={cn(
-                        "text-sm leading-relaxed mb-5",
-                        isDark
-                          ? "text-white/90 italic"
-                          : "text-text-secondary"
-                      )}
-                    >
-                      &ldquo;{isAr ? item.quoteAr : item.quoteEn}&rdquo;
-                    </blockquote>
-
-                    {/* Person */}
-                    <div
-                      className={cn(
-                        "border-t pt-4 mt-auto",
-                        isDark ? "border-white/10" : "border-gray-100"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 relative",
-                            isDark ? "border-white/20" : "border-brand-blue/20"
-                          )}
-                        >
-                          <Image
-                            src={item.imageUrl}
-                            alt={isAr ? item.nameAr : item.nameEn}
-                            fill
-                            sizes="44px"
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <p
-                            className={cn(
-                              "text-sm font-semibold truncate",
-                              isDark ? "text-white" : "text-text-primary"
-                            )}
-                          >
-                            {isAr ? item.nameAr : item.nameEn}
-                          </p>
-                          <p
-                            className={cn(
-                              "text-xs truncate",
-                              isDark ? "text-white/50" : "text-text-muted"
-                            )}
-                          >
-                            {isAr ? item.roleAr : item.roleEn}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2.5">
-                        <span
-                          className={cn(
-                            "inline-block text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1",
-                            isDark
-                              ? "text-white/70 bg-white/10"
-                              : "text-brand-blue bg-brand-blue-light/60"
-                          )}
-                        >
-                          {isAr ? item.programAr : item.programEn}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Emotional pull quote section */}
-          <div className="mt-16 text-center py-12 bg-brand-blue-light/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-            <Quote className="w-10 h-10 text-brand-blue/30 mx-auto mb-4 scale-x-[-1]" />
-            <p className="text-2xl md:text-3xl font-light text-brand-blue-deeper italic max-w-3xl mx-auto leading-relaxed">
-              {isAr
-                ? "كل قصة هنا هي شهادة على قوة المجتمع والإرادة والأمل. نحن لا نبني مشاريع فحسب — نحن نبني مستقبلاً."
-                : "Every story here is a testament to the power of community, resilience, and hope. We don't just build businesses — we build futures."}
-            </p>
-            <p className="text-sm text-text-muted mt-4 font-medium">
-              — LEE Experience
-            </p>
+      <div id="testimonial-gallery" aria-busy={isPending}>
+        {filteredTestimonials.length ? (
+          <div className={cn("grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-7", isPending && "opacity-60")}>
+            {filteredTestimonials.map((item, index) => (
+              <TestimonialCard key={item.id} item={item} isAr={isAr} eager={index < 2} onOpen={() => setSelected(item)} />
+            ))}
           </div>
-        </>
-      ) : (
-        <div className="text-center py-16">
-          <UserX className="w-16 h-16 mx-auto text-text-muted mb-4" />
-          <p className="text-text-secondary text-lg">
-            {isAr
-              ? "لم يتم العثور على شهادات في هذه الفئة."
-              : "No testimonials found in this category."}
-          </p>
+        ) : (
+          <div className="rounded-xl border border-accent-navy/10 bg-white px-6 py-16 text-center">
+            <MessageSquareQuote aria-hidden="true" className="mx-auto mb-4 size-9 text-brand-blue-deeper" />
+            <p className="text-text-secondary">{t("noTestimonials")}</p>
+            {currentCategory && (
+              <button type="button" onClick={() => updateCategory("")} className="mt-5 min-h-11 text-sm font-semibold text-brand-blue-deeper underline underline-offset-4">
+                {t("allStories")}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-12 flex flex-col items-start justify-between gap-5 border-t border-accent-navy/15 pt-8 sm:flex-row sm:items-center">
+        <div>
+          <h2 className="font-serif text-2xl text-accent-navy">{t("shareTitle")}</h2>
+          <p className="mt-2 text-sm text-text-secondary">{t("shareDescription")}</p>
         </div>
-      )}
+        <Link href="/get-involved/share-your-story" className="inline-flex min-h-11 shrink-0 items-center gap-3 rounded-full border border-accent-navy/25 px-5 py-3 text-sm font-semibold text-accent-navy transition-colors hover:bg-white">
+          {t("shareAction")}
+          <ArrowUpRight aria-hidden="true" className="size-4 rtl:-scale-x-100" />
+        </Link>
+      </div>
+
+      {selected && <StoryDialog item={selected} isAr={isAr} onClose={() => setSelected(null)} />}
     </>
   );
 }

@@ -189,7 +189,21 @@
     "pageSubtitle": "Hear from the entrepreneurs, communities, and partners whose lives were transformed by our programs",
     "all": "All",
     "testimonials": "testimonials",
-    "noTestimonials": "No testimonials found in this category."
+    "noTestimonials": "No testimonials found in this category.",
+    "galleryTitle": "In their own words",
+    "galleryHint": "Experiences from across our community. Open any card to take a closer look.",
+    "allStories": "All stories",
+    "storyCount": "{count, plural, =0 {No stories yet} one {# story} other {# stories}}",
+    "filterLabel": "Filter testimonials",
+    "openStory": "Read {name}'s testimonial",
+    "closeStory": "Close testimonial",
+    "artworkAlt": "Testimonial card from {name}",
+    "communityStory": "From our community",
+    "imageUnavailable": "Open this testimonial to view the original image.",
+    "fullSizeImage": "Open full-size image",
+    "shareTitle": "Your experience belongs here, too.",
+    "shareDescription": "Been part of a LEE program? We'd love to hear your story.",
+    "shareAction": "Share your story"
   },
   "reports": {
     "pageTitle": "Reports & Publications",

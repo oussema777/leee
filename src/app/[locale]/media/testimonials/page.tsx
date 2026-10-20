@@ -33,6 +33,7 @@ export default async function TestimonialsPage({
   return (
     <>
       <PageHeader
+        className="py-12 md:py-16"
         title={t("pageTitle")}
         subtitle={t("pageSubtitle")}
         breadcrumbs={[
@@ -45,9 +46,12 @@ export default async function TestimonialsPage({
         <Container>
           <Suspense
             fallback={
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-7">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="bg-surface-secondary animate-pulse h-64" />
+                  <div key={i} className="overflow-hidden rounded-xl bg-surface-secondary motion-safe:animate-pulse">
+                    <div className="aspect-video" />
+                    <div className="h-24" />
+                  </div>
                 ))}
               </div>
             }

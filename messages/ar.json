@@ -189,7 +189,21 @@
     "pageSubtitle": "اسمع من رواد الأعمال والمجتمعات والشركاء الذين غيّرت برامجنا حياتهم",
     "all": "الكل",
     "testimonials": "شهادات",
-    "noTestimonials": "لم يتم العثور على شهادات في هذه الفئة."
+    "noTestimonials": "لم يتم العثور على شهادات في هذه الفئة.",
+    "galleryTitle": "بكلماتهم",
+    "galleryHint": "تجارب من مجتمعنا. افتح أي بطاقة لقراءة الشهادة كاملة.",
+    "allStories": "جميع القصص",
+    "storyCount": "{count, plural, =0 {لا توجد قصص بعد} one {قصة واحدة} two {قصتان} few {# قصص} many {# قصة} other {# قصة}}",
+    "filterLabel": "تصفية الشهادات",
+    "openStory": "اقرأ شهادة {name}",
+    "closeStory": "إغلاق الشهادة",
+    "artworkAlt": "بطاقة شهادة {name}",
+    "communityStory": "من مجتمعنا",
+    "imageUnavailable": "افتح هذه الشهادة لعرض الصورة الأصلية.",
+    "fullSizeImage": "فتح الصورة بالحجم الكامل",
+    "shareTitle": "لتجربتك مكان هنا أيضاً.",
+    "shareDescription": "شاركت في أحد برامج LEE؟ يسعدنا أن نسمع قصتك.",
+    "shareAction": "شارك قصتك"
   },
   "reports": {
     "pageTitle": "التقارير والمنشورات",
