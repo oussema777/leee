@@ -1,0 +1,33 @@
+[Unit]
+Description=LEE Aramex UAT gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/lee-aramex-gateway
+EnvironmentFile=/etc/lee-aramex-gateway.env
+ExecStart=/usr/bin/python3 -I -B /opt/lee-aramex-gateway/gateway.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+MemoryMax=128M
+CPUQuota=10%
+TasksMax=16
+LimitNOFILE=128
+TimeoutStopSec=20
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

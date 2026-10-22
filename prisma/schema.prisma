@@ -795,12 +795,95 @@ model BookOrder {
   reviewedAt         DateTime?
   items              BookOrderItem[]
   whishPayment       BookWhishPayment?
+  shipment           BookShipment?
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
   @@index([status, createdAt])
   @@index([paymentStatus, createdAt])
   @@index([createdAt])
+}
+
+// One preparation record per order. Booking, labels and tracking are added only
+// after Aramex account/service settings are confirmed.
+model BookShipment {
+  id               String    @id @default(cuid())
+  orderId          String    @unique
+  order            BookOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  provider         String    @default("ARAMEX")
+  environment      String    @default("UAT")
+  status           String    @default("DRAFT")
+  version          Int       @default(1)
+  input            Json
+  preparation      Json
+  orderFingerprint String
+  trackingNumber   String?
+  labelUrl         String?
+  bookedAt         DateTime?
+  attempts         BookShipmentAttempt[]
+  trackingEvents   AramexTrackingEvent[]
+  createdBy        String
+  updatedBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([provider, environment, trackingNumber])
+}
+
+model BookShipmentAttempt {
+  id                String       @id @default(cuid())
+  shipmentId        String
+  shipment          BookShipment @relation(fields: [shipmentId], references: [id], onDelete: Restrict)
+  submissionKey     String       @unique
+  draftVersion      Int
+  status            String       @default("SUBMITTING")
+  preparation       Json
+  orderFingerprint  String
+  actor             String
+  failureCode       String?
+  trackingNumber    String?
+  labelUrl          String?
+  startedAt         DateTime     @default(now())
+  finishedAt        DateTime?
+  reconciliation    BookShipmentReconciliation?
+
+  @@index([shipmentId, startedAt])
+}
+
+model BookShipmentReconciliation {
+  id                    String @id @default(cuid())
+  attemptId             String @unique
+  attempt               BookShipmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  outcome               String
+  previousShipmentStatus String
+  previousAttemptStatus String
+  evidenceSource        String
+  evidenceReference     String
+  notes                 String
+  trackingNumber        String?
+  labelUrl              String?
+  actor                 String
+  createdAt             DateTime @default(now())
+}
+
+model AramexTrackingEvent {
+  id             String @id @default(cuid())
+  environment    String
+  digest         String
+  trackingNumber String
+  shipmentId     String?
+  shipment       BookShipment? @relation(fields: [shipmentId], references: [id], onDelete: Restrict)
+  code           String
+  problemCode    String
+  occurredAt     DateTime
+  receivedAt     DateTime @default(now())
+  location       String
+  comments       String
+  orderNumber    String
+
+  @@unique([environment, digest])
+  @@index([environment, trackingNumber, occurredAt])
+  @@index([shipmentId, occurredAt])
 }
 
 model BookWhishSettings {

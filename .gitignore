@@ -10,6 +10,7 @@
 # next.js
 /.next/
 /.next-ebook-*/
+/.next-donation-*/
 /out/
 
 # production
@@ -52,3 +53,6 @@ track record with links Manal oussama.xlsx
 /private-ebooks/
 /PRODUCT.md
 docs/*.docx
+/.impeccable/aramex-transport-db/
+/.impeccable/aramex-storage-rollout/
+/ops/aramex-gateway/__pycache__/

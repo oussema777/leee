@@ -1,0 +1,42 @@
+# Copy the generated install-in-putty.txt file, not this template.
+# Installs only the new LEE gateway. Does not modify Nginx or PM2.
+(
+set -eu
+if [ "$(id -u)" != "0" ]; then echo "Use your existing root session."; exit 1; fi
+for target in /opt/lee-aramex-gateway /etc/lee-aramex-gateway.env /etc/systemd/system/lee-aramex-gateway.service; do
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        echo "Gateway files already exist. Stop here; do not overwrite."
+        exit 1
+    fi
+done
+/usr/bin/python3 - <<'LEE_PORT_CHECK'
+import socket
+with socket.socket() as s:
+    s.bind(('127.0.0.1', 5088))
+print('Dedicated gateway port is available.')
+LEE_PORT_CHECK
+install -d -m 755 /opt/lee-aramex-gateway
+cat > /opt/lee-aramex-gateway/gateway.py <<'LEE_GATEWAY_PY'
+@@GATEWAY_PY@@
+LEE_GATEWAY_PY
+chmod 644 /opt/lee-aramex-gateway/gateway.py
+cat > /etc/systemd/system/lee-aramex-gateway.service <<'LEE_GATEWAY_UNIT'
+@@SERVICE_UNIT@@
+LEE_GATEWAY_UNIT
+chmod 644 /etc/systemd/system/lee-aramex-gateway.service
+(
+umask 077
+/usr/bin/python3 - <<'LEE_SECRET' > /etc/lee-aramex-gateway.env
+import secrets
+print('LEE_ARAMEX_GATEWAY_KEY=' + secrets.token_hex(32))
+LEE_SECRET
+)
+systemd-analyze verify /etc/systemd/system/lee-aramex-gateway.service
+systemctl daemon-reload
+systemctl start lee-aramex-gateway
+sleep 2
+curl --fail --silent --show-error --max-time 5 http://127.0.0.1:5088/health
+printf '\n'
+systemctl is-active lee-aramex-gateway
+echo "LEE gateway running locally. Public gateway still unavailable; Eventra services unchanged."
+)

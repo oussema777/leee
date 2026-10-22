@@ -18,6 +18,10 @@ const base = {
 };
 
 describe("bookOrderSchema", () => {
+  it.each(["test", "Beirut", "Hamra"])("accepts suggested or custom delivery area %s", area => {
+    const result = bookOrderSchema.parse({ ...base, fulfillmentMethod: "DELIVERY", governorate: "BEIRUT", area, detailedAddress: "Main Street, building 4" });
+    expect(result.area).toBe(area);
+  });
   it("accepts a single cash pickup order", () => {
     expect(bookOrderSchema.safeParse(base).success).toBe(true);
   });

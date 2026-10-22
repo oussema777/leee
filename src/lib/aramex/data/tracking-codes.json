@@ -1,0 +1,1866 @@
+{
+  "source": "PI Codes - Clients.xls",
+  "sha256": "79b9123385ddf9369dff3a678c72c28842bc891ea306c7bd5f9adc7654182772",
+  "rows": [
+    {
+      "code": "SH505",
+      "problem": "",
+      "description": "Auto-Payment Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH249",
+      "problem": "",
+      "description": "SMS Sent to Consignee for the shipper updates description",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH250",
+      "problem": "",
+      "description": "Shipper Contacted",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH251",
+      "problem": "",
+      "description": "Third Party Customer Contacted",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH271",
+      "problem": "",
+      "description": "SMS Sent to Consignee",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH270",
+      "problem": "",
+      "description": "Email Sent to Consignee",
+      "groups": "EXP"
+    },
+    {
+      "code": "SH279",
+      "problem": "",
+      "description": "Shop&Ship Update",
+      "groups": "EXP"
+    },
+    {
+      "code": "SH369",
+      "problem": "",
+      "description": "SMS Sent to Consignee",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH261",
+      "problem": "",
+      "description": "Consignee contacted to set delivery \r\r\nAddress & Schedule - Email",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH515",
+      "problem": "",
+      "description": "Aramex Champion has contacted the Customer : Customer responded",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH515",
+      "problem": "L1",
+      "description": "Aramex Champion has contacted the Customer: Customer did not respond",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH515",
+      "problem": "L2",
+      "description": "Aramex Champion has contacted the Customer: Customer Number was Busy",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH516",
+      "problem": "",
+      "description": "Customer has contacted Aramex Champion: Call was responded",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH516",
+      "problem": "L3",
+      "description": "Customer has contacted Aramex Champion: Call was not responded",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH516",
+      "problem": "L4",
+      "description": "Customer has contacted Aramex Champion: Number was busy",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH516",
+      "problem": "L5",
+      "description": "Customer has contacted Aramex Champion: Customer was connected to support center",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH515",
+      "problem": "L6",
+      "description": "Aramex Champion has contacted the Customer: Customer number was out of reach",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH516",
+      "problem": "L7",
+      "description": "Customer has contacted Aramex Champion: Number was out of reach",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH556",
+      "problem": "",
+      "description": "Customer Contacted Successfully",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH578",
+      "problem": "",
+      "description": "WhatsApp Notification Sent to Consignee",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH579",
+      "problem": "",
+      "description": "SMS sent to Consingee",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH540",
+      "problem": "",
+      "description": "Shipment arrived / Clearance In Progress",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH542",
+      "problem": "",
+      "description": "Clearance Process Pending- Requires Value Verification / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH543",
+      "problem": "",
+      "description": "Clearance Completed/ Awaiting gate pass",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH544",
+      "problem": "",
+      "description": "Clearance Process Pending- Incomplete Information / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH546",
+      "problem": "",
+      "description": "Clearance Process Pending- Incomplete Information / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH547",
+      "problem": "",
+      "description": "Clearance Process Pending- Incomplete Information / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH548",
+      "problem": "",
+      "description": "Clearance In Progress",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH549",
+      "problem": "",
+      "description": "Clearance In Progress- Awaiting Duty and Tax Payment",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH703",
+      "problem": "",
+      "description": "Invalid/Missing Customer ID Number, Customer is required to enter the correct ID",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH295",
+      "problem": "",
+      "description": "Delivery Address Corrected",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH296",
+      "problem": "",
+      "description": "Delivery Address Corrected",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH375",
+      "problem": "",
+      "description": "On Hold - Awaiting Correct Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH034",
+      "problem": "",
+      "description": "Documents Delivered to Consignee/Broker for Self Clearance & Delivery",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH035",
+      "problem": "",
+      "description": "Awaiting Clearance from Consignee/Broker to Arrange Delivery",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH230",
+      "problem": "",
+      "description": "Consignee/Broker Notified of Shipment Arrival",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH257",
+      "problem": "",
+      "description": "Unable to Notify Consignee/Broker",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH479",
+      "problem": "",
+      "description": "Unable to Notify Consignee/Broker",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH742",
+      "problem": "",
+      "description": "Customs Clearance Information Added",
+      "groups": "EXP, DOM, FRT"
+    },
+    {
+      "code": "SH308",
+      "problem": "",
+      "description": "Pickup Scheduled",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH312",
+      "problem": "",
+      "description": "Pickup Re-Scheduled",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "",
+      "description": "Pickup Cancelled",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH314",
+      "problem": "",
+      "description": "Pickup Completed",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH625",
+      "problem": "R04",
+      "description": "Customer Collection On-Hold",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH625",
+      "problem": "R19",
+      "description": "Customer Collection On-Hold",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH625",
+      "problem": "R26",
+      "description": "Customer Collection On-Hold",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R09",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R10",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R11",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R17",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R23",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R24",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R25",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R27",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R28",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R05",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R20",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R13",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH312",
+      "problem": "R06",
+      "description": "Pickup Re-Scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH312",
+      "problem": "R07",
+      "description": "Pickup Re-Scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH312",
+      "problem": "R22",
+      "description": "Pickup Re-Scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH312",
+      "problem": "R14",
+      "description": "Pickup Re-Scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH313",
+      "problem": "R29",
+      "description": "Pickup Cancelled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH061",
+      "problem": "",
+      "description": "Shipment arrived at Aramex facility",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH228",
+      "problem": "",
+      "description": "",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH739",
+      "problem": "",
+      "description": "Shipment departed Aramex facility on its way to next destination",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH740",
+      "problem": "",
+      "description": "Shipment is being handled by Aramex facility team",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH728",
+      "problem": "",
+      "description": "Order cancelled, please contact the shipper for more information.",
+      "groups": "DOM,EXP"
+    },
+    {
+      "code": "SH014",
+      "problem": "",
+      "description": "Record created.",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH203",
+      "problem": "",
+      "description": "Record Created",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH456",
+      "problem": "",
+      "description": "Customer notified",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH457",
+      "problem": "",
+      "description": "",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH458",
+      "problem": "",
+      "description": "",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH459",
+      "problem": "",
+      "description": "Delivery order released",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH460",
+      "problem": "",
+      "description": "On-carriage arranged",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH461",
+      "problem": "",
+      "description": "Shipment in transit to final destination",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH463",
+      "problem": "",
+      "description": "",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH041",
+      "problem": "",
+      "description": "Cleared from Customs",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH280",
+      "problem": "",
+      "description": "Confiscated by Customs Authorities",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH462",
+      "problem": "",
+      "description": "Held by Customs",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH464",
+      "problem": "",
+      "description": "Customs Cleared",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH562",
+      "problem": "",
+      "description": "Customer Approved SNS Shipment E-Invoice Goods Value",
+      "groups": "EXP"
+    },
+    {
+      "code": "SH563",
+      "problem": "",
+      "description": "Customer Approved SNS Shipment Goods Value- No E-Invoice",
+      "groups": "EXP"
+    },
+    {
+      "code": "SH714",
+      "problem": "",
+      "description": "Shipment is scheduled to be delivered by an Aramex Robot.",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH236",
+      "problem": "",
+      "description": "Document delivered.",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH408",
+      "problem": "",
+      "description": "Document delivered.",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH157",
+      "problem": "G00",
+      "description": "Unable to Forward - Please Contact your Local Office",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH157",
+      "problem": "G02",
+      "description": "Unable to Forward - Please Contact your Local Office",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH157",
+      "problem": "G03",
+      "description": "Delay - Unable to Deliver",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH005",
+      "problem": "",
+      "description": "Delivered",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH006",
+      "problem": "",
+      "description": "Collected by Consignee",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH007",
+      "problem": "",
+      "description": "Will be Delivered by Postal Services",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH154",
+      "problem": "",
+      "description": "Delivered - Partial Delivery",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH234",
+      "problem": "",
+      "description": "Shipment is Delivered in Letter Box",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH496",
+      "problem": "",
+      "description": "Shipment Picked up by Consignee",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH597",
+      "problem": "",
+      "description": "Delivered at Doorstep",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH530",
+      "problem": "",
+      "description": "SMS Reminder Sent to Pick up Shipment from the Drop-off location",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH531",
+      "problem": "",
+      "description": "Consignee Pickup Time Exceeded - Shipment is no Longer Available at the Drop-off location",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH532",
+      "problem": "",
+      "description": "Shipment dropped off by the courier at the drop off location as per customer request",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH533",
+      "problem": "",
+      "description": "Shipment Held at the Drop off location for Consignee Pick up",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH534",
+      "problem": "",
+      "description": "Shipment Picked up from the Drop-off location",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH529",
+      "problem": "",
+      "description": "Shipment Delivery Method Set as Drop-off",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH163",
+      "problem": "D14",
+      "description": "On Hold - Pending Customs Value Confirmation",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D11",
+      "description": "On Hold - Awaiting Correct Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D13",
+      "description": "On Hold - Pending Missing Documents prior to Shipping",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D16",
+      "description": "On Hold - Awaiting Shipping Charges Approval",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH278",
+      "problem": "",
+      "description": "Data received.",
+      "groups": "EXP, DOM, FRT"
+    },
+    {
+      "code": "SH273",
+      "problem": "",
+      "description": "Delivery Scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH513",
+      "problem": "",
+      "description": "Shipment Delivery Auto-scheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH074",
+      "problem": "H03",
+      "description": "Delay - Pending Payment",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH074",
+      "problem": "H02",
+      "description": "Delay - Pending Broker",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH222",
+      "problem": "",
+      "description": "Arrived at Destination and Documents Recovered",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH394",
+      "problem": "",
+      "description": "Customer ID received",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH570",
+      "problem": "",
+      "description": "New Shipment attachment:  Identity Proof Document Attached successfully.",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH626",
+      "problem": "",
+      "description": "New Shipment attachment: Consent Form Attached successfully.",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH519",
+      "problem": "",
+      "description": "Destination GL Provided",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH630",
+      "problem": "",
+      "description": "",
+      "groups": "EXP"
+    },
+    {
+      "code": "SH577",
+      "problem": "",
+      "description": "Shipment Ready For Customer Pickup",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH615",
+      "problem": "T01",
+      "description": "On Hold - Shipment will depart on next scheduled flight",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH616",
+      "problem": "T02",
+      "description": "On hold - High value shipment - Export documents from customer are required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH617",
+      "problem": "T03",
+      "description": "On hold - Missing clearance documents - Invoice / Know your customer (KYC)",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH618",
+      "problem": "T04",
+      "description": "On Hold - Value mismatch - Invoice with correct value is required from the shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH619",
+      "problem": "T05",
+      "description": "On Hold -  Authorised Dealer Code (AD Code) is required - Contact customs portal",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH620",
+      "problem": "T06",
+      "description": "On hold - Awaiting shipping bill - Please contact origin customs broker / house agent",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH621",
+      "problem": "T07",
+      "description": "On hold - Clearance in progress - The package will be released once it is cleared from customs",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH622",
+      "problem": "T08",
+      "description": "Prohibited items - Shipment will be returned to the shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH623",
+      "problem": "T09",
+      "description": "On Hold - Dangerous Goods - Material Safety Data Sheet (MSDS) is required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH711",
+      "problem": "T10",
+      "description": "On Hold - Need PO/FBA Label & Unit",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH712",
+      "problem": "T11",
+      "description": "On Hold - Product Bar code issue",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH001",
+      "problem": "",
+      "description": "Under processing at operations facility",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH729",
+      "problem": "",
+      "description": "Invalid KYC/ID, Customer is required to provide correct KYC documents",
+      "groups": "DOM,EXP"
+    },
+    {
+      "code": "SH272",
+      "problem": "",
+      "description": "Forwarded to Final Destination",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH110",
+      "problem": "",
+      "description": "Forwarded to Delivery Office",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH022",
+      "problem": "",
+      "description": "Departed Operations facility – In Transit",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH044",
+      "problem": "M00",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH044",
+      "problem": "M01",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH044",
+      "problem": "M02",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH003",
+      "problem": "",
+      "description": "Out for Delivery",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH004",
+      "problem": "",
+      "description": "Out for Delivery - Partial",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH281",
+      "problem": "",
+      "description": "Customs' Documents Out for Delivery",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C00",
+      "description": "Held in Customs - Pending Clearance",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C01",
+      "description": "Held in Customs - Awaiting Customer Instructions",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C02",
+      "description": "Customs Clearance - In Progress",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C03",
+      "description": "Shipment Held for Customs Clearance - Pending Customs Release",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C04",
+      "description": "Shipment Held for Customs Clearance - Awaiting Duty and Tax Payment from Customer",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C05",
+      "description": "Held in Customs - Misdeclaration by Shipper / Urgent Customer Instructions Required",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C06",
+      "description": "Held in Customs - Unacceptable  Commodities",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C07",
+      "description": "Held in Customs - Incomplete Information / Urgent Customer Instructions Required",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C17",
+      "description": "Held in Customs - Requires Governmental Approvals",
+      "groups": "FRT, EXP"
+    },
+    {
+      "code": "SH156",
+      "problem": "C09",
+      "description": "Shipment Held for Customs Clearance - Commercial Invoice Required",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH164",
+      "problem": "",
+      "description": "Shipment will be prepared for Customer Collection",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C10",
+      "description": "Held in US Customs - FDA Certificate Related Issues",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH008",
+      "problem": "",
+      "description": "Shipment on Hold",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C15",
+      "description": "Held in US Customs - 10 Days Left Before Confiscation / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C16",
+      "description": "Held in US Customs - 5 Days Left Before Confiscation / Urgent Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C08",
+      "description": "Held in Customs - Urgent Customer Instructions Required",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH376",
+      "problem": "",
+      "description": "Delay - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH381",
+      "problem": "",
+      "description": "",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH158",
+      "problem": "C25",
+      "description": "Held in Customs - Pending Clearance",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH410",
+      "problem": "",
+      "description": "Customer contact Attempts Completed",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH466",
+      "problem": "",
+      "description": "Shipment under customs clearance process",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH467",
+      "problem": "",
+      "description": "Held in Customs - Awaiting Customer Instructions",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH468",
+      "problem": "",
+      "description": "Held in Customs - Awaiting Commercial Invoice/Clearance Documents",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH469",
+      "problem": "",
+      "description": "Customs Clearance - In Progress",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH470",
+      "problem": "",
+      "description": "Held in Customs - Awaiting Duty and Tax Payment",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH471",
+      "problem": "",
+      "description": "Held in Customs - Misdeclaration by Shipper / Urgent Customer Instructions Required",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH472",
+      "problem": "",
+      "description": "Held in Customs - Unacceptable  Commodities",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH473",
+      "problem": "",
+      "description": "Held in Customs - Requires Governmental Approvals",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH498",
+      "problem": "",
+      "description": "Customer Contact Attempts Completed - Pending Return to Shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C26",
+      "description": "Shipment Held for Customs Clearance - Customer Documents Required (KYC)",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH560",
+      "problem": "K1",
+      "description": "Awaiting Customer Collection-Will Be Returned In 2 Days",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C27",
+      "description": "Shipment Held for Customs Clearance - Customer ID Number Or Importers Code Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C28",
+      "description": "Shipment Held for Customs Clearance - Customs Charges Under Estimation",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C29",
+      "description": "Identity proof document image is not clear",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH156",
+      "problem": "C30",
+      "description": "Invalid Identity proof document",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH047",
+      "problem": "",
+      "description": "Received at Origin Facility",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH406",
+      "problem": "",
+      "description": "Received at Origin Facility",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH434",
+      "problem": "",
+      "description": "Received at Origin Facility",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH727",
+      "problem": "PA3",
+      "description": "Pre-arrival Customs Clearance Pending - Documents Required",
+      "groups": "DOM,EXP,FRT"
+    },
+    {
+      "code": "SH727",
+      "problem": "PA4",
+      "description": "Pre-arrival Customs Clearance Pending - Instructions Required",
+      "groups": "DOM,EXP,FRT"
+    },
+    {
+      "code": "SH537",
+      "problem": "",
+      "description": "Shipment Delivery Method Set as Park and Parcel",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH484",
+      "problem": "",
+      "description": "Shipment Delivery Method Set as Aramex Locker",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH012",
+      "problem": "",
+      "description": "Picked Up From Shipper",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH069",
+      "problem": "",
+      "description": "Returned to Shipper",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH070",
+      "problem": "",
+      "description": "Redirected to New Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH071",
+      "problem": "",
+      "description": "There is an issue in regards of this shipment and it will not be processed further. This is a final update. Please contact your local office for further information",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH077",
+      "problem": "",
+      "description": "Forwarded to Aramex office",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH474",
+      "problem": "",
+      "description": "To be Returned to Shipper",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH475",
+      "problem": "",
+      "description": "Forwarded to Aramex office",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH160",
+      "problem": "V00",
+      "description": "Under processing at operations facility",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH160",
+      "problem": "V01",
+      "description": "Under processing at operations facility",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH704",
+      "problem": "J01",
+      "description": "Returned to Shipper - Prohibited Item",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH704",
+      "problem": "J02",
+      "description": "Returned to Shipper - Customer Canceled the order",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH704",
+      "problem": "J03",
+      "description": "Returned to Shipper - Cannot be exported due to customs issues",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH704",
+      "problem": "J04",
+      "description": "Returned to Shipper - Cannot be exported due to customs issues",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH411",
+      "problem": "",
+      "description": "Shipment received at Aramex origin sorting facility",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH442",
+      "problem": "",
+      "description": "Booking Received from client",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH443",
+      "problem": "",
+      "description": "Booking Request created",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH444",
+      "problem": "",
+      "description": "Booking Request sent to carrier",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH445",
+      "problem": "",
+      "description": "Equipment release received",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH446",
+      "problem": "",
+      "description": "B/L Instructions Created/Sent to carrier",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH447",
+      "problem": "",
+      "description": "B/L Instructions sent to carrier",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH448",
+      "problem": "",
+      "description": "Shipment pickup arranged",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH449",
+      "problem": "",
+      "description": "Commercial documents is been received",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH450",
+      "problem": "",
+      "description": "Export Customs clearance completed",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH451",
+      "problem": "",
+      "description": "Shipment released to carrier / Co-loader",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH452",
+      "problem": "",
+      "description": "Shipment gated in",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH465",
+      "problem": "",
+      "description": "Sailing reschduled- Please contact local office",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH076",
+      "problem": "R01",
+      "description": "Situation Update",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH076",
+      "problem": "R02",
+      "description": "Delay Due to Weather Conditions - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH076",
+      "problem": "R03",
+      "description": "Delay Due to National Holiday - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH076",
+      "problem": "R04",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH076",
+      "problem": "R05",
+      "description": "Delay in transit - Due to airline connection",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH076",
+      "problem": "R06",
+      "description": "Delay in transit – Package is under tracking by the handling agent /airline",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH299",
+      "problem": "",
+      "description": "Shipment Not Received from Shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH559",
+      "problem": "",
+      "description": "Shipment Returned to Shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH453",
+      "problem": "",
+      "description": "Vessel Delayed",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH454",
+      "problem": "",
+      "description": "Vessel arrived",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH455",
+      "problem": "",
+      "description": "Shipment short shipped / partial shipment received",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH162",
+      "problem": "O01",
+      "description": "Delay - Uncontrollable Due to Carrier",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH162",
+      "problem": "D08",
+      "description": "On Hold - Pending Additional Packing",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D15",
+      "description": "On Hold - Awaiting Customer feedback",
+      "groups": "FRT, EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D18",
+      "description": "Delay - Shipment is Overweight/Oversize - Awaiting Shipper Instructions",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH162",
+      "problem": "G02",
+      "description": "Delay - Pending Additional Packing",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "M01",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "M02",
+      "description": "Delay - Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D10",
+      "description": "Delay - Please Contact your Local Office",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH162",
+      "problem": "D37",
+      "description": "Forwarding Delay - Received after the carrier departure time",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH162",
+      "problem": "D40",
+      "description": "On Hold - Service is not Available at Destination Area / Customer Instructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH162",
+      "problem": "D41",
+      "description": "On Hold - Pending Data from shipper",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH521",
+      "problem": "B3",
+      "description": "Shipment being prepared for Customer Collection",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH521",
+      "problem": "B4",
+      "description": "Upon Consignee Request At Local Office - Shipment To Be Scheduled For Delivery",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH521",
+      "problem": "B5",
+      "description": "Customer Requested to held shipment in Aramex's outlets",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH407",
+      "problem": "",
+      "description": "Returned to Shipper",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH499",
+      "problem": "",
+      "description": "Shipment Held at Aramex Locker for Consignee Pick up",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH491",
+      "problem": "",
+      "description": "SMS Reminder Sent to Pick up Shipment from Aramex Locker",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH492",
+      "problem": "",
+      "description": "Consignee Pickup Time Exceeded - Shipment is no Longer Available at Aramex Locker",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH493",
+      "problem": "",
+      "description": "Delivery Method Changed - Shipment will be Moved from Aramex Locker",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH494",
+      "problem": "",
+      "description": "Shipment Picked up by Aramex Courier from Locker",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH495",
+      "problem": "",
+      "description": "Shipment Scanned at Operations Facility",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH504",
+      "problem": "",
+      "description": "Delivery Method Changed - Shipment is Oversize",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH517",
+      "problem": "",
+      "description": "Trip Request Created",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH736",
+      "problem": "",
+      "description": "Shipment trip planned - Out for delivery",
+      "groups": "DOM,EXP"
+    },
+    {
+      "code": "SH518",
+      "problem": "",
+      "description": "Tools Ready for Shipping",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH073",
+      "problem": "",
+      "description": "Shipment Forwarded to Beyond/Remote Area Sorting Location",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH252",
+      "problem": "",
+      "description": "Shipment Forwarded to Beyond/Remote Area Sorting Location",
+      "groups": "FRT,EXP,DOM"
+    },
+    {
+      "code": "SH259",
+      "problem": "",
+      "description": "Entry into Warehouse",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH260",
+      "problem": "",
+      "description": "Exit from Warehouse",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH275",
+      "problem": "",
+      "description": "On Hold - Operations Facility",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH382",
+      "problem": "",
+      "description": "Shipment Update",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH438",
+      "problem": "",
+      "description": "Shipment transferred to other vessel",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH538",
+      "problem": "",
+      "description": "Delivery Review – Please contact Local Office for Shipment Status",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH539",
+      "problem": "",
+      "description": "Delivery Review – Please contact Local Office for Shipment Status",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH584",
+      "problem": "",
+      "description": "BIO Shipment Removed From Container",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH583",
+      "problem": "",
+      "description": "BIO Shipment Added To Container",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH713",
+      "problem": "",
+      "description": "New Shipment attachment: Shipment's Bayan Form Issued successfully.",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A00",
+      "description": "Attempted Delivery - Delivery Rescheduled for Next Business day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A01",
+      "description": "Attempted Delivery - No One Home / Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A02",
+      "description": "Attempted Delivery - Office Closed / Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A03",
+      "description": "Attempted Delivery - Customer Not Available / Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A04",
+      "description": "Attempted Delivery - Customer Address Changed / Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A05",
+      "description": "Attempted Delivery - Incorrect or Incomplete Address / Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A06",
+      "description": "Attempted Delivery - Access Restricted / Customer Intructions Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A07",
+      "description": "Attempted Delivery - Delivery Time Restricted at Customer Office / Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A08",
+      "description": "Attempted Delivery - Payment not Ready / Delivery Rescheduled",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A09",
+      "description": "Attempted Delivery - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A10",
+      "description": "On Hold - Delivery Scheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A11",
+      "description": "Attempted Delivery - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A12",
+      "description": "Attempted Delivery - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A13",
+      "description": "Attempted Delivery - No One Home / Unable to Contact",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A14",
+      "description": "Attempted Delivery - Business is Permanently Closed / Unable to Contact Customer",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A15",
+      "description": "Attempted Delivery - Customer has Moved /  Alternative Address is Needed",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A16",
+      "description": "Attempted Delivery - Awaiting Correct Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A17",
+      "description": "Attempted Delivery - Pending Customer Instructions",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A18",
+      "description": "Attempted Delivery - Payment was Declined by Consignee / Awaiting Shipper Instructions",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A19",
+      "description": "Attempted Delivery - Consignee Rejected the Shipment / Awaiting Shipper Instructions",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U00",
+      "description": "Delay - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U01",
+      "description": "Delay - Delivery Scheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U02",
+      "description": "On Hold - Delivery Address Incomplete /Researching",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U03",
+      "description": "Delay - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U04",
+      "description": "Delay - Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U05",
+      "description": "On Hold - Payment not Ready / Delivery Rescheduled",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U07",
+      "description": "On Hold - Awaiting Correct Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A20",
+      "description": "Attempted Delivery - Unable to Deliver / Please Contact your Local Office",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A21",
+      "description": "Attempted Delivery - Please Contact your Local Office",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A22",
+      "description": "Attempted Delivery - Delivery Rescheduled for Next Business day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U09",
+      "description": "On Hold - Office Closed / Delivery Rescheduled for Next Business Day",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U10",
+      "description": "On Hold - Payment Declined by Customer",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U13",
+      "description": "On Hold - Attempting to Contact Customer / No Answer on Phone",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U14",
+      "description": "On Hold - Attempting to Contact Customer / Mobile Cannot be Reached",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U15",
+      "description": "On Hold - Customer Mobile Cannot be Reached",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U12",
+      "description": "On Hold - Awaiting Correct Delivery Address",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U11",
+      "description": "On Hold - Unable to Contact Customer / Awaiting Correct Phone Number",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH480",
+      "problem": "",
+      "description": "On Hold - Payment not Ready / Delivery Rescheduled",
+      "groups": "FRT"
+    },
+    {
+      "code": "SH294",
+      "problem": "U16",
+      "description": "On Hold - Customer Mobile Cannot be Reached",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH294",
+      "problem": "U17",
+      "description": "On Hold - Customer Mobile Cannot be Reached",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U18",
+      "description": "Missing Identity proof document",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U19",
+      "description": "Identity proof document image is not clear",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A23",
+      "description": "Attempted Delivery - Consignee Rejected the Shipment Due to Delay / Awaiting Shipper Instructions",
+      "groups": "EXP,FRT,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U20",
+      "description": "Invalid Identity proof document",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U21",
+      "description": "On Hold - Items Unit Required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U22",
+      "description": "On Hold - FBA Barcode required",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH043",
+      "problem": "U23",
+      "description": "On Hold - Expired / Invalid PO (Reference Id)",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A24",
+      "description": "Attempted Delivery - Consignee not ready to receive As Per (Call, WhatsApp, SMS)",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A25",
+      "description": "Attempted Delivery - Reschedule to another date",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A26",
+      "description": "Attempted Delivery - Consignee Requested Delivery in Another City",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH033",
+      "problem": "A27",
+      "description": "Attempted Delivery - Refused / Cancelled order",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH237",
+      "problem": "D35",
+      "description": "Please Contact Local Office to Verify Your Shipment Status",
+      "groups": "EXP,DOM,FRT"
+    },
+    {
+      "code": "SH239",
+      "problem": "",
+      "description": "Shipment charges paid",
+      "groups": "EXP,DOM"
+    },
+    {
+      "code": "SH247",
+      "problem": "",
+      "description": "Supporting Document Returned to Shipper",
+      "groups": "EXP,DOM"
+    }
+  ]
+}

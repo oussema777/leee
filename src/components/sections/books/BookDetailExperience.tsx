@@ -2,6 +2,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { PaymentLoading } from "./PaymentLoading";
+import { LebanonCityInput } from "@/components/books/LebanonCityInput";
 import { AnimatePresence, motion } from "framer-motion";
 import { Banknote, Wallet, ArrowLeft, ArrowRight, BookHeart, BookOpen, Check, CheckCircle2, ChevronLeft, Gift, HandHeart, HeartHandshake, Home, Languages, MapPin, PackageCheck, Search, Sparkles, Tag, Truck, UserRound, X, } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -619,7 +620,8 @@ export function BookDetailExperience({ book, books, locale }: {
 </select>
 </Field>
 <Field label={t.area} required>
-<input name="area" defaultValue={checkoutDraft.current.area || ""} required maxLength={120} autoComplete="address-level2" className={fieldClass}/>
+<LebanonCityInput locale={isArabic ? "ar" : "en"} onValueChange={value => { checkoutDraft.current.area = value; }} name="area" defaultValue={checkoutDraft.current.area || ""} required maxLength={120} autoComplete="address-level2" className={fieldClass} aria-describedby="checkout-city-hint" placeholder={isArabic ? "ابدأ بكتابة اسم المدينة" : "Start typing a city"}/>
+<p id="checkout-city-hint" className="mt-2 text-sm text-text-secondary">{isArabic ? "اختر من الاقتراحات بالأحرف اللاتينية، أو اكتب منطقتك بنفسك. اختيار اقتراح ليس إلزامياً." : "Choose a suggested city (Latin spelling), or enter your own area. Selecting a suggestion is optional."}</p>
 </Field>
 <div className="sm:col-span-2">
 <Field label={t.detailedAddress} required>
