@@ -1,3 +1,19 @@
+## Automatic pending-payment recovery - 24 October 2026
+
+User test `LEE-TEST-BF1D94A1D49E4F2787C5A9D2C017600A` stayed pending. Signed provider search by attempt `LEE-T-b2108b6d-4bf1-4e77-85d9-1735e98e3b71` found two records: 3DS setup `7927981865206650204009` and the actual auth/capture `7927981886346406504012`. Independent transaction-details verification and the strict customer finalizer recovered the order to PAID/VERIFIED; user then saw confirmation. This was an explicit server recovery, not evidence that the earlier automatic callback worked. No second payment was submitted. The original browser hint was not retained server-side, so its exact value and the original reporting delay cannot be conclusively reconstructed.
+
+Fixed the weak recovery path: customer inspect now searches the provider by the server-owned attempt reference when unresolved, ignores setup-only records, requires exactly one authorization record, then independently verifies complete transaction details and finalizes idempotently. A browser-hint 404 also falls back to this search. It cannot choose between multiple authorizations or incomplete/mismatched search results. The client prefers completeResponse.id when present, with top-level id compatibility. Manual Refresh now checks immediately; automatic retries retain the five-minute provider reporting backoff. Recovery works on the next page request without browser storage. No background worker or webhook is claimed; provider reporting itself can still lag.
+
+Validation: 45 targeted tests passed (10 opt-in DB tests skipped; existing finalizer unchanged); full Next.js production build passed. Real read-only provider search identified and independently verified the user's exact transaction; empty search returned null. Mock browser passed nested IDs, immediate manual retry, automatic retry, storage-free recovery, decline retry, ebook link, mobile and Arabic. Deployment verification follows below.
+
+## Live verification - 24 October 2026, 00:23 Tunis
+
+Release `3848434f4fd62c42ea20b181dbb5cbd484a9d07c` is deployed READY as `dpl_H8jeqXhoEw3xeo5Snx4QaPmN7fuk`, aliased to www.theleeexperience.com. Vercel's full build, including Prisma regeneration, passed. `CYBERSOURCE_CUSTOMER_TEST_ENABLED` is true in Production. Ordinary anonymous visitors still have no available Bank Audi card option; authenticated payment administrators do.
+
+Live smoke created `LEE-TEST-61183CEEBFFB4DF0A5A4F0B602CC72E4`, obtained a real signed TEST-provider session, verified session reuse and private-link ownership, loaded the live mobile checkout without page errors, rejected fulfillment, and cancelled the smoke order without changing item or edition stock. No card was entered or submitted. Runtime error query returned zero records through 23:22:52 UTC. The end-to-end capture/finalization and ebook access tests are local database/provider simulations; actual new-flow card completion, real decline and 3DS challenge remain for interactive sandbox testing. The earlier user diagnostic transaction remains unrelated and does not pay its real order.
+
+Implementation was committed from `leee-audi-release` (clean isolated release worktree). The same 33 task files were synchronized back into `leee-experience`; pre-sync copies are in its ignored `.impeccable/audi-customer-sync-20261024`. Unrelated dirty original files were untouched. Do not stage the whole original repository. Local test DB was stopped after checks.
+
 ## Customer sandbox flow - 24 October 2026
 
 Dedicated customer test orders now have strict server snapshots and separate references (`LEE-TEST-` / `EB-TEST-CARD-`). Creation and payment endpoints require an existing payment-admin session; ebook checkout also requires the owning reader session, and printed checkout requires the private order token. `CYBERSOURCE_CUSTOMER_TEST_ENABLED=true` enables this admin-only flow. It does not enable real payments for visitors.

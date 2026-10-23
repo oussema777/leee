@@ -7,9 +7,10 @@ import { requireReader, EbookError } from '@/lib/ebooks/server';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
 import { customerCardEnabled } from './customer-config';
 import { isCardSnapshot, isTestBookReference, isTestEbookReference } from './customer-policy';
-import { CheckoutError, checkoutErrorMessage, startCheckout, checkResult, publicAttempt, type Attempt } from './checkout';
+import { CheckoutError, checkoutErrorMessage, startCheckout, type Attempt } from './checkout';
 import { transactionIdSchema, TransactionLookupPending } from './transaction';
 import { finalizeCustomerTest } from './customer-finalize';
+import { recoverTestCheckout, checkCustomerResult } from './recovery';
 const inputSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('inspect') }).strict(),
   z.object({ action: z.literal('start'), retry: z.boolean().default(false) }).strict(),
@@ -43,12 +44,13 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
     const attempts = await db.$queryRaw<Attempt[]>(Prisma.sql`SELECT * FROM "CybersourceTestAttempt" WHERE ${kind === 'BOOK' ? Prisma.sql`"bookOrderId" = ${id}` : Prisma.sql`"ebookOrderId" = ${id}`} ORDER BY "createdAt" DESC, "id" DESC LIMIT 1`);
     const attempt = attempts[0];
     if (input.action === 'inspect') {
+      const recovered = attempt ? await recoverTestCheckout(db, attempt) : null;
       const completed = attempt ? await finalizeCustomerTest(db, attempt.id) : false;
-      return privateJson({ reference, amountCents, attempt: attempt ? publicAttempt(attempt) : null, completed });
+      return privateJson({ reference, amountCents, attempt: recovered, completed });
     }
     if (input.action === 'result') {
       if (!attempt || attempt.id !== input.attemptId) return privateJson({ error: 'Payment attempt not found.' }, 404);
-      const result = await checkResult(db, attempt.id, input.transactionId);
+      const result = await checkCustomerResult(db, attempt, input.transactionId);
       return privateJson({ attempt: result, completed: await finalizeCustomerTest(db, attempt.id) });
     }
     if (!customerCardEnabled()) return privateJson({ error: 'Card checkout is temporarily unavailable.' }, 503);

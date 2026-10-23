@@ -7,6 +7,7 @@ vi.mock('@/lib/db', () => ({ db: { $queryRaw: mocks.query, ebookOrder: { findFir
 vi.mock('@/lib/book-orders/whish-server', () => ({ withPaymentAdmin: mocks.admin, authenticatePayment: mocks.payment, privateJson: (value: unknown, status = 200) => NextResponse.json(value, { status }) }));
 vi.mock('@/lib/ebooks/server', () => ({ requireReader: mocks.reader, EbookError: class extends Error {} }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit: () => true, clientIp: () => 'test' }));
+vi.mock('./transaction', async importOriginal => ({ ...await importOriginal<typeof import('./transaction')>(), findTestPayment: vi.fn(async () => null) }));
 vi.mock('./customer-config', () => ({ customerCardEnabled: () => true }));
 vi.mock('./customer-finalize', () => ({ finalizeCustomerTest: mocks.finalize }));
 vi.mock('./checkout', async importOriginal => ({ ...await importOriginal<typeof import('./checkout')>(), startCheckout: mocks.start, checkResult: mocks.verify }));

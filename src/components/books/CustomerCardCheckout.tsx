@@ -1,4 +1,5 @@
 "use client";
+import { paymentResultHint } from '@/lib/cybersource/result-hint';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Attempt = { id: string; state: string; transactionId: string | null; expiresAt: string | null };
@@ -30,7 +31,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
     }
     return result;
   }, [endpoint, token, savedKey]);
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (force = false) => {
     if (running.current) return; running.current = true; setBusy(true); setError('');
     try {
       let result = await call({ action: 'inspect' });
@@ -40,7 +41,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       const transactionId = result.attempt?.transactionId || (saved?.attemptId === result.attempt?.id ? saved?.transactionId : null);
       if (!result.completed && result.attempt && transactionId && result.attempt.state !== 'TEST_DECLINED') {
         if (alive.current) setHasResult(true);
-        if (saved?.attemptId === result.attempt.id && saved.nextCheckAt && saved.nextCheckAt > Date.now()) {
+        if (!force && saved?.attemptId === result.attempt.id && saved.nextCheckAt && saved.nextCheckAt > Date.now()) {
           if (alive.current) setRetryAt(saved.nextCheckAt);
         } else result = await call({ action: 'result', attemptId: result.attempt.id, transactionId });
       }
@@ -80,15 +81,12 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       if (!alive.current) { dispose.current(); return; }
       const completion = await checkout.mount({ paymentSelection: '#customer-card-options', paymentScreen: '#customer-card-screen' });
       if (!alive.current) return;
-      if (typeof completion !== 'string' || completion.length > 256 * 1024) throw Error('Payment needs verification.');
-      const part = completion.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
-      const hint = part ? JSON.parse(atob(part.padEnd(Math.ceil(part.length / 4) * 4, '='))) : null;
-      // An untrusted lookup hint only; the server independently verifies the transaction.
-      if (typeof hint?.id !== 'string' || !/^\d{10,30}$/.test(hint.id)) throw Error('Payment needs verification.');
+      const transactionId = paymentResultHint(completion);
+      if (!transactionId) throw Error('Payment needs verification.');
       setHasResult(true);
-      resultHint.current = { attemptId: result.attempt.id, transactionId: hint.id };
-      try { sessionStorage.setItem(savedKey, JSON.stringify({ attemptId: result.attempt.id, transactionId: hint.id })); } catch {}
-      await call({ action: 'result', attemptId: result.attempt.id, transactionId: hint.id });
+      resultHint.current = { attemptId: result.attempt.id, transactionId };
+      try { sessionStorage.setItem(savedKey, JSON.stringify({ attemptId: result.attempt.id, transactionId })); } catch {}
+      await call({ action: 'result', attemptId: result.attempt.id, transactionId });
     } catch { if (alive.current) setError(ar ? 'تعذّر تأكيد الدفع. حدّث الحالة قبل المحاولة مجدداً.' : 'Payment is not confirmed yet. Refresh the status before trying again. If you closed the form, you can resume it while it is valid.'); }
     finally { dispose.current(); running.current = false; if (alive.current) setBusy(false); }
   }
@@ -103,7 +101,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       {loaded && retryable && <button onClick={() => void open()} disabled={busy} className="mt-4 rounded-xl bg-brand-blue px-6 py-3 font-bold text-white disabled:opacity-50">{busy ? (ar ? 'جارٍ فتح الدفع…' : 'Checkout in progress…') : attempt?.state === 'READY' ? (ar ? 'متابعة الدفع' : 'Resume card checkout') : (ar ? 'متابعة إلى البطاقة' : 'Continue to card payment')}</button>}
       <div id="customer-card-options" className="mt-5" /><div id="customer-card-screen" className="mt-3" />
     </>}
-    {!completed && <button onClick={() => void refresh()} disabled={busy} className="mt-5 block rounded-lg border border-slate-300 px-4 py-3 text-sm disabled:opacity-50">{busy ? (ar ? 'يرجى الانتظار…' : 'Please wait…') : (ar ? 'تحديث حالة الدفع' : 'Refresh payment status')}</button>}
+    {!completed && <button onClick={() => void refresh(true)} disabled={busy} className="mt-5 block rounded-lg border border-slate-300 px-4 py-3 text-sm disabled:opacity-50">{busy ? (ar ? 'يرجى الانتظار…' : 'Please wait…') : (ar ? 'تحديث حالة الدفع' : 'Refresh payment status')}</button>}
     {error && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</p>}
     <a href="https://wa.me/9613600747" className="mt-5 inline-block text-sm underline">{ar ? 'مساعدة بشأن الدفع' : 'Payment support'}</a>
     {!completed && retryAt && <p role="status" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">{ar ? 'بانتظار ظهور تفاصيل العملية لدى مزوّد الدفع. سنتحقق تلقائياً بعد خمس دقائق؛ لا تدفع مجدداً.' : 'Waiting for the payment provider to publish the transaction details. We will check automatically after five minutes; do not pay again.'}</p>}

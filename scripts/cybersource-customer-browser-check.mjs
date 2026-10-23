@@ -8,19 +8,23 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = []; page.on('pageerror', e => errors.push(e.message));
 let attempt = null, mode = 'pending', completed = false, starts = 0, checks = 0;
 const reference = 'LEE-TEST-BROWSER';
-const sdk = `window.VAS={UnifiedCheckout:async()=>({destroy(){},createCheckout:async()=>({destroy(){},mount:async()=> 'a.'+btoa(JSON.stringify({id:'123456789012'}))+'.b'})})};`;
+const sdk = `window.VAS={UnifiedCheckout:async()=>({destroy(){},createCheckout:async()=>({destroy(){},mount:async()=> 'a.'+btoa(JSON.stringify({id:'999999999999',completeResponse:{id:'123456789012'}}))+'.b'})})};`;
 const integrity = 'sha384-' + createHash('sha384').update(sdk).digest('base64');
 await page.route('https://testup.cybersource.com/**', route => route.fulfill({ body: sdk, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' } }));
 await page.route('**/api/**', async route => {
   const path = new URL(route.request().url()).pathname;
   if (path.endsWith('/card')) {
     const input = route.request().postDataJSON();
-    if (input.action === 'inspect') return route.fulfill({ json: { attempt, completed } });
+    if (input.action === 'inspect') {
+      if (mode === 'server-recovered') { completed = true; attempt = { ...attempt, state: 'TEST_CAPTURED', transactionId: '123456789012' }; }
+      return route.fulfill({ json: { attempt, completed } });
+    }
     if (input.action === 'start') {
       starts++; attempt = { id: 'LEE-T-00000000-0000-0000-0000-000000000001', state: 'READY', expiresAt: new Date(Date.now() + 600000).toISOString(), transactionId: null };
       return route.fulfill({ json: { attempt, session: { sessionJwt: 'mock', clientLibrary: 'https://testup.cybersource.com/uc/mock.js', clientLibraryIntegrity: integrity } } });
     }
     checks++;
+    expect(input.transactionId).toBe('123456789012');
     if (mode === 'pending') return route.fulfill({ status: 202, json: { pending: true, retryAfterSeconds: 300 } });
     attempt = { ...attempt, state: mode === 'declined' ? 'TEST_DECLINED' : 'TEST_CAPTURED', transactionId: input.transactionId };
     completed = mode !== 'declined';
@@ -49,6 +53,18 @@ try {
   await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: '.vercel/customer-card-mobile.png', fullPage: true });
+  attempt = null; completed = false; mode = 'pending';
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue to card payment' }).click();
+  await expect(page.getByText('Waiting for the payment provider', { exact: false })).toBeVisible();
+  mode = 'captured';
+  await page.getByRole('button', { name: 'Refresh payment status' }).click();
+  await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
+  // Recover on a new page without any browser transaction hint.
+  completed = false; attempt = { ...attempt, state: 'READY', transactionId: null }; mode = 'server-recovered';
+  await page.evaluate(() => sessionStorage.clear());
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
   attempt = null; completed = false; mode = 'declined';
   await page.goto(origin + '/en/ebooks/orders/mock');
   await page.getByRole('button', { name: 'Continue to card payment' }).click();
@@ -60,5 +76,5 @@ try {
   await expect(page.locator('section[dir="rtl"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
-  console.log('PASS: pending lookup, refresh recovery, automatic recheck, no duplicate start, decline retry, ebook link, mobile and Arabic; simulated provider.');
+  console.log('PASS: nested payment ID, pending lookup, immediate manual refresh, automatic recheck, recovery without browser storage, no duplicate start, decline retry, ebook link, mobile and Arabic; simulated provider.');
 } finally { await browser.close(); }

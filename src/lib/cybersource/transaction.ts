@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { z } from "zod";
 import { testCredentials } from "./test-session-request";
 import { readBounded } from "./session";
@@ -57,4 +57,27 @@ export async function lookupTestTransaction(transactionId: string, fetcher: type
     throw new TransactionLookupPending();
   }
   return JSON.parse(await readBounded(response));
+}
+
+// Recover by our saved reference, never by a browser-supplied search expression.
+// Search summaries supply lookup IDs only; checkResult still verifies full details.
+export async function findTestPayment(reference: string, fetcher: typeof fetch = fetch): Promise<string | null> {
+  if (!/^LEE-T-[a-f0-9-]{36}$/.test(reference)) throw Error('INVALID_ATTEMPT_REFERENCE');
+  const credentials = testCredentials();
+  const host = 'apitest.cybersource.com', path = '/tss/v2/searches', date = new Date().toUTCString();
+  const body = JSON.stringify({ save: false, name: 'Order recovery', timezone: 'UTC', query: 'clientReferenceInformation.code:' + reference, offset: 0, limit: 100, sort: 'submitTimeUtc:desc' });
+  const digest = 'SHA-256=' + createHash('sha256').update(body).digest('base64');
+  const signed = `host: ${host}\ndate: ${date}\n(request-target): post ${path}\ndigest: ${digest}\nv-c-merchant-id: ${credentials.merchantId}`;
+  const signature = createHmac('sha256', Buffer.from(credentials.secretKey, 'base64')).update(signed).digest('base64');
+  const response = await fetcher(`https://${host}${path}`, { method: 'POST', body, redirect: 'error', credentials: 'omit', cache: 'no-store', signal: AbortSignal.timeout(15000), headers: {
+    host, date, digest, 'v-c-merchant-id': credentials.merchantId, 'Content-Type': 'application/json',
+    signature: `keyid="${credentials.keyId}", algorithm="HmacSHA256", headers="host date (request-target) digest v-c-merchant-id", signature="${signature}"`,
+  } });
+  const result = z.object({ totalCount: z.number().int().min(0).max(100), _embedded: z.object({ transactionSummaries: z.array(z.object({ id: transactionIdSchema, clientReferenceInformation: z.object({ code: z.string() }), applicationInformation: z.object({ applications: z.array(application) }) })).max(100) }).optional() }).parse(JSON.parse(await readBounded(response)));
+  const rows = result._embedded?.transactionSummaries || [];
+  if (rows.length !== result.totalCount || rows.some(row => row.clientReferenceInformation.code !== reference)) throw Error('TRANSACTION_SEARCH_INCOMPLETE');
+  // 3DS setup/enrollment can be separate transactions for the same reference.
+  const payments = rows.filter(row => row.applicationInformation.applications.some(app => app.name === 'ics_auth'));
+  if (payments.length > 1) throw Error('MULTIPLE_PAYMENT_TRANSACTIONS');
+  return payments[0]?.id || null;
 }
