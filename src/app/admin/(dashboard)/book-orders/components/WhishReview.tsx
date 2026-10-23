@@ -1,4 +1,5 @@
 "use client";
+import { isCardSnapshot } from "@/lib/cybersource/customer-policy";
 import { useState } from "react";
 import { adminPost } from "@/lib/admin-api";
 import type { AdminWhishPayment } from "@/lib/book-orders/payment-types";
@@ -22,6 +23,12 @@ export function WhishReview({ orderId, amountCents, orderStatus, method = "WHISH
     finally { setBusy(false); }
   }
   const human = (s: string) => s.toLowerCase().replaceAll("_", " ");
+  if (method === "BANK_AUDI" && isCardSnapshot(payment.snapshot)) return <section className="rounded-xl border border-amber-400/40 bg-[#1e293b] p-6 text-white">
+    <h2 className="text-lg font-bold">Test card payment · {human(payment.state)}</h2>
+    <p className="mt-3 text-amber-200">Sandbox order. No real money, stock reservation, customer emails or shipping.</p>
+    <p className="mt-3">Test amount: USD {(amountCents / 100).toFixed(2)}</p>
+    <p className="mt-3 break-all">Verified transaction: {payment.verifiedReference || "Awaiting verification"}</p>
+  </section>;
   return <section className="rounded-xl border border-brand-blue/30 bg-[#1e293b] p-6">
     <h2 className="text-lg font-bold text-white">{method === "BANK_AUDI" ? "Bank Audi transfer" : "Whish payment"} · {human(payment.state)}</h2>
     {orderStatus === "CANCELLED" && <p className="mt-4 rounded-xl bg-amber-500/10 p-4 text-sm leading-6 text-amber-200">This order is closed and its reservation has been released. Recording receipt does not reopen it. Contact the purchaser to arrange available stock or a refund.</p>}

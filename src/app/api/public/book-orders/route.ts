@@ -8,8 +8,8 @@ import { formatBookOrderSummary, sendBookOrderCustomerEmail } from "@/lib/book-o
 import { BOOK_PACKAGES, deliveryFeeCents, type BookPackageKey, isFreeExtraIndex } from "@/lib/book-orders/config";
 import { bookOrderSchema } from "@/lib/book-orders/validation";
 import { makeSnapshot } from "@/lib/book-orders/whish-config";
-import { bankAudiSnapshot } from "@/lib/book-orders/bank-audi-config";
-import { expireWhishPayments, getWhishConfig, getBankAudiConfig, tokenHash, requestHash, paymentPath, privateJson } from "@/lib/book-orders/whish-server";
+import { cardSnapshot, customerTestAccess } from "@/lib/cybersource/customer-config";
+import { expireWhishPayments, getWhishConfig, tokenHash, requestHash, paymentPath, privateJson } from "@/lib/book-orders/whish-server";
 
 function orderReference() { return "LEE-BK-" + new Date().getFullYear() + "-" + crypto.randomUUID().slice(0, 8).toUpperCase(); }
 
@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Please check your order details." }, 400);
     const input = parsed.data;
     if (input.website) return NextResponse.json({ reference: orderReference() }, { status: 201 });
+    const isCardTest = input.paymentMethod === "BANK_AUDI";
+    if (isCardTest && !(await customerTestAccess(request))) return privateJson({ error: "Card testing is available only to signed-in payment administrators." }, 403);
     const manual = input.paymentMethod === "WHISH" || input.paymentMethod === "BANK_AUDI";
     const hash = manual ? tokenHash(input.paymentAccessToken!) : null;
     const fingerprint = requestHash(input);
@@ -37,10 +39,9 @@ export async function POST(request: NextRequest) {
     const delivery = deliveryFeeCents(packageKey, input.fulfillmentMethod);
     const total = pack.priceCents + delivery;
     const config = input.paymentMethod === "WHISH" ? await getWhishConfig() : null;
-    const bankConfig = input.paymentMethod === "BANK_AUDI" ? await getBankAudiConfig() : null;
-    const snapshot = config ? makeSnapshot(config, total) : bankConfig ? bankAudiSnapshot(bankConfig, total) : null;
+    const snapshot = config ? makeSnapshot(config, total) : isCardTest ? cardSnapshot(total) : null;
     if (manual && !snapshot) return privateJson({ error: "This payment method is currently unavailable. Please choose cash or try again later." }, 409);
-    await expireWhishPayments().catch(() => console.error("Book reservation cleanup unavailable"));
+    if (!isCardTest) await expireWhishPayments().catch(() => console.error("Book reservation cleanup unavailable"));
     let order;
     let selectedTitles: string[] = [];
     try {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
           return edition ? `${title} — ${edition.label || (input.locale === "ar" ? "الطبعة القياسية" : "Standard edition")}${edition.publicationYear ? ` (${edition.publicationYear})` : ""}` : title;
         });
         const donorAllocationIds = new Map<string, string>();
-        if (input.selectionMode === "CUSTOM") {
+        if (input.selectionMode === "CUSTOM" && !isCardTest) {
           for (const choice of [...input.selectedEditions].sort((a, b) => a.editionId.localeCompare(b.editionId))) {
             const editionReserved = await tx.bookInventoryEdition.updateMany({ where: { id: choice.editionId, inventoryItemId: choice.bookId, active: true, stockQuantity: { gt: 0 } }, data: { stockQuantity: { decrement: 1 } } });
             if (editionReserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
         }
         return tx.bookOrder.create({
           data: {
-            reference: orderReference(), locale: input.locale, package: packageKey, purpose: input.purpose,
+            reference: isCardTest ? "LEE-TEST-" + crypto.randomUUID().replaceAll("-", "").toUpperCase() : orderReference(), locale: input.locale, package: packageKey, purpose: input.purpose,
             selectionMode: input.selectionMode, requestedBookCount: pack.totalBooks,
             priceCents: total, deliveryFeeCents: delivery, currency: "USD",
             customerName: input.customerName, customerPhone: input.customerPhone, customerEmail: input.customerEmail || null,
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
             items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, donorAllocationId: donorAllocationIds.get(inventoryItemId), isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
             ...(snapshot && hash ? { whishPayment: { create: {
               accessTokenHash: hash, requestHash: fingerprint, snapshot: snapshot as unknown as Prisma.InputJsonValue,
-              expiresAt: new Date(Date.now() + (config || bankConfig)!.holdHours * 3600000),
+              expiresAt: new Date(Date.now() + (isCardTest ? 24 : config!.holdHours) * 3600000),
               events: { create: { action: "CREATED", actor: "customer", details: { amountCents: total, currency: "USD", method: input.paymentMethod } } },
             } } } : {}),
           },
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
       throw e;
     }
     const privatePath = manual ? paymentPath(input.locale, order.reference, input.paymentAccessToken!) : null;
-    await Promise.all([sendNotificationEmail({
+    if (!isCardTest) await Promise.all([sendNotificationEmail({
       subject: "New book order " + order.reference, replyTo: input.customerEmail,
       html: renderNotification("New book order", manual ? `Awaiting the purchaser's ${input.paymentMethod === "BANK_AUDI" ? "Bank Audi transfer" : "Whish payment"}. Do not mark paid until receipt is verified.` : "A new cash order is ready for review.", [
         { label: "Reference", value: order.reference }, { label: "Customer", value: input.customerName },

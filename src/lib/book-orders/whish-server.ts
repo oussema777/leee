@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isCardSnapshot, isTestBookReference } from '@/lib/cybersource/customer-policy';
 import { Prisma, type BookWhishPayment, type BookOrder } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
@@ -50,8 +51,8 @@ export async function authenticatePayment(request: NextRequest, reference: strin
 export async function lockOrder(tx: Prisma.TransactionClient, id: string) {
   await tx.$queryRaw(Prisma.sql`SELECT "id" FROM "BookOrder" WHERE "id" = ${id} FOR UPDATE`);
 }
-export async function releaseOrderStock(tx: Prisma.TransactionClient, order: { id: string; selectionMode: string }) {
-  if (order.selectionMode !== "CUSTOM") return;
+export async function releaseOrderStock(tx: Prisma.TransactionClient, order: { id: string; selectionMode: string; reference: string }) {
+  if (order.selectionMode !== "CUSTOM" || isTestBookReference(order.reference)) return;
   const items = await tx.bookOrderItem.findMany({ where: { orderId: order.id }, orderBy: { inventoryItemId: "asc" }, select: { inventoryItemId: true, editionId: true, donorAllocationId: true } });
   for (const item of items) {
     // Do not make an item that staff deliberately withdrew available again.
@@ -108,7 +109,7 @@ export async function paymentSummary(p: BookWhishPayment & { order: BookOrder })
     p.order.status !== "CANCELLED" && p.expiresAt.getTime() > Date.now() &&
     (bankAudi ? bankAudiSnapshotActive(config as Awaited<ReturnType<typeof getBankAudiConfig>>, snapshot) : snapshotActive(config as Awaited<ReturnType<typeof getWhishConfig>>, snapshot));
   return {
-    reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
+    cardCheckout: bankAudi && isCardSnapshot(p.snapshot), reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
     amountCents: p.order.priceCents, currency: p.order.currency,
     selectionMode: p.order.selectionMode,
     books: items.map(item => ({ ...item.inventoryItem, coverImageUrl: item.edition?.coverImageUrl || item.inventoryItem.coverImageUrl, editionLabel: item.edition?.label || null, editionYear: item.edition?.publicationYear || null, isFreeExtra: item.isFreeExtra })),

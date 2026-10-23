@@ -14,7 +14,7 @@ import {
 } from "@/lib/ebooks/server";
 import { ebookPaymentSettings } from "@/lib/ebooks/payment-settings";
 import { makeSnapshot } from "@/lib/book-orders/whish-config";
-import { bankAudiSnapshot } from "@/lib/book-orders/bank-audi-config";
+import { cardSnapshot, customerTestAccess } from "@/lib/cybersource/customer-config";
 import { hasReadingAccess, localReaderPreviewEnabled } from "@/lib/ebooks/reading-access";
 export async function GET(request: NextRequest) {
   return endpoint(request, async () => {
@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
     if (!(await limited("order:" + reader.id, 20, 3600)))
       throw new EbookError("Too many orders. Please try again later.", 429);
     const { ebookId, customerName, method, locale } = input.data;
+    const isCardTest = method === "BANK_AUDI";
+    if (isCardTest && !(await customerTestAccess(request))) throw new EbookError("Card testing is available only to signed-in payment administrators.", 403);
     const order = await db.$transaction(async (tx) => {
       await lock(tx, "ebook-checkout:" + reader.id + ":" + ebookId);
       const ebook = await tx.ebook.findUnique({
@@ -79,7 +81,7 @@ export async function POST(request: NextRequest) {
       if (!ebook?.published || !ebook.activeVersion?.ready)
         throw new EbookError("This ebook is not available for purchase.", 404);
       const paid = await tx.ebookOrder.findFirst({
-        where: { readerId: reader.id, ebookId, state: "VERIFIED" },
+        where: { readerId: reader.id, ebookId, state: "VERIFIED", ...(!isCardTest ? { NOT: { reference: { startsWith: "EB-TEST-CARD-" } } } : {}) },
       });
       if (paid)
         throw new EbookError(
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
         where: {
           readerId: reader.id,
           ebookId,
+          ...(isCardTest ? { reference: { startsWith: "EB-TEST-CARD-" } } : { NOT: { reference: { startsWith: "EB-TEST-CARD-" } } }),
           state: {
             in: ["AWAITING_PAYMENT", "UNDER_REVIEW", "CHANGES_REQUESTED"],
           },
@@ -100,7 +103,7 @@ export async function POST(request: NextRequest) {
       const snapshot =
         method === "WHISH"
           ? makeSnapshot(settings.whish, ebook.priceCents)
-          : bankAudiSnapshot(settings.bank, ebook.priceCents);
+          : cardSnapshot(ebook.priceCents);
       if (!snapshot)
         throw new EbookError(
           "This payment method is temporarily unavailable.",
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
           locale,
           method,
           reference:
-            (settings.testMode ? "EB-TEST-" : "EB-") + randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase(),
+            (isCardTest ? "EB-TEST-CARD-" : settings.testMode ? "EB-TEST-" : "EB-") + randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase(),
           priceCents: ebook.priceCents,
           title:
             locale === "ar" ? ebook.titleAr || ebook.titleEn : ebook.titleEn,
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest) {
             create: {
               actor: reader.id,
               action: "CREATED",
-              details: { terms: "ebook-online-v1", testMode: settings.testMode },
+              details: { terms: "ebook-online-v1", testMode: isCardTest || settings.testMode },
             },
           },
         },

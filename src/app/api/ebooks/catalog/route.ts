@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { endpoint, json } from "@/lib/ebooks/server";
 import { ebookPaymentSettings } from "@/lib/ebooks/payment-settings";
 import { isWhishAvailable } from "@/lib/book-orders/whish-config";
-import { isBankAudiAvailable } from "@/lib/book-orders/bank-audi-config";
+import { customerTestAccess } from "@/lib/cybersource/customer-config";
 export async function GET(request: NextRequest) {
   return endpoint(request, async () => {
     const [ebooks, { whish, bank, testMode, testUntil }] = await Promise.all([
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       testUntil,
       methods: [
         isWhishAvailable(whish) ? "WHISH" : null,
-        isBankAudiAvailable(bank) ? "BANK_AUDI" : null,
+        await customerTestAccess(request) ? "BANK_AUDI" : null,
       ].filter(Boolean),
     });
   });

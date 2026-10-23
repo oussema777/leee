@@ -294,7 +294,7 @@ export function AdminEbookOrder({ id }: { id: string }) {
             </section>
             <section className={s.card}>
               <h2>Review & access</h2>
-              {order.method === "BANK_AUDI" ? <p className={s.muted}>Historical Bank Audi transfer. Manual payment review is retired.</p> : !canVerifyEbookPayment(order.state) && order.state !== "VERIFIED" ? (
+              {order.method === "BANK_AUDI" ? <p className={s.muted}>{order.reference.startsWith("EB-TEST-CARD-") ? "Test card order. No real money collected; access follows verified test payment." : "Historical Bank Audi transfer. Manual payment review is retired."}</p> : !canVerifyEbookPayment(order.state) && order.state !== "VERIFIED" ? (
                 <p className={s.muted}>
                   Cancelled and refunded orders cannot be validated or have access restored.
                 </p>

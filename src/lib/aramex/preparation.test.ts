@@ -20,6 +20,9 @@ export const inputFixture = (): PreparationInput => ({
 });
 
 describe("Aramex contact and parcel preparation", () => {
+  it("blocks sandbox orders even when their test payment is verified", () => {
+    expect(orderProblems({ ...orderFixture(), reference: "LEE-TEST-123", paymentStatus: "PAID" }).some(message => /test/i.test(message))).toBe(true);
+  });
   it("preserves custom cities in drafts and flags them for carrier review", () => {
     const values = preparationSchema.parse({ ...inputFixture(), city: " test " });
     expect(values.city).toBe("test");

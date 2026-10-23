@@ -1,4 +1,20 @@
+## Customer sandbox flow - 24 October 2026
+
+Dedicated customer test orders now have strict server snapshots and separate references (`LEE-TEST-` / `EB-TEST-CARD-`). Creation and payment endpoints require an existing payment-admin session; ebook checkout also requires the owning reader session, and printed checkout requires the private order token. `CYBERSOURCE_CUSTOMER_TEST_ENABLED=true` enables this admin-only flow. It does not enable real payments for visitors.
+
+Independent TEST transaction verification can finalize these dedicated orders idempotently: printed test orders become PAID/VERIFIED, ebook tests grant reading access. Historical/real orders cannot be finalized from a sandbox result. Test creation, cancellation and expiration do not reserve/release inventory or send notification emails. Physical fulfillment and Aramex preparation reject test orders. Admin views label them as tests. No real settlement is claimed.
+
+Browser stores the transaction lookup hint per order in sessionStorage, retains it across refresh, and retries a provider reporting 404 after five minutes. This is client-driven reconciliation while the tab is open, not a webhook or background job. If the browser closes before receiving a transaction ID, staff must recover the transaction through Cybersource; an expired session never authorizes a fresh charge automatically.
+
+Validation: 419 tests passed, 61 unrelated opt-in DB tests skipped. The ten Cybersource DB tests ran against isolated local PostgreSQL, including concurrent callbacks, rejected/cancelled/expired/changed orders, real-order isolation, ebook access, and no stock release. Production Next.js build passed; local Prisma regeneration encountered a Windows DLL lock from the existing dev server (schema unchanged, generated client already current). Mocked browser passed delayed reporting, refresh, automatic retry, no duplicate start, decline retry, ebook link, mobile and Arabic. Real sandbox decline and 3DS challenge are still not exercised. Deployment/live smoke verification follows below.
+
 # Bank Audi card integration: implementation status
+
+## Latest deployed verification - 23 October 2026, 22:12 UTC
+
+Commit `00b73ec052f29cb6812506ea883f0c91cd4efc39` deployed READY in Production as `dpl_AYvjQuV3SDWAN32DBiP6iGne2i6n`, aliased to the approved www website. TypeScript passed; 29 targeted tests passed, one opt-in database test skipped; mocked browser checks passed including pending-report recovery. Live inspection confirms cancelled orders get a specific message and the user's successful USD 9.00 test remains `TEST_CAPTURED`. Live browser check loads that saved result with no resume-payment button. Deployment runtime error scan returned no records through 22:12:36 UTC.
+
+The user asked why Orders still shows PENDING. Confirmed the real order remains NEW/PENDING, as intentionally designed for staff sandbox tests. Explained that this verifies gateway authorization/capture acceptance only; the real customer payment finalization and fulfillment/ebook-access workflow remains unfinished. Do not mark this real order paid based on its sandbox result. No real money or settlement was verified.
 
 ## First actual sandbox transaction verified - 23 October 2026, 22:07 UTC
 

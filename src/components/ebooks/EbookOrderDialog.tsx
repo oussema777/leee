@@ -115,7 +115,7 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
     </header>
     <div className={p.dialogBody}>
       <EbookJourney step={submitting.current ? 3 : step === "details" ? 2 : 1} ar={ar} />
-      {testMode && <p className={p.paused}>{ar ? "اختبار مؤقت باستخدام رموز الدفع غير المعتمدة. سيُوسم الطلب بأنه اختبار." : "Temporary test using unvalidated payment QRs. Your order will be marked as a test."}</p>}
+      {testMode && method !== "BANK_AUDI" && <p className={p.paused}>{ar ? "اختبار مؤقت باستخدام رموز الدفع غير المعتمدة. سيُوسم الطلب بأنه اختبار." : "Temporary test using unvalidated payment QRs. Your order will be marked as a test."}</p>}
       <div className={p.summary}>
         {book.coverUrl && <img src={book.coverUrl} alt="" />}
         <div><strong>{ar ? book.titleAr || book.titleEn : book.titleEn}</strong><small>{ar ? "كتاب إلكتروني · قراءة على الموقع" : "Ebook · Online reading"}</small></div>
@@ -126,15 +126,15 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
         {!methods.length && <p className={p.paused} role="status">{ar ? "الدفع متوقف مؤقتاً إلى حين تأكيد طرق الدفع. يمكنك ربط بريدك الآن، لكن لا يمكن إتمام الطلب بعد." : "Payments are temporarily paused while we confirm the payment methods. You can connect your email, but can’t place an order yet."}</p>}
         {step === "email" ? <div style={{ marginTop: methods.length ? 0 : 24 }}><ReaderLogin locale={locale} checkout onSuccess={() => void continueOrder()} /></div> : <>
           <h3 data-step-heading tabIndex={-1} style={{ marginTop: methods.length ? 0 : 24 }}>{ar ? "راجع طلبك" : "Review your order"}</h3>
-          <p className={p.help}>{ar ? "اختر طريقة الدفع. في الخطوة التالية ستظهر تفاصيل التحويل وإرسال مرجعه للمراجعة." : "Choose how to pay. Next, we’ll show the transfer instructions and where to submit your payment reference."}</p>
+          <p className={p.help}>{ar ? "اختر طريقة الدفع ثم تابع إلى تعليمات الدفع." : "Choose how to pay, then continue to the payment instructions."}</p>
           <div className={p.email}><CheckCircle2 size={17} aria-hidden="true" /><span dir="ltr">{email}</span><button type="button" disabled={busy} className={p.textButton} onClick={() => void changeEmail()}>{ar ? "تغيير البريد" : "Change email"}</button></div>
           <form className={s.form} onSubmit={e => { e.preventDefault(); void checkout(); }}>
             <label>{ar ? "الاسم الكامل" : "Full name"}<input autoComplete="name" value={name} minLength={2} maxLength={120} required disabled={busy} onChange={e => setName(e.target.value)} /></label>
-            {!!methods.length && <fieldset disabled={busy}><legend className={p.legend}>{ar ? "طريقة الدفع" : "Payment method"}</legend><div className={p.choices}>{methods.map(value => <label key={value} className={p.choice}><input type="radio" name="ebook-payment" value={value} checked={method === value} onChange={() => setMethod(value)} /><span>{value === "WHISH" ? "Whish" : "Bank Audi"}<small>{ar ? "تحويل بالدولار" : "USD transfer"}</small></span></label>)}</div></fieldset>}
+            {!!methods.length && <fieldset disabled={busy}><legend className={p.legend}>{ar ? "طريقة الدفع" : "Payment method"}</legend><div className={p.choices}>{methods.map(value => <label key={value} className={p.choice}><input type="radio" name="ebook-payment" value={value} checked={method === value} onChange={() => setMethod(value)} /><span>{value === "WHISH" ? "Whish" : "Bank Audi"}<small>{value === "BANK_AUDI" ? (ar ? "بطاقة اختبار · بدون أموال حقيقية" : "Test card · no real money") : (ar ? "تحويل بالدولار" : "USD transfer")}</small></span></label>)}</div></fieldset>}
             <label className={s.check}><input type="checkbox" required checked={accepted} disabled={busy || !methods.length} onChange={e => setAccepted(e.target.checked)} /><span>{ar ? "أفهم أن هذا وصول شخصي للقراءة على الموقع، دون ملف للتنزيل. تبدأ القراءة بعد التحقق من الدفع." : "I understand this is personal online reading access, with no downloadable file. Reading starts after payment verification."}</span></label>
             <div className={p.total}><span>{ar ? "الإجمالي · دفعة واحدة" : "Total · One-time payment"}</span><strong>{money(book.priceCents)}</strong></div>
             <button className={p.primary} disabled={busy || !methods.length || !ready}>{busy ? (ar ? "جارٍ فتح صفحة الدفع…" : "Opening payment…") : (ar ? "متابعة إلى الدفع" : "Continue to payment")}<ArrowRight size={17} className="rtl:rotate-180" aria-hidden="true" /></button>
-            <p className={p.help} style={{ margin: 0 }}>{ar ? "لن يُخصم أي مبلغ هنا. ستجري التحويل بنفسك في الخطوة التالية." : "Nothing is charged here. You’ll make the transfer yourself in the next step."}</p>
+            <p className={p.help} style={{ margin: 0 }}>{method === "BANK_AUDI" ? (ar ? "استخدم بطاقة اختبار فقط. بعد التحقق سيُفتح الكتاب لحسابك، دون خصم أموال حقيقية." : "Use a test card only. Verification unlocks this ebook for your account without collecting real money.") : (ar ? "لن يُخصم أي مبلغ هنا. ستجري التحويل بنفسك في الخطوة التالية." : "Nothing is charged here. You’ll make the transfer yourself in the next step.")}</p>
           </form>
         </>}
       </>}

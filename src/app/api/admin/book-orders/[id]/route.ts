@@ -38,6 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       await lockOrder(tx, id);
       const current = await tx.bookOrder.findUnique({ where: { id }, include: { whishPayment: true, items: true } });
       if (!current) throw Error("NOT_FOUND");
+      if (current.reference.startsWith("LEE-TEST-") && !["NEW", "CANCELLED"].includes(status)) throw Error("TEST_ORDER");
       if (current.status === "CANCELLED" && status !== "CANCELLED") throw Error("CANCELLED_FINAL");
       if (current.paymentMethod === "WHISH" || current.paymentMethod === "BANK_AUDI") {
         if (body.expectedUpdatedAt !== current.updatedAt.toISOString()) throw Error("STALE");
@@ -66,7 +67,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       const updated = await tx.bookOrder.update({ where: { id }, data: { status, paymentStatus: finalPaymentStatus, adminNotes: adminNotes || null, isRead: true, reviewedAt: new Date() }, include });
       return { updated, previousStatus: current.status };
     });
-    if (result.updated.customerEmail && result.previousStatus !== result.updated.status && result.updated.status !== "NEW") {
+    if (!result.updated.reference.startsWith("LEE-TEST-") && result.updated.customerEmail && result.previousStatus !== result.updated.status && result.updated.status !== "NEW") {
       await sendBookOrderCustomerEmail({
         to: result.updated.customerEmail,
         locale: result.updated.locale,
@@ -88,6 +89,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   } catch (e) {
     const messages: Record<string, string> = {
       NOT_FOUND: "Order not found", CANCELLED_FINAL: "A cancelled order cannot be reopened.",
+      TEST_ORDER: "This is a sandbox test order. It cannot be confirmed for physical fulfilment, dispatched or completed.",
       STALE: "This order has changed. Reload before saving.",
       PAYMENT_REVIEW_REQUIRED: "Use payment review to confirm receipt or record a refund.",
       PAYMENT_REQUIRED: "Verify payment before confirming or fulfilling this order.",

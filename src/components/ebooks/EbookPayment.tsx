@@ -1,4 +1,5 @@
 "use client";
+import { CustomerCardCheckout } from "@/components/books/CustomerCardCheckout";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ReaderLogin } from "./ReaderLogin";
@@ -9,6 +10,7 @@ import { EbookClientError, ebookFetch, money, stateLabel } from "./client";
 import s from "./ebooks.module.css";
 import p from "./purchase.module.css";
 type Order = {
+  cardCheckout?: boolean;
   testOrder?: boolean;
   testMode?: boolean;
   title: string;
@@ -75,6 +77,7 @@ export function EbookPayment({ locale, id }: { locale: string; id: string }) {
       setBusy(false);
     }
   }
+  if (order?.cardCheckout) return <main className={s.shell}><CustomerCardCheckout endpoint={`/api/ebooks/orders/${id}/card`} reference={order.reference} amountCents={order.priceCents} locale={locale} readingUrl={`/${locale}/ebooks/read/${order.ebookId}`} /></main>;
   return (
     <main className={s.shell} dir={ar ? "rtl" : "ltr"}>
       <div className={s.top}>

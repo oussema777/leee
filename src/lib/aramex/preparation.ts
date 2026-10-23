@@ -85,6 +85,7 @@ export type PreparationValues = z.output<typeof preparationSchema>;
 
 export function orderProblems(order: ShippingOrder): string[] {
   const problems: string[] = [];
+  if (order.reference.startsWith("LEE-TEST-")) problems.push("Test card orders cannot be shipped.");
   if (order.fulfillmentMethod !== "DELIVERY") problems.push("Only delivery orders can be prepared for Aramex.");
   if (!["SELF", "GIFT"].includes(order.purpose)) problems.push("This order purpose is not supported for customer shipping.");
   const statusProblem = shipmentStatusProblem(order.status);

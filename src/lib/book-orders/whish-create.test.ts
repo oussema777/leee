@@ -15,8 +15,9 @@ const mocks = vi.hoisted(() => ({
     bookInventoryDonorAllocation: { findFirst: vi.fn(), updateMany: vi.fn() },
     bookOrder: { create: vi.fn() },
   },
-  teamEmail: vi.fn(), customerEmail: vi.fn(),
+  teamEmail: vi.fn(), customerEmail: vi.fn(), cardAccess: vi.fn(),
 }));
+vi.mock("@/lib/cybersource/customer-config", () => ({ customerTestAccess: mocks.cardAccess, cardSnapshot: (amountCents: number) => ({ provider: "CYBERSOURCE", environment: "TEST", testMode: true, amountCents, currency: "USD", supportPhone: "9613600747" }) }));
 vi.mock("@/lib/db", () => ({ db: mocks.db }));
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: () => true, clientIp: () => "test" }));
 vi.mock("@/lib/email", () => ({
@@ -36,7 +37,7 @@ function request(patch = {}) {
   });
 }
 beforeEach(() => {
-  vi.clearAllMocks(); saved = null;
+  vi.clearAllMocks(); saved = null; mocks.cardAccess.mockResolvedValue(false);
   const config = emptyWhishConfig();
   Object.assign(config, { enabled: true, accountName: "Test LEE", accountNumber: "70123456", supportPhone: "96170123456", qrImageUrl: "https://assets.example.test/whish.webp", qrVerified: true });
   mocks.db.bookWhishSettings.findUnique.mockResolvedValue({ config });
@@ -56,14 +57,26 @@ beforeEach(() => {
   });
 });
 describe("Whish order creation", () => {
+  it("creates an admin sandbox order without reserving stock or emailing anyone", async () => {
+    mocks.cardAccess.mockResolvedValue(true);
+    expect((await POST(request({ paymentMethod: "BANK_AUDI" }))).status).toBe(201);
+    const data = mocks.db.bookOrder.create.mock.calls[0][0].data;
+    expect(data.reference).toMatch(/^LEE-TEST-/);
+    expect(data.whishPayment.create.snapshot).toMatchObject({ environment: "TEST", amountCents: 500 });
+    expect(mocks.db.bookInventoryItem.updateMany).not.toHaveBeenCalled();
+    expect(mocks.db.bookInventoryEdition.updateMany).not.toHaveBeenCalled();
+    expect(mocks.db.bookInventoryDonorAllocation.updateMany).not.toHaveBeenCalled();
+    expect(mocks.teamEmail).not.toHaveBeenCalled();
+    expect(mocks.customerEmail).not.toHaveBeenCalled();
+  });
   it("rejects new manual Bank Audi orders even with previously verified setup", async () => {
     const bank = { ...emptyBankAudiConfig(), enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };
     mocks.db.bookWhishSettings.findUnique.mockImplementation(async ({ where }) => ({ config: where.id === "book-bank-audi" ? bank : emptyWhishConfig() }));
     const response = await POST(request({ paymentMethod: "BANK_AUDI" }));
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(403);
     expect(mocks.db.bookOrder.create).not.toHaveBeenCalled();
     saved = null; bank.enabled = false;
-    expect((await POST(request({ paymentMethod: "BANK_AUDI", paymentAccessToken: "ef".repeat(32) }))).status).toBe(409);
+    expect((await POST(request({ paymentMethod: "BANK_AUDI", paymentAccessToken: "ef".repeat(32) }))).status).toBe(403);
   });
   it("uses the server-calculated pickup amount, stores hashes, and sends the private link only to the purchaser", async () => {
     const response = await POST(request({ priceCents: 1, paymentStatus: "PAID", recipientEmail: "recipient@example.test" }));

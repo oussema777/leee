@@ -1,4 +1,5 @@
 "use client";
+import { CustomerCardCheckout } from "@/components/books/CustomerCardCheckout";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, PhoneCall, CheckCircle2, Clock3, Copy, Loader2, QrCode, RefreshCw } from "lucide-react";
 import { PaymentLoading } from "./PaymentLoading";
@@ -166,10 +167,12 @@ export function WhishPaymentPage({ reference, locale }: { reference: string; loc
   const expired = payment?.state === "EXPIRED" || payment?.state === "CANCELLED";
   const instructions = payment?.instructions && new Date(payment.expiresAt).getTime() > Date.now() ? payment.instructions : null;
   const support = payment?.supportPhone ? "https://wa.me/" + digits(payment.supportPhone) + "?text=" + encodeURIComponent((ar ? "أحتاج مساعدة في طلب الكتب " : "I need help with book order ") + reference) : null;
-  const reportable = !!payment && !["UNDER_REVIEW", "VERIFIED", "REFUNDED"].includes(payment.state);
+  const reportable = !bankAudi && !!payment && !["UNDER_REVIEW", "VERIFIED", "REFUNDED"].includes(payment.state);
   const currentStage = !reportable ? 3 : expired || payment?.state === "CHANGES_REQUESTED" ? 2 : stage;
   const heading = !payment ? t.title : payment.state === "VERIFIED" ? closed ? t.closed : t.verified : payment.state === "UNDER_REVIEW" ? t.review : payment.state === "REFUNDED" ? t.refunded : payment.state === "CANCELLED" ? t.closed : expired ? t.expired : payment.state === "CHANGES_REQUESTED" ? t.correction : t.title;
   const body = !payment ? "" : payment.state === "VERIFIED" ? closed ? t.closedPaid : t.verifiedBody : payment.state === "UNDER_REVIEW" ? t.reviewBody : payment.state === "REFUNDED" ? t.refundedBody : expired ? t.expiredBody : payment.state === "CHANGES_REQUESTED" ? t.correctionBody : t.intro;
+  if (payment?.cardCheckout) return <div className="bg-accent-ice px-4 py-12"><CustomerCardCheckout endpoint={"/api/public/book-orders/" + encodeURIComponent(reference) + "/card"} token={token} reference={reference} amountCents={payment.amountCents} locale={locale} /></div>;
+  if (bankAudi && payment) return <section className="min-h-[60vh] bg-accent-ice py-12" dir={ar ? "rtl" : "ltr"}><Container className="max-w-3xl"><h1 className="text-2xl font-bold text-accent-navy">{ar ? "سجل دفع سابق" : "Previous payment record"}</h1><p className="mt-4">{ar ? "لم يعد التحويل المصرفي عبر بنك عودة متاحاً. تواصل مع فريق LEE بشأن هذا الطلب، ولا ترسل تحويلاً جديداً." : "Bank Audi bank transfers are no longer available. Contact LEE about this order; do not send a new transfer."}</p><p className="mt-4">{reference} · {payment.state}</p>{support && <a className="mt-6 inline-block text-brand-blue-deeper underline" href={support}>{ar ? "مساعدة بشأن الدفع" : "Payment support"}</a>}</Container></section>;
   return <section className="min-h-[75vh] bg-accent-ice py-6 md:py-10" dir={ar ? "rtl" : "ltr"}>
     <Container className="max-w-5xl">
       <Link href="/books" className="mb-4 inline-block text-sm font-semibold text-brand-blue-deeper underline underline-offset-4">{t.browse}</Link>
