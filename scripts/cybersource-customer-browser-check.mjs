@@ -7,6 +7,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = []; page.on('pageerror', e => errors.push(e.message));
 let attempt = null, mode = 'pending', completed = false, starts = 0, checks = 0;
+let holdInspect = false, releaseInspect;
 const reference = 'LEE-TEST-BROWSER';
 const sdk = `window.VAS={UnifiedCheckout:async()=>({destroy(){},createCheckout:async()=>({destroy(){},mount:async()=> 'a.'+btoa(JSON.stringify({id:'999999999999',completeResponse:{id:'123456789012'}}))+'.b'})})};`;
 const integrity = 'sha384-' + createHash('sha384').update(sdk).digest('base64');
@@ -16,6 +17,7 @@ await page.route('**/api/**', async route => {
   if (path.endsWith('/card')) {
     const input = route.request().postDataJSON();
     if (input.action === 'inspect') {
+      if (holdInspect) await new Promise(resolve => { releaseInspect = resolve; });
       if (mode === 'server-recovered') { completed = true; attempt = { ...attempt, state: 'TEST_CAPTURED', transactionId: '123456789012' }; }
       return route.fulfill({ json: { attempt, completed } });
     }
@@ -36,13 +38,24 @@ await page.route('**/api/**', async route => {
 });
 try {
   await page.clock.install();
+  holdInspect = true;
   await page.goto(origin + '/en/books/payment/' + reference + '#' + 'ab'.repeat(32), { timeout: 120000 });
   await expect(page.getByRole('heading', { name: 'Pay by card' })).toBeVisible();
+  await expect(page.getByText('Checking your payment now', { exact: true })).toBeVisible();
+  await page.clock.fastForward(3000);
+  await expect(page.locator('[data-payment-elapsed]')).toHaveText('0:03');
+  await page.screenshot({ path: '.vercel/customer-checking-mobile.png', fullPage: true });
+  holdInspect = false; releaseInspect();
   await page.getByRole('button', { name: 'Continue to card payment' }).click();
-  await expect(page.getByText('Waiting for the payment provider', { exact: false })).toBeVisible();
+  await expect(page.getByText('Waiting for payment confirmation', { exact: true })).toBeVisible();
+  await expect(page.locator('[data-payment-countdown]')).toContainText('5:00');
+  await page.clock.fastForward(3000);
+  await expect(page.locator('[data-payment-countdown]')).toContainText('4:57');
+  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '3');
+  await page.screenshot({ path: '.vercel/customer-wait-mobile.png', fullPage: true });
   expect(starts).toBe(1); expect(checks).toBe(1);
   await page.reload();
-  await expect(page.getByText('Waiting for the payment provider', { exact: false })).toBeVisible();
+  await expect(page.getByText('Waiting for payment confirmation', { exact: true })).toBeVisible();
   expect(checks).toBe(1);
   await expect(page.getByRole('button', { name: 'Resume card checkout' })).toHaveCount(0);
   mode = 'captured';
@@ -56,9 +69,9 @@ try {
   attempt = null; completed = false; mode = 'pending';
   await page.reload();
   await page.getByRole('button', { name: 'Continue to card payment' }).click();
-  await expect(page.getByText('Waiting for the payment provider', { exact: false })).toBeVisible();
+  await expect(page.getByText('Waiting for payment confirmation', { exact: true })).toBeVisible();
   mode = 'captured';
-  await page.getByRole('button', { name: 'Refresh payment status' }).click();
+  await page.getByRole('button', { name: 'Check now' }).click();
   await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
   // Recover on a new page without any browser transaction hint.
   completed = false; attempt = { ...attempt, state: 'READY', transactionId: null }; mode = 'server-recovered';
@@ -76,5 +89,5 @@ try {
   await expect(page.locator('section[dir="rtl"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
-  console.log('PASS: nested payment ID, pending lookup, immediate manual refresh, automatic recheck, recovery without browser storage, no duplicate start, decline retry, ebook link, mobile and Arabic; simulated provider.');
+  console.log('PASS: immediate feedback, 3-second elapsed timer, countdown/progress, nested payment ID, manual refresh, automatic recheck, storage-free recovery, decline retry, ebook link, mobile and Arabic; simulated provider.');
 } finally { await browser.close(); }
