@@ -1,5 +1,13 @@
 # Bank Audi card integration: implementation status
 
+## First actual sandbox transaction verified - 23 October 2026, 22:07 UTC
+
+The user submitted the hosted test form for `LEE-BK-2026-6171CF66`, USD 9.00. Browser completion supplied transaction `7927931297556210604012`, but the immediate server lookup failed. A later independent TEST-provider lookup returned 200 and matched merchant, attempt `LEE-T-b25d786d-58b6-42cc-a07e-1099fcb7f485`, USD currency and amount. Authorization, capture and payer-authentication enrollment services returned success codes. Capture status is PENDING: accepted capture request, not confirmed settlement or funding. The authenticated production recovery endpoint returned 200 / `TEST_CAPTURED`; subsequent inspect confirmed the saved result. No second payment was submitted.
+
+The initial lookup's HTTP status was not recorded, so its exact cause is unproven. Delayed reporting is consistent with the successful retry and Cybersource's documented behavior: Transaction Details is not a real-time payment API, and a 404 should be retried after five minutes. Added explicit 404 handling that returns a pending-verification message, retains the browser's transaction ID and saved attempt, and does not retry or resubmit a payment. The capture message now explicitly distinguishes request acceptance from settlement. Provider test: 29 passed, one opt-in database test skipped; browser regression includes pending lookup followed by successful recovery.
+
+Cancelled-order error and initial blank-space fixes are deployed in `f249fdc3bacb98101dc88aa26c708421d58d6d7c`, deployment `dpl_BNKnQfAivrMMkBNAfqCEiUNyU64T`. Live cancelled-order inspect now returns `ORDER_CANCELLED` with an actionable message. The pending-verification refinement is being prepared next. Actual decline, 3DS challenge and production activation remain unverified.
+
 ## Cancelled-order message fix - 23 October 2026
 
 The user's reference `LEE-BK-2026-065072CD` is CANCELLED with payment PENDING. It has no test attempt. The production inspect action correctly rejected it, but returned an unhelpful generic message. Split the cancelled/currency/awaiting-payment errors and mapped known checkout errors to actionable messages. Eligibility rules remain unchanged. Reference `LEE-BK-2026-6171CF66` is an eligible USD 9.00 printed-book order; a read-only production inspect returned 200 with no test attempt. No order was reopened or otherwise changed. Targeted sandbox tests: 28 passed, one opt-in database test skipped.

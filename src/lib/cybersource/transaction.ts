@@ -4,6 +4,9 @@ import { testCredentials } from "./test-session-request";
 import { readBounded } from "./session";
 
 export const transactionIdSchema = z.string().regex(/^\d{10,30}$/);
+export class TransactionLookupPending extends Error {
+  constructor() { super("CYBERSOURCE_TRANSACTION_NOT_AVAILABLE"); }
+}
 const application = z.object({ name: z.string(), reasonCode: z.union([z.string(), z.number()]).optional(), rCode: z.union([z.string(), z.number()]).optional(), status: z.string().optional() });
 const details = z.object({ id: transactionIdSchema, merchantId: z.string(),
   clientReferenceInformation: z.object({ code: z.string() }),
@@ -47,5 +50,11 @@ export async function lookupTestTransaction(transactionId: string, fetcher: type
     host, date, "v-c-merchant-id": credentials.merchantId, Accept: "application/hal+json",
     signature: `keyid="${credentials.keyId}", algorithm="HmacSHA256", headers="host date (request-target) v-c-merchant-id", signature="${signature}"`,
   } });
+  // Reporting can lag the completed payment. A 404 is not a decline.
+  // Cybersource documents a five-minute delay before retrying this lookup.
+  if (response.status === 404) {
+    await response.body?.cancel().catch(() => {});
+    throw new TransactionLookupPending();
+  }
   return JSON.parse(await readBounded(response));
 }

@@ -12,7 +12,7 @@ const inputClass = "mt-2 w-full rounded-xl border border-gray-600 bg-[#0f172a] p
 const buttonClass = "rounded-xl bg-brand-blue px-5 py-3 font-semibold text-white disabled:opacity-50";
 const messages: Record<string, string> = {
   TEST_AUTHORIZED: "Test authorization verified. The amount is authorized, but a capture has not been confirmed.",
-  TEST_CAPTURED: "Test capture verified with Cybersource. This does not represent real money or mark this order paid.",
+  TEST_CAPTURED: "Test capture verified with Cybersource. The capture request was accepted; this does not confirm settlement or mark this order paid.",
   TEST_DECLINED: "Cybersource confirmed that the test payment was declined. You can start another test.",
   REVIEW_REQUIRED: "The transaction needs review. Do not pay again. Check its status with Cybersource.",
   CREATING: "A checkout session is being prepared. Refresh the saved status before trying again.",
@@ -34,21 +34,26 @@ export function CardCheckoutTest() {
   const [order, setOrder] = useState<Order | null>(null); const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [confirmed, setConfirmed] = useState(false); const [busy, setBusy] = useState(false); const [mounted, setMounted] = useState(false);
   const [error, setError] = useState(""); const [transactionId, setTransactionId] = useState("");
+  const [notice, setNotice] = useState("");
   const running = useRef(false), alive = useRef(true), checkoutRef = useRef<Checkout | null>(null), clientRef = useRef<Client | null>(null);
   function dispose() { try { checkoutRef.current?.destroy(); } catch {} try { clientRef.current?.destroy(); } catch {} checkoutRef.current = null; clientRef.current = null; }
   useEffect(() => { alive.current = true; return () => { alive.current = false; dispose(); }; }, []);
   const selection = { kind, reference: reference.trim() };
   async function inspect() {
+    setNotice("");
     if (running.current) return; running.current = true; setBusy(true); setError("");
     try { const value = await adminPost<Order>("/book-bank-audi/checkout", { action: "inspect", selection }); if (alive.current) { setOrder(value); setAttempt(value.attempt); setTransactionId(value.attempt?.transactionId ?? ""); setConfirmed(false); } }
     catch (e) { if (alive.current) setError(e instanceof Error ? e.message : "Could not load this order."); }
     finally { running.current = false; if (alive.current) setBusy(false); }
   }
   async function verify(id: string, transaction: string) {
-    const result = await adminPost<{ attempt: Attempt }>("/book-bank-audi/checkout", { action: "result", attemptId: id, transactionId: transaction });
-    if (alive.current) setAttempt(result.attempt);
+    const result = await adminPost<{ attempt?: Attempt; pending?: boolean; message?: string }>("/book-bank-audi/checkout", { action: "result", attemptId: id, transactionId: transaction });
+    if (result.pending) { if (alive.current) setNotice(result.message || "Transaction verification is pending. Do not pay again."); return; }
+    if (!result.attempt) throw Error("Missing verified attempt");
+    if (alive.current) { setNotice(""); setAttempt(result.attempt); }
   }
   async function open(retry = false) {
+    setNotice("");
     if (running.current || !confirmed) return; running.current = true; setBusy(true); setError("");
     try {
       const result = await adminPost<{ attempt: Attempt; session: Session | null }>("/book-bank-audi/checkout", { action: "start", selection, confirmedTest: true, retry });
@@ -101,6 +106,7 @@ export function CardCheckoutTest() {
       <div id="audi-payment-options" /><div id="audi-payment-screen" className="overflow-hidden rounded-xl" />
       {attempt && !["TEST_CAPTURED", "TEST_AUTHORIZED", "TEST_DECLINED"].includes(attempt.state) && <div className="border-t border-gray-700 pt-4"><label className="text-sm">Transaction ID from Cybersource<input className={inputClass} value={transactionId} disabled={busy} onChange={e => setTransactionId(e.target.value)} maxLength={30} inputMode="numeric" /></label><button type="button" className={buttonClass + " mt-3"} disabled={busy || !/^\d{10,30}$/.test(transactionId.trim())} onClick={() => void recheck()}>Check transaction</button><p className="mt-2 text-xs leading-5 text-gray-400">Use this after an interrupted checkout. The server checks the reference and amount; entering an ID cannot mark an order paid.</p></div>}
     </div>}
+    {notice && <p role="status" className="mt-5 rounded-xl bg-amber-500/10 p-4 text-sm leading-6 text-amber-100">{notice}</p>}
     {error && <p role="alert" className="mt-5 rounded-xl bg-red-500/10 p-4 text-sm leading-6 text-red-200">{error}</p>}
   </section>;
 }

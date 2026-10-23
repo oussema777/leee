@@ -26,6 +26,7 @@ await page.route('**/api/**', async route => {
       return route.fulfill({ json: { attempt, session: { sessionJwt: 'mock', clientLibrary: 'https://testup.cybersource.com/uc/mock.js', clientLibraryIntegrity: integrity, expiresAt: attempt.expiresAt } } });
     }
     checks++;
+    if (mode === 'pending') return route.fulfill({ status: 202, json: { pending: true, message: 'Cybersource has not made this transaction available for verification yet. Wait five minutes, then click Check transaction. Do not submit another payment.' } });
     if (mode === 'wrong-transaction') return route.fulfill({ status: 409, json: { error: 'Wrong transaction' } });
     attempt = { ...attempt, state: 'TEST_CAPTURED', transactionId: input.transactionId };
     return route.fulfill({ json: { attempt } });
@@ -51,11 +52,16 @@ try {
   await page.getByLabel('Transaction ID from Cybersource').fill('123456789012345');
   await page.getByRole('button', { name: 'Check transaction' }).click();
   await expect(page.locator('p[role="alert"]')).toContainText('Could not verify');
+  mode = 'pending';
+  await page.getByRole('button', { name: 'Check transaction' }).click();
+  await expect(page.getByText('Cybersource has not made this transaction', { exact: false })).toBeVisible();
+  await expect(page.getByLabel('Transaction ID from Cybersource')).toHaveValue('123456789012345');
+  await expect(page.locator('p[role="alert"]')).toHaveCount(0);
   mode = 'captured';
   await page.getByRole('button', { name: 'Check transaction' }).click();
   await expect(page.getByText('Test capture verified', { exact: false })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open test card checkout' })).toHaveCount(0);
-  expect(checks).toBe(2);
+  expect(checks).toBe(3);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: '.impeccable/audi-checkout-mobile.png', fullPage: true });

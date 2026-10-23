@@ -1,8 +1,20 @@
-import { describe, expect, it } from "vitest";
-import { assessTestTransaction, decimalCents } from "./transaction";
+import { describe, expect, it, vi } from "vitest";
+import { assessTestTransaction, decimalCents, lookupTestTransaction, TransactionLookupPending } from "./transaction";
 const expected = { transactionId: "123456789012", merchantId: "test", reference: "LEE-T-example", amountCents: 500 };
 function result() { return { id: expected.transactionId, merchantId: expected.merchantId, clientReferenceInformation: { code: expected.reference }, orderInformation: { amountDetails: { totalAmount: "5.00", currency: "USD", authorizedAmount: "5.00" } }, applicationInformation: { status: "AUTHORIZED", reasonCode: 100, applications: [{ name: "ics_auth", reasonCode: 100, rCode: 1 }] } }; }
 describe("server transaction verification", () => {
+  it("treats a not-yet-indexed transaction as pending without retrying the provider", async () => {
+    vi.stubEnv("CYBERSOURCE_TEST_MERCHANT_ID", "test");
+    vi.stubEnv("CYBERSOURCE_TEST_KEY_ID", "test-key");
+    vi.stubEnv("CYBERSOURCE_TEST_SECRET_KEY", Buffer.alloc(32, 7).toString("base64"));
+    try {
+      const fetcher = vi.fn(async () => new Response("Not indexed", { status: 404 }));
+      await expect(lookupTestTransaction(expected.transactionId, fetcher)).rejects.toBeInstanceOf(TransactionLookupPending);
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      const failed = vi.fn(async () => new Response("Unavailable", { status: 503 }));
+      await expect(lookupTestTransaction(expected.transactionId, failed)).rejects.toThrow("CYBERSOURCE_RESPONSE_FAILED");
+    } finally { vi.unstubAllEnvs(); }
+  });
   it("distinguishes authorization from capture", () => {
     const value = result(); expect(assessTestTransaction(value, expected)).toBe("TEST_AUTHORIZED");
     value.applicationInformation.applications.push({ name: "ics_bill", reasonCode: 100, rCode: 1 });
