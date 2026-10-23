@@ -1,5 +1,19 @@
 # Bank Audi card integration: implementation status
 
+## Cancelled-order message fix - 23 October 2026
+
+The user's reference `LEE-BK-2026-065072CD` is CANCELLED with payment PENDING. It has no test attempt. The production inspect action correctly rejected it, but returned an unhelpful generic message. Split the cancelled/currency/awaiting-payment errors and mapped known checkout errors to actionable messages. Eligibility rules remain unchanged. Reference `LEE-BK-2026-6171CF66` is an eligible USD 9.00 printed-book order; a read-only production inspect returned 200 with no test attempt. No order was reopened or otherwise changed. Targeted sandbox tests: 28 passed, one opt-in database test skipped.
+
+## Deployed staff TEST checkout - 23 October 2026, 21:48 UTC
+
+Release commit `5df31c608fa1a995ba7c0abddd95591e2a13bcf5` is pushed to main and deployed READY in Production as `dpl_CsDGmAXTDdzJDSVstGpC5WGsptip` (`https://leee-enc7oaqv3-oussema777s-projects.vercel.app`), aliased to the approved www website. Build duration: 2m 9s. The three Cybersource TEST credentials are configured as server-only Production secrets; `CYBERSOURCE_TEST_CHECKOUT_ENABLED` is exactly `true`. No customer card routes were shipped or enabled. Aramex settings were preserved.
+
+Authenticated live GET `/api/admin/book-bank-audi` returned 200 with `configured:true`, `testCheckoutAvailable:true`, `customerCheckoutEnabled:false`. Public Audi availability remains false; unauthenticated test-checkout POST returned 401. The real admin page loaded on desktop/mobile with no browser page errors or horizontal overflow. Deployment-scoped runtime error scan returned zero records through 21:48:48 UTC. No card transaction was submitted; actual success/decline/3DS tests remain pending. User can open `https://www.theleeexperience.com/admin/book-bank-audi`, load an eligible saved unpaid book/ebook order and use official sandbox cards. The TEST ledger never marks real orders paid or grants ebook access.
+
+Vercel agent setup requested by user is complete: global CLI 65.2.0 authenticated as `oussema777`; existing `leee` project linked; `vercel@openai-curated` plugin installed/enabled user-wide (version `11c74d6b`, plugin manifest 0.21.3). The generic plugin installer failed to spawn Codex on Windows; native `codex plugin add` succeeded. Shared MCP `https://mcp.vercel.com` is configured in the user's `.codex/config.toml`, OAuth login succeeded, and write confirmation is enabled. Read-only MCP `search_vercel_documentation` and `list_teams` calls succeeded via an authenticated direct client using the CLI credential. New native tools/commands may need a fresh session to appear; this running session's tool catalog has not refreshed. No credentials were printed or committed.
+
+Next: actual sandbox checkout through the approved website, verify provider transaction response shape and outcomes, then separately complete customer payment finalization and Areeba production activation. The underlying test session had already passed real signature, amount, origin and attempt-reference verification. Local release verification: 400 tests passed, 61 opt-in database tests skipped; production build and mocked production-mode browser checks passed. The isolated local PostgreSQL test instance was stopped.
+
 ## Staff TEST release preparation - 23 October 2026 evening
 
 Prepared a focused release in `../leee-audi-release`, branch `audi-staff-test`, based on deployed Aramex commit `44dcd80`. It includes staff-only card testing and manual-transfer retirement. Unfinished customer card routes/finalization and unrelated donation/inventory changes are excluded. Public card checkout remains unavailable regardless of customer-test flags in this release.

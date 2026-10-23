@@ -12,17 +12,34 @@ type Db = Pick<PrismaClient, "$transaction" | "$queryRaw">;
 type Session = Awaited<ReturnType<typeof createTestSession>>;
 export type Attempt = { id: string; bookOrderId: string | null; ebookOrderId: string | null; orderReference: string; amountCents: number; currency: string; environment: string; fingerprint: string; state: string; sessionCipher: string | null; expiresAt: Date | null; transactionId: string | null; verifiedAt: Date | null; createdAt: Date; updatedAt: Date };
 export class CheckoutError extends Error { constructor(public code: string, public status = 409) { super(code); } }
+export function checkoutErrorMessage(code: string) {
+  const messages: Record<string, string> = {
+    ORDER_NOT_FOUND: "No order matches this reference and order type. Check the reference and choose Printed books or Ebook as appropriate.",
+    ORDER_CANCELLED: "This order is cancelled and cannot be used for card testing. Load a different, unpaid order that has not been cancelled.",
+    ORDER_NOT_ELIGIBLE: "This order is not awaiting payment and cannot be used for card testing. Load a different unpaid order.",
+    ORDER_CURRENCY_UNSUPPORTED: "Card testing currently supports USD orders only. Load an unpaid USD order.",
+    ORDER_CHANGED: "This order changed after its test checkout started. Check the saved attempt before making another payment.",
+    SESSION_FAILED: "The test card form could not be prepared. Reload the saved order to retry.",
+    TRANSACTION_CHANGED: "A different transaction is already linked to this test. Reload its saved status; do not pay again.",
+    ATTEMPT_NOT_FOUND: "This test attempt could not be found. Reload the saved order.",
+    ATTEMPT_NOT_READY: "This test attempt is not ready for transaction verification. Reload its saved status.",
+  };
+  return messages[code] ?? "This test cannot proceed. Reload its saved status before trying again.";
+}
 const terminal = new Set(["TEST_AUTHORIZED", "TEST_CAPTURED", "TEST_DECLINED"]);
 
 async function source(tx: Prisma.TransactionClient, selection: Selection) {
   if (selection.kind === "BOOK") {
     const order = await tx.bookOrder.findUnique({ where: { reference: selection.reference }, select: { id: true, reference: true, priceCents: true, currency: true, status: true, paymentStatus: true } });
     if (!order) throw new CheckoutError("ORDER_NOT_FOUND", 404);
-    if (order.currency !== "USD" || order.paymentStatus !== "PENDING" || order.status === "CANCELLED") throw new CheckoutError("ORDER_NOT_ELIGIBLE");
+    if (order.status === "CANCELLED") throw new CheckoutError("ORDER_CANCELLED");
+    if (order.currency !== "USD") throw new CheckoutError("ORDER_CURRENCY_UNSUPPORTED");
+    if (order.paymentStatus !== "PENDING") throw new CheckoutError("ORDER_NOT_ELIGIBLE");
     return { id: order.id, reference: order.reference, amountCents: order.priceCents, fingerprint: createHash("sha256").update(JSON.stringify(order)).digest("hex") };
   }
   const order = await tx.ebookOrder.findUnique({ where: { reference: selection.reference }, select: { id: true, reference: true, priceCents: true, state: true } });
   if (!order) throw new CheckoutError("ORDER_NOT_FOUND", 404);
+  if (order.state === "CANCELLED") throw new CheckoutError("ORDER_CANCELLED");
   if (!["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(order.state)) throw new CheckoutError("ORDER_NOT_ELIGIBLE");
   return { id: order.id, reference: order.reference, amountCents: order.priceCents, fingerprint: createHash("sha256").update(JSON.stringify(order)).digest("hex") };
 }

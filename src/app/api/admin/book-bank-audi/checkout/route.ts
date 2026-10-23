@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
 import { rateLimit } from "@/lib/rate-limit";
-import { CheckoutError, selectionSchema, inspectCheckout, startCheckout, checkResult } from "@/lib/cybersource/checkout";
+import { CheckoutError, checkoutErrorMessage, selectionSchema, inspectCheckout, startCheckout, checkResult } from "@/lib/cybersource/checkout";
 import { transactionIdSchema } from "@/lib/cybersource/transaction";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (origin !== "https://www.theleeexperience.com") return privateJson({ error: "The card form must be opened on https://www.theleeexperience.com." }, 409);
     return privateJson(await startCheckout(db, input.selection, auth.session.userId, input.retry));
   } catch (error) {
-    if (error instanceof CheckoutError) return privateJson({ code: error.code, error: "This test cannot proceed. Reload its saved status before trying again." }, error.status);
+    if (error instanceof CheckoutError) return privateJson({ code: error.code, error: checkoutErrorMessage(error.code) }, error.status);
     return privateJson({ error: "Unable to verify checkout. Do not pay again; refresh the saved test status or check the transaction in Cybersource." }, 503);
   }
 }
