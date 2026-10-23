@@ -45,7 +45,9 @@ export function bankAudiReadiness(config: BankAudiConfig) {
   if (!config.termsVerified) issues.push("Confirm USD eligibility, fees and transfer terms.");
   return issues;
 }
-export function isBankAudiAvailable(config: BankAudiConfig) { return config.enabled && bankAudiReadiness(config).length === 0; }
+// Historical transfer snapshots remain readable, but cannot start new payments.
+// Card checkout has its own configuration and verification lifecycle.
+export function isBankAudiAvailable(_config: BankAudiConfig) { return false; }
 export function bankAudiSnapshot(config: BankAudiConfig, amountCents: number): BankAudiSnapshot | null {
   if (!isBankAudiAvailable(config) || !Number.isInteger(amountCents) || amountCents <= 0) return null;
   return { amountCents, currency: "USD", accountName: config.accountName, accountNumber: config.accountNumber,

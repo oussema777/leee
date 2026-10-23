@@ -70,6 +70,7 @@ export async function POST(request: NextRequest, { params }: Context) {
           "This order changed. Reload before reviewing.",
           409,
         );
+      if (order.method === "BANK_AUDI") throw new EbookError("Manual Bank Audi payments are retired. This record is historical.", 410);
       const problem = reviewError(
         input,
         order.state,

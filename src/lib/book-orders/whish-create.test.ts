@@ -56,14 +56,12 @@ beforeEach(() => {
   });
 });
 describe("Whish order creation", () => {
-  it("creates a distinct pending Bank Audi order only after verified setup", async () => {
+  it("rejects new manual Bank Audi orders even with previously verified setup", async () => {
     const bank = { ...emptyBankAudiConfig(), enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };
     mocks.db.bookWhishSettings.findUnique.mockImplementation(async ({ where }) => ({ config: where.id === "book-bank-audi" ? bank : emptyWhishConfig() }));
     const response = await POST(request({ paymentMethod: "BANK_AUDI" }));
-    expect(response.status).toBe(201);
-    expect(saved.snapshot).toMatchObject({ amountCents: 500, iban: bank.iban, imageUrl: bank.qrImageUrl });
-    expect(mocks.db.bookOrder.create.mock.calls[0][0].data.paymentMethod).toBe("BANK_AUDI");
-    expect((await response.json()).paymentUrl).toContain("#" + input.paymentAccessToken);
+    expect(response.status).toBe(409);
+    expect(mocks.db.bookOrder.create).not.toHaveBeenCalled();
     saved = null; bank.enabled = false;
     expect((await POST(request({ paymentMethod: "BANK_AUDI", paymentAccessToken: "ef".repeat(32) }))).status).toBe(409);
   });

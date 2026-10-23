@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { getWhishConfig, getBankAudiConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
+import { getWhishConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
 import { normalizedReference, paymentReviewSchema, reviewProblem } from "@/lib/book-orders/whish-policy";
 import { sendWhishOrderEmail } from "@/lib/book-orders/whish-email";
 import { formatBookOrderSummary } from "@/lib/book-orders/customer-email";
@@ -20,7 +20,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         include: { order: { include: { items: { include: { inventoryItem: { select: { title: true, titleAr: true } } } } } } },
       });
       if (!p) throw Error("NOT_FOUND");
-      const config = input.action === "REQUEST_CORRECTION" ? p.order.paymentMethod === "BANK_AUDI" ? await getBankAudiConfig() : await getWhishConfig() : null;
+      if (p.order.paymentMethod === "BANK_AUDI") throw Error("REVIEW:Manual Bank Audi payments are retired. This record is historical.");
+      const config = input.action === "REQUEST_CORRECTION" ? await getWhishConfig() : null;
       if (p.updatedAt.toISOString() !== input.expectedUpdatedAt) throw Error("STALE_REVIEW");
       const problem = reviewProblem(input, p.state, p.order.priceCents);
       if (problem) throw Error("REVIEW:" + problem);

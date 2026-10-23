@@ -95,6 +95,7 @@ enum EbookOrderState {
 }
 
 model EbookOrder {
+  cardTestAttempts CybersourceTestAttempt[]
   id String @id @default(cuid())
   reference String @unique
   readerId String
@@ -764,6 +765,7 @@ enum BookOrderStatus {
 }
 
 model BookOrder {
+  cardTestAttempts    CybersourceTestAttempt[]
   id                 String                @id @default(cuid())
   reference          String                @unique
   locale             String
@@ -1431,4 +1433,28 @@ model CampaignEvent {
   createdAt       DateTime          @default(now())
 
   @@index([campaignId, type])
+}
+
+// TEST-only ledger; SQL migration adds one-order, environment and state checks.
+model CybersourceTestAttempt {
+  id String @id
+  bookOrderId String?
+  bookOrder BookOrder? @relation(fields: [bookOrderId], references: [id], onDelete: Restrict)
+  ebookOrderId String?
+  ebookOrder EbookOrder? @relation(fields: [ebookOrderId], references: [id], onDelete: Restrict)
+  orderReference String
+  amountCents Int
+  currency String @default("USD")
+  environment String @default("TEST")
+  fingerprint String
+  state String @default("CREATING")
+  sessionCipher String?
+  expiresAt DateTime?
+  transactionId String? @unique
+  verifiedAt DateTime?
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  @@index([bookOrderId, createdAt], map: "CybersourceTestAttempt_book_created")
+  @@index([ebookOrderId, createdAt], map: "CybersourceTestAttempt_ebook_created")
 }

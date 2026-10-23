@@ -153,21 +153,21 @@ describe("private Whish payment routes", () => {
 });
 
 describe("staff verification and fulfilment", () => {
-  it("keeps a Bank Audi transfer pending until staff verify the bank's exact USD receipt", async () => {
+  it("keeps old Audi records readable but blocks transfer instructions and manual actions", async () => {
     const bank = { ...emptyBankAudiConfig(), enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };
     payment.order.paymentMethod = "BANK_AUDI";
     payment.snapshot = { amountCents: 500, currency: "USD", accountName: bank.accountName, accountNumber: bank.accountNumber, iban: bank.iban, supportPhone: bank.supportPhone, imageUrl: bank.qrImageUrl };
     mocks.db.bookWhishSettings.findUnique.mockImplementation(async ({ where }) => ({ config: where.id === "book-bank-audi" ? bank : emptyWhishConfig() }));
     const page = await GET(request("GET"), context);
-    expect((await page.json()).instructions.iban).toBe(bank.iban);
+    expect((await page.json()).instructions).toBeNull();
     const report = await POST(paymentRequest({ transactionReference: "BANK-123", senderPhone: "70123456" }), context);
-    expect(report.status).toBe(200);
+    expect(report.status).toBe(410);
     expect(payment.order.paymentStatus).toBe("PENDING");
     expect((await editOrder(request("PATCH", { status: "READY", paymentStatus: "PENDING", expectedUpdatedAt: payment.order.updatedAt.toISOString() }), adminContext)).status).toBe(409);
     const reviewBody = { action: "VERIFY", expectedUpdatedAt: payment.updatedAt.toISOString(), transactionReference: "BANK-123", receivedAmountCents: 500, currency: "USD", checkedWallet: true };
     expect((await review(request("POST", { ...reviewBody, receivedAmountCents: 400 }), adminContext)).status).toBe(400);
-    expect((await review(request("POST", reviewBody), adminContext)).status).toBe(200);
-    expect(payment.order.paymentStatus).toBe("PAID");
+    expect((await review(request("POST", reviewBody), adminContext)).status).toBe(400);
+    expect(payment.order.paymentStatus).toBe("PENDING");
   });
   function reviewBody() {
     return { action: "VERIFY", expectedUpdatedAt: payment.updatedAt.toISOString(), transactionReference: "TX-123",
@@ -222,14 +222,14 @@ describe("Whish settings updates", () => {
 });
 
 describe("Bank Audi settings updates", () => {
-  it("rejects activation without verification and prevents reusing verification after bank details change", async () => {
+  it("prevents reactivating retired transfer settings", async () => {
     const config = emptyBankAudiConfig();
     const version = "2026-09-28T00:00:00.000Z";
     mocks.db.bookWhishSettings.findUnique.mockResolvedValue({ id: "book-bank-audi", config, updatedAt: new Date(version) });
-    expect((await saveBankSetup(request("PUT", { ...config, enabled: true, version }))).status).toBe(400);
+    expect((await saveBankSetup(request("PUT", { ...config, enabled: true, version }))).status).toBe(410);
     const verified = { ...config, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };
     mocks.db.bookWhishSettings.findUnique.mockResolvedValue({ id: "book-bank-audi", config: verified, updatedAt: new Date(version) });
-    expect((await saveBankSetup(request("PUT", { ...verified, accountNumber: "502310050003", version }))).status).toBe(409);
+    expect((await saveBankSetup(request("PUT", { ...verified, accountNumber: "502310050003", version }))).status).toBe(410);
     expect(mocks.db.bookWhishSettings.updateMany).not.toHaveBeenCalled();
   });
 });

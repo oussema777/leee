@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BANK_AUDI_QR, bankAudiReadiness, bankAudiSnapshot, emptyBankAudiConfig, validLebaneseIban } from "./bank-audi-config";
 
 describe("Bank Audi activation", () => {
-  it("keeps the supplied account disabled until beneficiary, QR and transfer terms are checked", () => {
+  it("retires manual transfers even when old account settings were enabled", () => {
     const config = emptyBankAudiConfig();
     expect(config.enabled).toBe(false);
     expect(config.qrImageUrl).toBe(BANK_AUDI_QR);
@@ -10,7 +10,7 @@ describe("Bank Audi activation", () => {
     expect(bankAudiSnapshot(config, 500)).toBeNull();
     Object.assign(config, { enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true });
     expect(bankAudiReadiness(config)).toEqual([]);
-    expect(bankAudiSnapshot(config, 900)).toMatchObject({ amountCents: 900, currency: "USD", imageUrl: BANK_AUDI_QR });
+    expect(bankAudiSnapshot(config, 900)).toBeNull();
   });
   it("checks the IBAN checksum and rejects bank details that differ from the supplied QR", () => {
     const config = { ...emptyBankAudiConfig(), enabled: true, accountName: "Verified LEE recipient", qrVerified: true, termsVerified: true };

@@ -23,7 +23,7 @@ export async function ebookPaymentSettings() {
     // Copies enable the saved QRs for explicitly enabled local/management tests.
     // Normal account/IBAN/amount validation and manual payment approval still apply.
     whish: testMode ? { ...whish, enabled: true, qrVerified: true } : whish,
-    bank: testMode ? { ...bank, enabled: true, qrVerified: true } : bank,
+    bank: { ...bank, enabled: false }, // Retired manual Audi transfers cannot be re-enabled by test mode.
     testMode,
     testUntil: managementTesting ? null : testMode ? process.env.EBOOK_PAYMENT_TEST_UNTIL : null,
   };

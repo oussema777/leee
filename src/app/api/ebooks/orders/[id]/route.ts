@@ -68,7 +68,7 @@ export async function GET(request: NextRequest, { params }: Context) {
         ["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(order.state)
           ? order.snapshot
           : null,
-      canSubmit: ["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(
+      canSubmit: order.method !== "BANK_AUDI" && ["AWAITING_PAYMENT", "CHANGES_REQUESTED"].includes(
         order.state,
       ),
       customerNote: order.customerNote,
@@ -89,6 +89,7 @@ export async function POST(request: NextRequest, { params }: Context) {
       where: { id, readerId: reader.id },
     });
     if (!order) throw new EbookError("Order not found.", 404);
+    if (order.method === "BANK_AUDI") throw new EbookError("Bank Audi transfers have been retired. Contact LEE about this existing order.", 410);
     const form = await receiptForm(request);
     const parsed = paymentReportSchema.shape.transactionReference.safeParse(
       form.get("transactionReference"),

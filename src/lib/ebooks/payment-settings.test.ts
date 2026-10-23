@@ -36,7 +36,7 @@ describe("temporary ebook QR testing", () => {
     const test = await ebookPaymentSettings();
     expect(test.testMode).toBe(true);
     expect(test.whish.enabled).toBe(true);
-    expect(test.bank.enabled).toBe(true);
+    expect(test.bank.enabled).toBe(false);
     expect(saved.enabled).toBe(false);
     expect(saved.qrVerified).toBe(false);
     vi.stubEnv("EBOOK_PAYMENT_TEST_UNTIL", "");
@@ -54,7 +54,7 @@ describe("temporary ebook QR testing", () => {
     expect(result.testMode).toBe(true);
     expect(result.testUntil).toBeNull();
     expect(result.whish.enabled && result.whish.qrVerified).toBe(true);
-    expect(result.bank.enabled && result.bank.qrVerified).toBe(true);
+    expect(result.bank.enabled).toBe(false);
     expect(result.whish.accountName).toBe(saved.accountName);
     expect(saved.enabled).toBe(false);
     expect(saved.qrVerified).toBe(false);
