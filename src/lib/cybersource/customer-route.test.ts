@@ -49,7 +49,7 @@ it('rejects attempts belonging to a different order', async () => {
 it('retains pending lookup semantics without finalizing or starting another charge', async () => {
   mocks.verify.mockRejectedValue(new TransactionLookupPending());
   const response = await customerCheckout(request({ action: 'result', attemptId: id, transactionId: '123456789012' }), 'BOOK', 'LEE-TEST-1');
-  expect(response.status).toBe(202); expect(await response.json()).toMatchObject({ pending: true, retryAfterSeconds: 300 });
+  expect(response.status).toBe(202); expect(await response.json()).toMatchObject({ pending: true, retryAfterSeconds: 10 });
   expect(mocks.finalize).not.toHaveBeenCalled(); expect(mocks.start).not.toHaveBeenCalled();
 });
 it('recovers a verified result during refresh', async () => {
@@ -57,4 +57,15 @@ it('recovers a verified result during refresh', async () => {
   const response = await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1');
   expect(await response.json()).toMatchObject({ completed: true });
   expect(mocks.finalize).toHaveBeenCalledWith(expect.anything(), id);
+});
+
+it('polls the reference search again in ten seconds without repeating a missing details lookup', async () => {
+  const response = await customerCheckout(request({ action: 'inspect', awaitingResult: true }), 'BOOK', 'LEE-TEST-1');
+  expect(response.status).toBe(202);
+  expect(await response.json()).toMatchObject({ pending: true, retryAfterSeconds: 10, attempt: { id } });
+  expect(mocks.verify).not.toHaveBeenCalled(); expect(mocks.start).not.toHaveBeenCalled();
+});
+it('does not force an untouched checkout into payment-pending mode', async () => {
+  const response = await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1');
+  expect(response.status).toBe(200); expect(await response.json()).not.toHaveProperty('pending');
 });

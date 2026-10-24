@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-export function PaymentWaitStatus({ phase, retryAt, ar }: { phase: 'opening' | 'checking' | null; retryAt: number | null; ar: boolean }) {
+export function PaymentWaitStatus({ phase, retryAt, retrySeconds, ar }: { phase: 'opening' | 'checking' | null; retryAt: number | null; retrySeconds: number; ar: boolean }) {
   const [startedAt] = useState(Date.now), [now, setNow] = useState(Date.now);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   const waiting = !phase && retryAt !== null;
@@ -16,7 +16,7 @@ export function PaymentWaitStatus({ phase, retryAt, ar }: { phase: 'opening' | '
     {waiting ? <>
       <p className="mt-3 text-sm leading-6">{ar ? 'مزوّد الدفع لم يُظهر تفاصيل العملية بعد. سنعيد التحقق تلقائياً؛ قد نحتاج إلى أكثر من محاولة.' : 'The payment provider has not published the result yet. We’ll check automatically; more than one check may be needed.'}</p>
       <div className="mt-4 flex items-center justify-between gap-3 text-sm"><span>{ar ? 'التحقق التلقائي التالي خلال' : 'Next automatic check in'}</span><strong data-payment-countdown dir="ltr" aria-live="off" className="tabular-nums">{clock(remaining)}</strong></div>
-      <progress aria-label={ar ? 'الوقت حتى التحقق التالي' : 'Time until next automatic check'} max={300} value={Math.max(0, 300 - remaining)} className="mt-2 block h-2 w-full overflow-hidden rounded-full accent-blue-600" />
+      <progress aria-label={ar ? 'الوقت حتى التحقق التالي' : 'Time until next automatic check'} max={retrySeconds} value={Math.max(0, retrySeconds - remaining)} className="mt-2 block h-2 w-full overflow-hidden rounded-full accent-blue-600" />
       <p className="mt-3 text-sm font-medium">{ar ? 'اترك الصفحة مفتوحة. لا حاجة لتحديثها ولا تدفع مرة أخرى.' : 'Keep this page open. No need to refresh, and do not pay again.'}</p>
     </> : <>
       <p className="mt-3 text-sm" aria-live="off">{ar ? 'الوقت المنقضي' : 'Time elapsed'} <strong data-payment-elapsed dir="ltr" className="ms-2 tabular-nums">{clock(elapsed)}</strong></p>

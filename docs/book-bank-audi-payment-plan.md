@@ -1,3 +1,13 @@
+## Short polling interval - 24 October 2026
+
+User rejected the fixed five-minute automatic wait. Customer confirmation now schedules a reference-search check every 10 seconds while pending. The inspect endpoint accepts an awaitingResult UI hint and returns the next interval when no verified result exists; the hint never grants payment status. A poll does not repeat the stale browser-ID details lookup after the server already searched, and never creates another payment. Client countdown/progress use the returned interval, with an old saved five-minute deadline replaced/capped on refresh. Staff diagnostic lookup behavior remains separate.
+
+Targeted tests: 47 passed, 10 opt-in DB tests skipped (finalizer unchanged). Full production build passed. Browser verification passed successive ten-second polls, old five-minute storage migration, no duplicate payment start or redundant hint lookup, and completion when the next check sees success. Deployment verification follows below.
+
+## Waiting feedback deployed - 24 October 2026, 00:46 Tunis
+
+Commit `e6daabdbc156d9784f589f56e6df162fbb9fe33f` is READY in production as `dpl_6MTM4bz5oGc4apri2xw7oP8x2aE7`, aliased to www.theleeexperience.com. Full Vercel build passed in 1m44s. Deployed frontend check with synthetic pending responses verified the 5:00 to 4:57 countdown, progress bar, Check now button, mobile layout and zero browser errors. No real payment was submitted. Deployment runtime error scan returned zero records through 23:46:07 UTC. Both recovery and waiting-screen changes are synced to the original workspace, with pre-sync backups under `.impeccable/audi-recovery-sync-20261024`; unrelated edits preserved. Temporary release preview servers were stopped.
+
 ## Visible waiting feedback - 24 October 2026
 
 User explicitly requested immediate feedback so customers do not refresh after three seconds. Checkout now shows an immediate spinner plus elapsed time during opening/status requests, then a live mm:ss countdown and labelled progress bar until the next automatic check. It explicitly says to keep the page open, no refresh is needed, and not to pay again. This countdown measures the next check, not guaranteed payment completion. The manual action is Check now. The countdown deadline remains in sessionStorage across refreshes; elapsed/checking and waiting states are distinct, with reduced-motion support and no per-second live-region announcements.

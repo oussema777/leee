@@ -6,7 +6,7 @@ if (!['localhost', '127.0.0.1'].includes(new URL(origin).hostname)) throw Error(
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = []; page.on('pageerror', e => errors.push(e.message));
-let attempt = null, mode = 'pending', completed = false, starts = 0, checks = 0;
+let attempt = null, mode = 'pending', completed = false, starts = 0, checks = 0, searchChecks = 0;
 let holdInspect = false, releaseInspect;
 const reference = 'LEE-TEST-BROWSER';
 const sdk = `window.VAS={UnifiedCheckout:async()=>({destroy(){},createCheckout:async()=>({destroy(){},mount:async()=> 'a.'+btoa(JSON.stringify({id:'999999999999',completeResponse:{id:'123456789012'}}))+'.b'})})};`;
@@ -18,6 +18,9 @@ await page.route('**/api/**', async route => {
     const input = route.request().postDataJSON();
     if (input.action === 'inspect') {
       if (holdInspect) await new Promise(resolve => { releaseInspect = resolve; });
+      if (input.awaitingResult) searchChecks++;
+      if (input.awaitingResult && mode === 'pending') return route.fulfill({ status: 202, json: { attempt, pending: true, retryAfterSeconds: 10 } });
+      if (input.awaitingResult && mode === 'captured') { completed = true; attempt = { ...attempt, state: 'TEST_CAPTURED', transactionId: '123456789012' }; }
       if (mode === 'server-recovered') { completed = true; attempt = { ...attempt, state: 'TEST_CAPTURED', transactionId: '123456789012' }; }
       return route.fulfill({ json: { attempt, completed } });
     }
@@ -27,7 +30,7 @@ await page.route('**/api/**', async route => {
     }
     checks++;
     expect(input.transactionId).toBe('123456789012');
-    if (mode === 'pending') return route.fulfill({ status: 202, json: { pending: true, retryAfterSeconds: 300 } });
+    if (mode === 'pending') return route.fulfill({ status: 202, json: { pending: true, retryAfterSeconds: 10 } });
     attempt = { ...attempt, state: mode === 'declined' ? 'TEST_DECLINED' : 'TEST_CAPTURED', transactionId: input.transactionId };
     completed = mode !== 'declined';
     return route.fulfill({ json: { attempt, completed } });
@@ -48,20 +51,29 @@ try {
   holdInspect = false; releaseInspect();
   await page.getByRole('button', { name: 'Continue to card payment' }).click();
   await expect(page.getByText('Waiting for payment confirmation', { exact: true })).toBeVisible();
-  await expect(page.locator('[data-payment-countdown]')).toContainText('5:00');
+  await expect(page.locator('[data-payment-countdown]')).toContainText('0:10');
   await page.clock.fastForward(3000);
-  await expect(page.locator('[data-payment-countdown]')).toContainText('4:57');
+  await expect(page.locator('[data-payment-countdown]')).toContainText('0:07');
   await expect(page.getByRole('progressbar')).toHaveAttribute('value', '3');
   await page.screenshot({ path: '.vercel/customer-wait-mobile.png', fullPage: true });
   expect(starts).toBe(1); expect(checks).toBe(1);
+  // Old tabs may still have a five-minute deadline saved by the previous build.
+  await page.evaluate(reference => {
+    const key = 'audi-result:' + reference, saved = JSON.parse(sessionStorage.getItem(key));
+    sessionStorage.setItem(key, JSON.stringify({ ...saved, nextCheckAt: Date.now() + 300000 }));
+  }, reference);
   await page.reload();
   await expect(page.getByText('Waiting for payment confirmation', { exact: true })).toBeVisible();
+  await expect(page.locator('[data-payment-countdown]')).toHaveText('0:10');
   expect(checks).toBe(1);
   await expect(page.getByRole('button', { name: 'Resume card checkout' })).toHaveCount(0);
+  await page.clock.fastForward(10001);
+  await expect(page.locator('[data-payment-countdown]')).toHaveText('0:10');
+  expect(searchChecks).toBe(2); expect(checks).toBe(1);
   mode = 'captured';
-  await page.clock.fastForward(300001);
+  await page.clock.fastForward(10001);
   await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
-  expect(starts).toBe(1); expect(checks).toBe(2);
+  expect(starts).toBe(1); expect(checks).toBe(1); expect(searchChecks).toBe(3);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Your test order is confirmed' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

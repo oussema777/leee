@@ -1,6 +1,7 @@
 "use client";
 import { PaymentWaitStatus } from './PaymentWaitStatus';
 import { paymentResultHint } from '@/lib/cybersource/result-hint';
+import { CUSTOMER_CHECK_SECONDS } from '@/lib/cybersource/polling';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Attempt = { id: string; state: string; transactionId: string | null; expiresAt: string | null };
@@ -11,6 +12,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
   const [attempt, setAttempt] = useState<Attempt | null>(null), [loaded, setLoaded] = useState(false), [busy, setBusy] = useState(false), [completed, setCompleted] = useState(false), [error, setError] = useState('');
   const alive = useRef(true), running = useRef(false), dispose = useRef<() => void>(() => {});
   const [hasResult, setHasResult] = useState(false), [retryAt, setRetryAt] = useState<number | null>(null);
+  const [retrySeconds, setRetrySeconds] = useState(CUSTOMER_CHECK_SECONDS);
   const resultHint = useRef<{ attemptId?: string; transactionId?: string; nextCheckAt?: number } | null>(null);
   const [phase, setPhase] = useState<'opening' | 'checking' | 'card' | null>('checking');
   const savedKey = 'audi-result:' + reference;
@@ -20,7 +22,9 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
     if (alive.current) {
       if ('attempt' in result) setAttempt(result.attempt);
       if (result.pending) {
-        const nextCheckAt = Date.now() + 300000;
+        const seconds = Number.isFinite(result.retryAfterSeconds) ? Math.min(30, Math.max(1, result.retryAfterSeconds)) : CUSTOMER_CHECK_SECONDS;
+        const nextCheckAt = Date.now() + seconds * 1000;
+        setRetrySeconds(seconds);
         setRetryAt(nextCheckAt); setHasResult(true);
         if (resultHint.current) resultHint.current.nextCheckAt = nextCheckAt;
         try { const saved = resultHint.current || JSON.parse(sessionStorage.getItem(savedKey) || 'null'); if (saved) sessionStorage.setItem(savedKey, JSON.stringify({ ...saved, nextCheckAt })); } catch {}
@@ -36,15 +40,15 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
   const refresh = useCallback(async (force = false) => {
     if (running.current) return; running.current = true; setBusy(true); setError(''); setPhase('checking');
     try {
-      let result = await call({ action: 'inspect' });
       let saved: { attemptId?: string; transactionId?: string; nextCheckAt?: number } | null = resultHint.current;
       try { saved = saved || JSON.parse(sessionStorage.getItem(savedKey) || 'null'); } catch {}
       resultHint.current = saved;
+      let result = await call({ action: 'inspect', awaitingResult: !!saved?.attemptId });
       const transactionId = result.attempt?.transactionId || (saved?.attemptId === result.attempt?.id ? saved?.transactionId : null);
-      if (!result.completed && result.attempt && transactionId && result.attempt.state !== 'TEST_DECLINED') {
+      if (!result.completed && !result.pending && result.attempt && transactionId && result.attempt.state !== 'TEST_DECLINED') {
         if (alive.current) setHasResult(true);
         if (!force && saved?.attemptId === result.attempt.id && saved.nextCheckAt && saved.nextCheckAt > Date.now()) {
-          if (alive.current) setRetryAt(saved.nextCheckAt);
+          if (alive.current) setRetryAt(Math.min(saved.nextCheckAt, Date.now() + CUSTOMER_CHECK_SECONDS * 1000));
         } else result = await call({ action: 'result', attemptId: result.attempt.id, transactionId });
       }
       if (alive.current) setLoaded(true);
@@ -99,7 +103,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
     <h1 className="text-2xl font-bold">{completed ? (ar ? 'اكتمل طلبك التجريبي' : 'Your test order is confirmed') : (ar ? 'الدفع بالبطاقة' : 'Pay by card')}</h1>
     <p className="mt-3 break-all text-sm text-slate-600">{reference}</p><p className="mt-2 text-xl font-semibold">USD {(amountCents / 100).toFixed(2)}</p>
     <p className="my-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{ar ? 'الدفع التجريبي: استخدم بطاقة اختبار فقط. لن يتم خصم أموال حقيقية.' : 'Test checkout: use a test card only. No real money is collected.'}</p>
-    {!completed && (phase === 'opening' || phase === 'checking' || retryAt) && phase !== 'card' && <PaymentWaitStatus key={phase || 'waiting'} phase={phase} retryAt={retryAt} ar={ar} />}
+    {!completed && (phase === 'opening' || phase === 'checking' || retryAt) && phase !== 'card' && <PaymentWaitStatus key={phase || 'waiting'} phase={phase} retryAt={retryAt} retrySeconds={retrySeconds} ar={ar} />}
     {completed ? <div role="status"><p>{ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.'}</p>{readingUrl ? <a href={readingUrl} className="mt-5 inline-block rounded-xl bg-brand-blue px-6 py-3 font-bold text-white">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-slate-600">{ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.'}</p>}</div> : <>
       {attempt?.state === 'TEST_DECLINED' && <p role="status">{ar ? 'تم رفض البطاقة. يمكنك المحاولة ببطاقة اختبار أخرى.' : 'The test card was declined. You can try another test card.'}</p>}
       {attempt && !retryable && !retryAt && !phase && <p role="status">{ar ? 'الدفع بانتظار التأكيد. لا تدفع مجدداً؛ حدّث الحالة أو تواصل معنا.' : 'Payment is awaiting confirmation. Do not pay again; refresh the status or contact LEE.'}</p>}

@@ -11,8 +11,9 @@ import { CheckoutError, checkoutErrorMessage, startCheckout, type Attempt } from
 import { transactionIdSchema, TransactionLookupPending } from './transaction';
 import { finalizeCustomerTest } from './customer-finalize';
 import { recoverTestCheckout, checkCustomerResult } from './recovery';
+import { CUSTOMER_CHECK_SECONDS } from './polling';
 const inputSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('inspect') }).strict(),
+  z.object({ action: z.literal('inspect'), awaitingResult: z.boolean().default(false) }).strict(),
   z.object({ action: z.literal('start'), retry: z.boolean().default(false) }).strict(),
   z.object({ action: z.literal('result'), attemptId: z.string().regex(/^LEE-T-[a-f0-9-]{36}$/), transactionId: transactionIdSchema }).strict(),
 ]);
@@ -46,7 +47,8 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
     if (input.action === 'inspect') {
       const recovered = attempt ? await recoverTestCheckout(db, attempt) : null;
       const completed = attempt ? await finalizeCustomerTest(db, attempt.id) : false;
-      return privateJson({ reference, amountCents, attempt: recovered, completed });
+      const pending = !completed && input.awaitingResult && recovered && ['READY', 'REVIEW_REQUIRED'].includes(recovered.state);
+      return privateJson({ reference, amountCents, attempt: recovered, completed, ...(pending ? { pending: true, retryAfterSeconds: CUSTOMER_CHECK_SECONDS } : {}) }, pending ? 202 : 200);
     }
     if (input.action === 'result') {
       if (!attempt || attempt.id !== input.attemptId) return privateJson({ error: 'Payment attempt not found.' }, 404);
@@ -56,7 +58,7 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
     if (!customerCardEnabled()) return privateJson({ error: 'Card checkout is temporarily unavailable.' }, 503);
     return privateJson(await startCheckout(db, { kind, reference }, actor, input.retry));
   } catch (error) {
-    if (error instanceof TransactionLookupPending) return privateJson({ pending: true, retryAfterSeconds: 300, message: 'Payment details are not available yet. We will check again in five minutes. Do not pay again.' }, 202);
+    if (error instanceof TransactionLookupPending) return privateJson({ pending: true, retryAfterSeconds: CUSTOMER_CHECK_SECONDS, message: 'Waiting for payment confirmation. We will check again in 10 seconds. Do not pay again.' }, 202);
     if (error instanceof EbookError) return privateJson({ error: error.message }, error.status);
     if (error instanceof SyntaxError) return privateJson({ error: 'Invalid request.' }, 400);
     return privateJson({ error: error instanceof CheckoutError ? checkoutErrorMessage(error.code) : 'We could not confirm the payment. Refresh its status before trying again.', ...(error instanceof CheckoutError ? { code: error.code } : {}) }, error instanceof CheckoutError ? error.status : 503);
