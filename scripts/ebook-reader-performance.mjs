@@ -1,10 +1,11 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Read-only reader timing, using a short-lived session for the explicitly named test order.
 // The session is removed in finally; no orders, receipts, progress or emails are changed.
 import nextEnv from "@next/env";
 import { PrismaClient } from "@prisma/client";
 import { randomBytes, createHash } from "node:crypto";
 nextEnv.loadEnvConfig(process.cwd());
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 const email = process.argv[2], reference = process.argv[3];
 const token = randomBytes(32).toString("hex"), sessionId = createHash("sha256").update(token).digest("hex");
 try {

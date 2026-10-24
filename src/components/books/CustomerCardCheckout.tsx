@@ -7,21 +7,34 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Attempt = { id: string; state: string; transactionId: string | null; expiresAt: string | null };
 type Session = { sessionJwt: string; clientLibrary: string; clientLibraryIntegrity: string };
-type Reply = { attempt?: Attempt | null; session?: Session | null; completed?: boolean; pending?: boolean; retryAfterSeconds?: number };
-export function CustomerCardCheckout({ endpoint, token, reference, amountCents, locale, readingUrl }: { endpoint: string; token?: string; reference: string; amountCents: number; locale: string; readingUrl?: string }) {
+type Reply = { attempt?: Attempt | null; session?: Session | null; completed?: boolean; pending?: boolean; review?: boolean; retryAfterSeconds?: number };
+export function CustomerCardCheckout({ endpoint, token, reference, amountCents, locale, readingUrl, live = false }: { endpoint: string; token?: string; reference: string; amountCents: number; locale: string; readingUrl?: string; live?: boolean }) {
   const ar = locale === 'ar';
+  const liveText = ar ? {
+    confirmed: 'تم تأكيد طلبك', success: 'تم الدفع بنجاح!', verified: 'تم التحقق من دفعتك بنجاح.',
+    shipped: 'تم تأكيد طلبك. سنتابع تحضير الكتب حسب طريقة الاستلام التي اخترتها.',
+    notice: 'دفع آمن بالبطاقة. تأكد من المبلغ قبل إتمام الدفع.',
+    review: 'يحتاج هذا الطلب إلى متابعة من فريق LEE. لا تدفع مرة أخرى؛ تواصل معنا باستخدام رقم الطلب أدناه.',
+  } : {
+    confirmed: 'Your order is confirmed', success: 'Payment successful!', verified: 'Your payment was verified successfully.',
+    shipped: 'Your order is confirmed. We will prepare your books for your chosen delivery or pickup method.',
+    notice: 'Secure card payment. Check the amount before completing payment.',
+    review: 'This order needs help from the LEE team. Do not pay again; contact us using the order reference below.',
+  };
   const [attempt, setAttempt] = useState<Attempt | null>(null), [loaded, setLoaded] = useState(false), [busy, setBusy] = useState(false), [completed, setCompleted] = useState(false), [error, setError] = useState('');
   const alive = useRef(true), running = useRef(false), dispose = useRef<() => void>(() => {});
   const [hasResult, setHasResult] = useState(false), [retryAt, setRetryAt] = useState<number | null>(null);
   const [retrySeconds, setRetrySeconds] = useState(CUSTOMER_CHECK_SECONDS);
+  const [review, setReview] = useState(false);
   const resultHint = useRef<{ attemptId?: string; transactionId?: string; nextCheckAt?: number } | null>(null);
   const [phase, setPhase] = useState<'opening' | 'checking' | 'card' | null>('checking');
   const savedKey = 'audi-result:' + reference;
   const call = useCallback(async (data: unknown): Promise<Reply> => {
-    const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(data), cache: 'no-store' });
+    const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: JSON.stringify(data), cache: 'no-store', signal: AbortSignal.timeout(55000) });
     const result = await response.json(); if (!response.ok) throw Error(result.error || 'Checkout unavailable.');
     if (alive.current) {
       if ('attempt' in result) setAttempt(result.attempt);
+      if ('review' in result) setReview(!!result.review);
       if (result.pending) {
         const seconds = Number.isFinite(result.retryAfterSeconds) ? Math.min(30, Math.max(1, result.retryAfterSeconds)) : CUSTOMER_CHECK_SECONDS;
         const nextCheckAt = Date.now() + seconds * 1000;
@@ -30,7 +43,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
         if (resultHint.current) resultHint.current.nextCheckAt = nextCheckAt;
         try { const saved = resultHint.current || JSON.parse(sessionStorage.getItem(savedKey) || 'null'); if (saved) sessionStorage.setItem(savedKey, JSON.stringify({ ...saved, nextCheckAt })); } catch {}
       }
-      if (result.completed || result.attempt?.state === 'TEST_DECLINED') {
+      if (result.completed || result.review || result.attempt?.state === 'TEST_DECLINED') {
         setRetryAt(null); setHasResult(false); resultHint.current = null;
         try { sessionStorage.removeItem(savedKey); } catch {}
       }
@@ -46,7 +59,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       resultHint.current = saved;
       let result = await call({ action: 'inspect', awaitingResult: !!saved?.attemptId });
       const transactionId = result.attempt?.transactionId || (saved?.attemptId === result.attempt?.id ? saved?.transactionId : null);
-      if (!result.completed && !result.pending && result.attempt && transactionId && result.attempt.state !== 'TEST_DECLINED') {
+      if (!result.completed && !result.review && !result.pending && result.attempt && transactionId && result.attempt.state !== 'TEST_DECLINED') {
         if (alive.current) setHasResult(true);
         if (!force && saved?.attemptId === result.attempt.id && saved.nextCheckAt && saved.nextCheckAt > Date.now()) {
           if (alive.current) setRetryAt(Math.min(saved.nextCheckAt, Date.now() + CUSTOMER_CHECK_SECONDS * 1000));
@@ -71,7 +84,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       openedAttemptId = result.attempt.id;
       const session = result.session;
       const url = new URL(session.clientLibrary);
-      if (url.origin !== 'https://testup.cybersource.com' || !url.pathname.startsWith('/uc/') || !/^sha(256|384|512)-[A-Za-z0-9+/]+={0,2}$/.test(session.clientLibraryIntegrity)) throw Error('Invalid secure card form.');
+      if (url.origin !== (live ? 'https://up.cybersource.com' : 'https://testup.cybersource.com') || url.username || url.password || url.search || url.hash || !url.pathname.startsWith('/uc/') || !/^sha(256|384|512)-[A-Za-z0-9+/]+={0,2}$/.test(session.clientLibraryIntegrity)) throw Error('Invalid secure card form.');
       await new Promise<void>((resolve, reject) => {
         const existing = document.getElementById('audi-checkout-sdk') as HTMLScriptElement | null;
         if (existing?.src === session.clientLibrary && existing.integrity === session.clientLibraryIntegrity && window.VAS) return resolve();
@@ -111,23 +124,24 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
     }
     finally { dispose.current(); running.current = false; if (alive.current) { setBusy(false); setPhase(null); } }
   }
-  const retryable = !hasResult && (!attempt || ['SESSION_FAILED', 'TEST_DECLINED'].includes(attempt.state) || attempt.state === 'READY' && !!attempt.expiresAt && Date.parse(attempt.expiresAt) > Date.now());
+  const retryable = !review && !hasResult && (!attempt || attempt.state === 'NOT_STARTED' || !live && ['SESSION_FAILED', 'TEST_DECLINED'].includes(attempt.state) || attempt.state === 'READY' && !!attempt.expiresAt && Date.parse(attempt.expiresAt) > Date.now());
   return <section className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 sm:p-8" dir={ar ? 'rtl' : 'ltr'}>
-    <h1 className={`text-2xl font-bold ${completed ? 'text-emerald-800' : ''}`}>{completed ? (ar ? 'اكتمل طلبك التجريبي' : 'Your test order is confirmed') : (ar ? 'الدفع بالبطاقة' : 'Pay by card')}</h1>
+    <h1 className={`text-2xl font-bold ${completed ? 'text-emerald-800' : ''}`}>{completed ? (live ? liveText.confirmed : (ar ? 'اكتمل طلبك التجريبي' : 'Your test order is confirmed')) : (ar ? 'الدفع بالبطاقة' : 'Pay by card')}</h1>
     <p className="mt-3 break-all text-sm text-slate-600">{reference}</p><p className="mt-2 text-xl font-semibold">USD {(amountCents / 100).toFixed(2)}</p>
-    <p className="my-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{ar ? 'الدفع التجريبي: استخدم بطاقة اختبار فقط. لن يتم خصم أموال حقيقية.' : 'Test checkout: use a test card only. No real money is collected.'}</p>
+    {(!live || !completed) && <p className={`my-5 rounded-xl p-4 text-sm ${live ? 'bg-slate-50 text-slate-700' : 'bg-amber-50 text-amber-900'}`}>{live ? liveText.notice : (ar ? 'الدفع التجريبي: استخدم بطاقة اختبار فقط. لن يتم خصم أموال حقيقية.' : 'Test checkout: use a test card only. No real money is collected.')}</p>}
     {!completed && (phase === 'opening' || phase === 'checking' || retryAt) && phase !== 'card' && <PaymentWaitStatus key={phase || 'waiting'} phase={phase} retryAt={retryAt} retrySeconds={retrySeconds} ar={ar} />}
     {completed ? <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm">
       <span aria-hidden="true" className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-100"><Check size={30} strokeWidth={3} /></span>
-      <h2 className="text-2xl font-bold text-emerald-800">{ar ? 'تم الدفع التجريبي بنجاح!' : 'Test payment successful!'}</h2>
-      <p className="mt-2 leading-6 text-emerald-800">{ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.'}</p>
-      {readingUrl ? <a href={readingUrl} className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-emerald-800">{ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.'}</p>}
+      <h2 className="text-2xl font-bold text-emerald-800">{live ? liveText.success : (ar ? 'تم الدفع التجريبي بنجاح!' : 'Test payment successful!')}</h2>
+      <p className="mt-2 leading-6 text-emerald-800">{live ? liveText.verified : (ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.')}</p>
+      {readingUrl ? <a href={readingUrl} className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-emerald-800">{live ? liveText.shipped : (ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.')}</p>}
     </div> : <>
+      {review && <div role="status" className="my-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">{liveText.review}</div>}
       {attempt?.state === 'TEST_DECLINED' && <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
         <h2 className="text-lg font-bold">{ar ? 'لم تكتمل عملية الدفع' : 'Payment was not completed'}</h2>
         <p className="mt-2">{ar ? 'رُفضت عملية الدفع أو أُلغي التحقق من البطاقة أو لم ينجح. يمكنك إعادة المحاولة بأمان باستخدام بطاقة اختبار.' : 'The payment was declined, or card authentication was cancelled or unsuccessful. You can safely try again with a test card.'}</p>
       </div>}
-      {attempt && !retryable && !retryAt && !phase && <p role="status">{ar ? 'الدفع بانتظار التأكيد. لا تدفع مجدداً؛ حدّث الحالة أو تواصل معنا.' : 'Payment is awaiting confirmation. Do not pay again; refresh the status or contact LEE.'}</p>}
+      {attempt && !review && !retryable && !retryAt && !phase && <p role="status">{ar ? 'الدفع بانتظار التأكيد. لا تدفع مجدداً؛ حدّث الحالة أو تواصل معنا.' : 'Payment is awaiting confirmation. Do not pay again; refresh the status or contact LEE.'}</p>}
       {loaded && retryable && <button onClick={() => void open()} disabled={busy} className="mt-4 rounded-xl bg-brand-blue px-6 py-3 font-bold text-white disabled:opacity-50">{busy ? (ar ? 'جارٍ فتح الدفع…' : 'Checkout in progress…') : attempt?.state === 'READY' ? (ar ? 'متابعة الدفع' : 'Resume card checkout') : attempt?.state === 'TEST_DECLINED' ? (ar ? 'إعادة محاولة الدفع' : 'Try payment again') : (ar ? 'متابعة إلى البطاقة' : 'Continue to card payment')}</button>}
       <div id="customer-card-options" className="mt-5" /><div id="customer-card-screen" className="mt-3" />
     </>}

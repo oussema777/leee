@@ -50,6 +50,7 @@ export default function BookWhishSettingsPage() {
   return <div className="max-w-4xl">
     <Link href="/admin/book-orders" className="text-sm text-gray-400 hover:text-white">← Book orders</Link>
     <h1 className="mt-5 text-3xl font-bold text-white">Whish payment setup</h1>
+    <Link href="/admin/payment-methods" className="mt-3 inline-block text-sm text-blue-300 underline">Show or hide payment methods in checkout</Link>
     <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-400">Upload one permanent QR for every Book Restore order. Customers will scan it and manually enter the exact order total shown on their payment page.</p>
     {error && <p role="alert" className="mt-5 rounded-xl bg-red-500/10 p-4 text-sm text-red-300">{error}</p>}
     <section className="mt-7 grid gap-5 rounded-2xl bg-[#1e293b] p-6 md:grid-cols-2">

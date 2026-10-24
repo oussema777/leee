@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * One-time migration: copy the demo events from the static data file into the
  * Event table so the (now DB-driven) events pages keep their current content.
@@ -8,7 +10,7 @@
 import { PrismaClient } from "@prisma/client";
 import { demoEvents } from "../src/components/sections/events/eventsData";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   let n = 0;

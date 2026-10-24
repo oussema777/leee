@@ -93,9 +93,9 @@ try {
   attempt = null; completed = false; mode = 'declined';
   await page.goto(origin + '/en/ebooks/orders/mock');
   await page.getByRole('button', { name: 'Continue to card payment' }).click();
-  await expect(page.getByText('The test card was declined.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Payment was not completed' })).toBeVisible();
   mode = 'captured';
-  await page.getByRole('button', { name: 'Continue to card payment' }).click();
+  await page.getByRole('button', { name: 'Try payment again' }).click();
   await expect(page.getByRole('link', { name: 'Read your ebook' })).toHaveAttribute('href', '/en/ebooks/read/mock');
   await page.goto(origin + '/ar/ebooks/orders/mock');
   await expect(page.locator('section[dir="rtl"]')).toBeVisible();

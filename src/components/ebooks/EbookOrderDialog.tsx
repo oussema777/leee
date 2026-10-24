@@ -29,6 +29,7 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const [cardTestMode, setCardTestMode] = useState(true);
 
   // Recheck purchases on every attempt. Authentication never creates an order.
   async function continueOrder() {
@@ -38,7 +39,7 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
     try {
       const [session, catalog, library] = await Promise.all([
         ebookFetch<{ reader: { email: string } | null }>("/api/ebooks/auth"),
-        ebookFetch<{ ebooks: EbookProduct[]; methods: string[]; testMode?: boolean }>("/api/ebooks/catalog"),
+        ebookFetch<{ ebooks: EbookProduct[]; methods: string[]; testMode?: boolean; cardTestMode?: boolean }>("/api/ebooks/catalog"),
         ebookFetch<Library>("/api/ebooks/orders").catch(e => {
           if (e instanceof EbookClientError && e.status === 401) return null;
           throw e;
@@ -46,7 +47,7 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
       ]);
       if (!current()) return;
       setMethods(catalog.methods);
-      setTestMode(!!catalog.testMode);
+      setTestMode(!!catalog.testMode); setCardTestMode(catalog.cardTestMode !== false);
       setMethod(current => catalog.methods.includes(current) ? current : catalog.methods[0] || "");
       if (!session.reader || !library) { setEmail(""); setReady(true); setStep("email"); return; }
       setEmail(session.reader.email);
@@ -76,6 +77,21 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
   useEffect(() => {
     dialog.current?.querySelector<HTMLElement>(step === "email" ? "[data-autofocus]" : "[data-step-heading]")?.focus();
   }, [step]);
+  useEffect(() => {
+    let cancelled = false;
+    async function refreshMethods() {
+      if (submitting.current) return;
+      try {
+        const catalog = await ebookFetch<{ methods: string[]; testMode?: boolean; cardTestMode?: boolean }>("/api/ebooks/catalog");
+        if (cancelled) return;
+        setMethods(catalog.methods); setTestMode(!!catalog.testMode); setCardTestMode(catalog.cardTestMode !== false);
+        setMethod(current => catalog.methods.includes(current) ? current : catalog.methods[0] || "");
+      } catch { if (!cancelled) { setMethods([]); setMethod(""); } }
+    }
+    const timer = window.setInterval(refreshMethods, 15000);
+    window.addEventListener('focus', refreshMethods);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener('focus', refreshMethods); };
+  }, []);
 
   async function changeEmail() {
     setBusy(true); setError("");
@@ -115,7 +131,7 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
     </header>
     <div className={p.dialogBody}>
       <EbookJourney step={submitting.current ? 3 : step === "details" ? 2 : 1} ar={ar} />
-      {testMode && method !== "BANK_AUDI" && <p className={p.paused}>{ar ? "اختبار مؤقت باستخدام رموز الدفع غير المعتمدة. سيُوسم الطلب بأنه اختبار." : "Temporary test using unvalidated payment QRs. Your order will be marked as a test."}</p>}
+      {testMode && method === "WHISH" && <p className={p.paused}>{ar ? "اختبار مؤقت باستخدام رموز الدفع غير المعتمدة. سيُوسم الطلب بأنه اختبار." : "Temporary test using unvalidated payment QRs. Your order will be marked as a test."}</p>}
       <div className={p.summary}>
         {book.coverUrl && <img src={book.coverUrl} alt="" />}
         <div><strong>{ar ? book.titleAr || book.titleEn : book.titleEn}</strong><small>{ar ? "كتاب إلكتروني · قراءة على الموقع" : "Ebook · Online reading"}</small></div>
@@ -130,11 +146,11 @@ export function EbookOrderDialog({ book, locale, onClose }: { book: EbookProduct
           <div className={p.email}><CheckCircle2 size={17} aria-hidden="true" /><span dir="ltr">{email}</span><button type="button" disabled={busy} className={p.textButton} onClick={() => void changeEmail()}>{ar ? "تغيير البريد" : "Change email"}</button></div>
           <form className={s.form} onSubmit={e => { e.preventDefault(); void checkout(); }}>
             <label>{ar ? "الاسم الكامل" : "Full name"}<input autoComplete="name" value={name} minLength={2} maxLength={120} required disabled={busy} onChange={e => setName(e.target.value)} /></label>
-            {!!methods.length && <fieldset disabled={busy}><legend className={p.legend}>{ar ? "طريقة الدفع" : "Payment method"}</legend><div className={p.choices}>{methods.map(value => <label key={value} className={p.choice}><input type="radio" name="ebook-payment" value={value} checked={method === value} onChange={() => setMethod(value)} /><span>{value === "WHISH" ? "Whish" : "Bank Audi"}<small>{value === "BANK_AUDI" ? (ar ? "بطاقة اختبار · بدون أموال حقيقية" : "Test card · no real money") : (ar ? "تحويل بالدولار" : "USD transfer")}</small></span></label>)}</div></fieldset>}
+            {!!methods.length && <fieldset disabled={busy}><legend className={p.legend}>{ar ? "طريقة الدفع" : "Payment method"}</legend><div className={p.choices}>{methods.map(value => <label key={value} className={p.choice}><input type="radio" name="ebook-payment" value={value} checked={method === value} onChange={() => setMethod(value)} /><span>{value === "WHISH" ? "Whish" : "Bank Audi"}<small>{value === "BANK_AUDI" ? (cardTestMode ? (ar ? "بطاقة اختبار · بدون أموال حقيقية" : "Test card · no real money") : (ar ? "\u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0622\u0645\u0646 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629" : "Secure card payment")) : (ar ? "تحويل بالدولار" : "USD transfer")}</small></span></label>)}</div></fieldset>}
             <label className={s.check}><input type="checkbox" required checked={accepted} disabled={busy || !methods.length} onChange={e => setAccepted(e.target.checked)} /><span>{ar ? "أفهم أن هذا وصول شخصي للقراءة على الموقع، دون ملف للتنزيل. تبدأ القراءة بعد التحقق من الدفع." : "I understand this is personal online reading access, with no downloadable file. Reading starts after payment verification."}</span></label>
             <div className={p.total}><span>{ar ? "الإجمالي · دفعة واحدة" : "Total · One-time payment"}</span><strong>{money(book.priceCents)}</strong></div>
             <button className={p.primary} disabled={busy || !methods.length || !ready}>{busy ? (ar ? "جارٍ فتح صفحة الدفع…" : "Opening payment…") : (ar ? "متابعة إلى الدفع" : "Continue to payment")}<ArrowRight size={17} className="rtl:rotate-180" aria-hidden="true" /></button>
-            <p className={p.help} style={{ margin: 0 }}>{method === "BANK_AUDI" ? (ar ? "استخدم بطاقة اختبار فقط. بعد التحقق سيُفتح الكتاب لحسابك، دون خصم أموال حقيقية." : "Use a test card only. Verification unlocks this ebook for your account without collecting real money.") : (ar ? "لن يُخصم أي مبلغ هنا. ستجري التحويل بنفسك في الخطوة التالية." : "Nothing is charged here. You’ll make the transfer yourself in the next step.")}</p>
+            {!!method && <p className={p.help} style={{ margin: 0 }}>{method === "BANK_AUDI" ? (cardTestMode ? (ar ? "استخدم بطاقة اختبار فقط. بعد التحقق سيُفتح الكتاب لحسابك، دون خصم أموال حقيقية." : "Use a test card only. Verification unlocks this ebook for your account without collecting real money.") : (ar ? "\u062a\u0628\u062f\u0623 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0628\u0639\u062f \u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u062f\u0641\u0639." : "Reading starts after your card payment is verified.")) : (ar ? "لن يُخصم أي مبلغ هنا. ستجري التحويل بنفسك في الخطوة التالية." : "Nothing is charged here. You’ll make the transfer yourself in the next step.")}</p>}
           </form>
         </>}
       </>}

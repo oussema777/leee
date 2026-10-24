@@ -13,12 +13,13 @@ import { NextRequest } from "next/server";
 // Opt-in only. Never use the configured application/production database for tests.
 vi.mock("@/lib/db", async () => {
   const { PrismaClient } = await import("@prisma/client");
+  const { createPrismaAdapter } = await import("../prisma-adapter.mjs");
   const url =
     process.env.EBOOK_TEST_DATABASE_URL ||
     "postgresql://postgres@127.0.0.1:55439/postgres";
   if (!["localhost", "127.0.0.1"].includes(new URL(url).hostname))
     throw Error("Ebook tests require an isolated local database");
-  return { db: new PrismaClient({ datasourceUrl: url }) };
+  return { db: new PrismaClient({ adapter: createPrismaAdapter(url ) }) };
 });
 const mail = vi.hoisted(() => ({ send: vi.fn(async () => ({ error: null })) }));
 vi.mock("resend", () => ({
@@ -121,7 +122,10 @@ describe.skipIf(!process.env.EBOOK_TEST_DATABASE_URL)(
       receivedAmountCents: 500,
       currency: "USD",
     });
+    let previousMethods: any = null;
     beforeAll(async () => {
+      previousMethods = await db.bookWhishSettings.findUnique({ where: { id: "checkout-payment-methods" } });
+      await db.bookWhishSettings.upsert({ where: { id: "checkout-payment-methods" }, create: { id: "checkout-payment-methods", config: { WHISH: true, BANK_AUDI: true, CASH: true }, updatedBy: "local-test" }, update: { config: { WHISH: true, BANK_AUDI: true, CASH: true } } });
       vi.stubEnv("NEXT_PUBLIC_SITE_URL", origin);
       vi.stubEnv("EBOOK_AUTH_SECRET", "test-ebook-secret-32-characters-long");
       vi.stubEnv("RESEND_API_KEY", "test-only");
@@ -203,7 +207,22 @@ describe.skipIf(!process.env.EBOOK_TEST_DATABASE_URL)(
         data: { published: true, activeVersionId: version.id },
       });
     });
+    it('rejects hidden ebook methods even from an already-open checkout and restores Whish when enabled', async () => {
+      await db.bookWhishSettings.update({ where: { id: 'checkout-payment-methods' }, data: { config: { WHISH: false, BANK_AUDI: false, CASH: true } } });
+      try {
+        for (const method of ['WHISH', 'BANK_AUDI']) {
+          const response = await checkout(request('/api/ebooks/orders', 'POST', { ebookId, customerName: 'Local Reader', method, locale: 'en', termsAccepted: true }));
+          expect(response.status).toBe(409);
+        }
+        expect(await db.ebookOrder.count({ where: { readerId } })).toBe(0);
+      } finally {
+        await db.bookWhishSettings.update({ where: { id: 'checkout-payment-methods' }, data: { config: { WHISH: true, BANK_AUDI: true, CASH: true } } });
+      }
+      expect(await newOrder()).toBeTruthy();
+    });
     afterAll(async () => {
+      if (previousMethods) await db.bookWhishSettings.update({ where: { id: "checkout-payment-methods" }, data: { config: previousMethods.config, updatedBy: previousMethods.updatedBy, updatedAt: previousMethods.updatedAt } });
+      else await db.bookWhishSettings.deleteMany({ where: { id: "checkout-payment-methods" } });
       await db.$disconnect();
       vi.unstubAllEnvs();
     });

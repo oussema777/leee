@@ -34,7 +34,8 @@ if (!process.env.DATABASE_URL) {
 
 // Import Prisma AFTER env is populated.
 const { PrismaClient } = await import("@prisma/client");
-const db = new PrismaClient();
+  const { createPrismaAdapter } = await import("../src/lib/prisma-adapter.mjs");
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 
 const email = (process.argv[2] || "admin@theleeexperience.com").toLowerCase();
 const password = process.argv[3];

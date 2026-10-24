@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Additive TEST ledger rollout. Default: read-only. No order writes or payment calls.
 import nextEnv from '@next/env';
 import { PrismaClient } from '@prisma/client';
@@ -6,8 +7,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 nextEnv.loadEnvConfig(process.cwd(), true, { info() {}, error() {} });
-const runtime = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
-const direct = new PrismaClient({ datasourceUrl: process.env.DIRECT_DATABASE_URL });
+const runtime = new PrismaClient({ adapter: createPrismaAdapter(process.env.DATABASE_URL) });
+const direct = new PrismaClient({ adapter: createPrismaAdapter(process.env.DIRECT_DATABASE_URL) });
 async function identity(db) {
   return db.$queryRaw`SELECT current_database() AS database, current_user AS role,
     (SELECT oid::text FROM pg_database WHERE datname = current_database()) AS database_oid,

@@ -1,3 +1,4 @@
+import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
 import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
@@ -16,6 +17,8 @@ import { ebookPaymentSettings } from "@/lib/ebooks/payment-settings";
 import { makeSnapshot } from "@/lib/book-orders/whish-config";
 import { cardSnapshot, customerTestAccess } from "@/lib/cybersource/customer-config";
 import { hasReadingAccess, localReaderPreviewEnabled } from "@/lib/ebooks/reading-access";
+import { liveCustomerEnabled } from '@/lib/cybersource/live-config';
+import { createLiveEbookOrder } from '@/lib/cybersource/live-ebook-order';
 export async function GET(request: NextRequest) {
   return endpoint(request, async () => {
     const reader = await requireReader(request);
@@ -70,6 +73,12 @@ export async function POST(request: NextRequest) {
     if (!(await limited("order:" + reader.id, 20, 3600)))
       throw new EbookError("Too many orders. Please try again later.", 429);
     const { ebookId, customerName, method, locale } = input.data;
+    if (!methodAllowed(await getPaymentMethods(), method)) throw new EbookError('This payment method is currently unavailable. Refresh checkout and choose another method.', 409);
+    if (method === 'BANK_AUDI' && liveCustomerEnabled()) {
+      if (request.headers.get('origin') !== 'https://www.theleeexperience.com') throw new EbookError('Open checkout on the LEE website.', 403);
+      const live = await createLiveEbookOrder(db, reader.id, input.data);
+      return json({ id: live.id });
+    }
     const isCardTest = method === "BANK_AUDI";
     if (isCardTest && !(await customerTestAccess(request))) throw new EbookError("Card testing is available only to signed-in payment administrators.", 403);
     const order = await db.$transaction(async (tx) => {

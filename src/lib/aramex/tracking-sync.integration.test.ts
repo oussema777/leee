@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../prisma-adapter.mjs";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
@@ -7,7 +8,7 @@ import { testInput, testPreparation } from "./uat-test-fixtures";
 const url = process.env.ARAMEX_TEST_DATABASE_URL || "postgresql://postgres@127.0.0.1:55441/aramex_test";
 const parsed = new URL(url);
 if (!["localhost", "127.0.0.1"].includes(parsed.hostname) || parsed.pathname !== "/aramex_test") throw Error("Dedicated local database required");
-const db = new PrismaClient({ datasourceUrl: url });
+const db = new PrismaClient({ adapter: createPrismaAdapter(url ) });
 const event = (awb: string, code = "SH005", orderNumber = "") => ({ Key: awb, Value: { WaybillNumber: awb,
   UpdateCode: code, UpdateDateTime: "2026-10-20T10:00:00Z", UpdateLocation: "Beirut", Comments: "Test event", ProblemCode: "", OrderNumber: orderNumber } });
 describe.skipIf(!process.env.ARAMEX_TEST_DATABASE_URL)("missed-update recovery (isolated PostgreSQL)", () => {

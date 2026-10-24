@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../prisma-adapter.mjs";
 import { randomUUID } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -8,7 +9,7 @@ import { releaseOrderStock } from '@/lib/book-orders/whish-server';
 const url = process.env.CYBERSOURCE_TEST_DATABASE_URL;
 if (url && !/^postgresql:\/\/[^@]+@127\.0\.0\.1:55441\/aramex_test$/.test(url)) throw Error('Local test database required');
 describe.skipIf(!url)('customer sandbox finalization', () => {
-  const db = new PrismaClient({ datasources: { db: { url: url || 'postgresql://postgres@127.0.0.1:55441/aramex_test' } } });
+  const db = new PrismaClient({ adapter: createPrismaAdapter(url || 'postgresql://postgres@127.0.0.1:55441/aramex_test') });
   const bookIds: string[] = [], ebookIds: string[] = [];
   let readerId: string, ebookId: string;
   const snapshot = { provider: 'CYBERSOURCE', environment: 'TEST', testMode: true, amountCents: 900, currency: 'USD', supportPhone: '9613600747' };

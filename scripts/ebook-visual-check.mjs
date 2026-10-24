@@ -1,9 +1,10 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { chromium } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import { readFile, mkdir } from "node:fs/promises";
 const url = process.env.EBOOK_TEST_DATABASE_URL;
 if (!url || !["localhost", "127.0.0.1"].includes(new URL(url).hostname)) throw Error("Local database required");
-const db = new PrismaClient({ datasourceUrl: url });
+const db = new PrismaClient({ adapter: createPrismaAdapter(url) });
 const fixture = JSON.parse(await readFile("private-ebooks/preview.json", "utf8"));
 const browser = await chromium.launch({ headless: true });
 const origin = "http://localhost:3107";

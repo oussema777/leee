@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../prisma-adapter.mjs";
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -5,7 +6,7 @@ import { startCheckout, checkResult } from "./checkout";
 const url = process.env.CYBERSOURCE_TEST_DATABASE_URL;
 if (url && (!/^postgresql:\/\/[^@]+@127\.0\.0\.1:55441\/aramex_test$/.test(url))) throw Error("Local test database required");
 describe.skipIf(!url)("persistent test checkout", () => {
-  const db = new PrismaClient({ datasources: { db: { url: url || "postgresql://postgres@127.0.0.1:55441/aramex_test" } } });
+  const db = new PrismaClient({ adapter: createPrismaAdapter(url || "postgresql://postgres@127.0.0.1:55441/aramex_test") });
   const reference = "AUDI-TEST-" + randomUUID(); let orderId: string;
   beforeAll(async () => {
     vi.stubEnv("JWT_SECRET", "local-test-secret".repeat(4));

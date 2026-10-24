@@ -1,7 +1,9 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { PrismaClient } from '@prisma/client';
 import XLSX from 'xlsx';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 // ═══════════════════════════════════════════════════════════════════
 // Track Record 2026 — all 31 rows parsed from the spreadsheet

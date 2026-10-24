@@ -1,8 +1,9 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Explicit account-scoped local preview. Leaves payment and receipt records unchanged.
 import nextEnv from "@next/env";
 import { PrismaClient } from "@prisma/client";
 nextEnv.loadEnvConfig(process.cwd());
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 const email = process.argv[2]?.trim().toLowerCase(), reference = process.argv[3];
 if (!email || !reference?.startsWith("EB-TEST-")) throw Error("Provide reader email and test order reference");
 try {

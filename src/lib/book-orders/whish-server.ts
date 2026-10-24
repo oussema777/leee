@@ -1,3 +1,5 @@
+import { getPaymentMethods } from '@/lib/payment-methods';
+import { isLiveCardSnapshot } from '@/lib/cybersource/live-config';
 import { createHash } from "node:crypto";
 import { isCardSnapshot, isTestBookReference } from '@/lib/cybersource/customer-policy';
 import { Prisma, type BookWhishPayment, type BookOrder } from "@prisma/client";
@@ -18,7 +20,8 @@ export function paymentPath(locale: string, reference: string, token: string) {
 export async function getWhishConfig() {
   try {
     const row = await db.bookWhishSettings.findUnique({ where: { id: "book-restore" } });
-    return parseWhishConfig(row?.config);
+    const config = parseWhishConfig(row?.config);
+    return { ...config, enabled: config.enabled && (await getPaymentMethods()).WHISH };
   } catch (e) {
     // Fail closed until the additive schema patch has been applied.
     if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021")) console.error("Whish setup unavailable");
@@ -109,7 +112,7 @@ export async function paymentSummary(p: BookWhishPayment & { order: BookOrder })
     p.order.status !== "CANCELLED" && p.expiresAt.getTime() > Date.now() &&
     (bankAudi ? bankAudiSnapshotActive(config as Awaited<ReturnType<typeof getBankAudiConfig>>, snapshot) : snapshotActive(config as Awaited<ReturnType<typeof getWhishConfig>>, snapshot));
   return {
-    cardCheckout: bankAudi && isCardSnapshot(p.snapshot), reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
+    cardCheckout: bankAudi && (isCardSnapshot(p.snapshot) || isLiveCardSnapshot(p.snapshot)), liveCard: bankAudi && isLiveCardSnapshot(p.snapshot), reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
     amountCents: p.order.priceCents, currency: p.order.currency,
     selectionMode: p.order.selectionMode,
     books: items.map(item => ({ ...item.inventoryItem, coverImageUrl: item.edition?.coverImageUrl || item.inventoryItem.coverImageUrl, editionLabel: item.edition?.label || null, editionYear: item.edition?.publicationYear || null, isFreeExtra: item.isFreeExtra })),

@@ -2,9 +2,11 @@ import { SignJWT, jwtVerify } from "jose";
 import { hash, compare } from "bcryptjs";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-secret"
-);
+function signingKey() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) throw new Error('ADMIN_AUTH_NOT_CONFIGURED');
+  return new TextEncoder().encode(secret);
+}
 
 const COOKIE_NAME = "admin-token";
 
@@ -28,15 +30,17 @@ export async function createToken(payload: {
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
     .setIssuedAt()
-    .sign(JWT_SECRET);
+    .sign(signingKey());
 }
 
 export async function verifyToken(
   token: string
 ): Promise<{ userId: string; email: string; role: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { userId: string; email: string; role: string };
+    const { payload } = await jwtVerify(token, signingKey(), { algorithms: ['HS256'], requiredClaims: ['iat', 'exp'] });
+    if (typeof payload.userId !== 'string' || !payload.userId || payload.userId.length > 200
+      || typeof payload.email !== 'string' || !payload.email || typeof payload.role !== 'string' || !payload.role) return null;
+    return { userId: payload.userId, email: payload.email, role: payload.role };
   } catch {
     return null;
   }

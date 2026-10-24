@@ -1,7 +1,9 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { PrismaClient } from '@prisma/client';
 import XLSX from 'xlsx';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 // ── Spreadsheet programs (from Jana's Excel) ──
 // Each row from the spreadsheet mapped to what we matched in DB

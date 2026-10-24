@@ -29,7 +29,7 @@ export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
     try { setCatalog(await ebookFetch<Catalog>("/api/ebooks/catalog")); }
     catch (e) { setError((e as Error).message); }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); window.addEventListener('focus', load); return () => window.removeEventListener('focus', load); }, [load]);
   const book = catalog?.ebooks.find(b => b.slug === slug);
   const title = book ? ar ? book.titleAr || book.titleEn : book.titleEn : "";
   const steps = ar ? [

@@ -1,6 +1,8 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 /**
  * Maps optimized images from public/images/projects/ to programs in the database.

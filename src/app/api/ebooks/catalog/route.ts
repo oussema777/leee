@@ -1,3 +1,5 @@
+import { getPaymentMethods } from '@/lib/payment-methods';
+import { liveCustomerEnabled } from '@/lib/cybersource/live-config';
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { endpoint, json } from "@/lib/ebooks/server";
@@ -26,13 +28,15 @@ export async function GET(request: NextRequest) {
       }),
       ebookPaymentSettings(),
     ]);
+    const enabled = await getPaymentMethods();
     return json({
       ebooks,
-      testMode,
+      testMode: testMode && isWhishAvailable(whish),
+      cardTestMode: !liveCustomerEnabled(),
       testUntil,
       methods: [
         isWhishAvailable(whish) ? "WHISH" : null,
-        await customerTestAccess(request) ? "BANK_AUDI" : null,
+        enabled.BANK_AUDI && (liveCustomerEnabled() || await customerTestAccess(request)) ? "BANK_AUDI" : null,
       ].filter(Boolean),
     });
   });

@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Explicit, resumable publication of the approved edition; creates no readers or orders.
 // Run with --apply only against the intended website environment.
 import nextEnv from "@next/env";
@@ -9,7 +10,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 nextEnv.loadEnvConfig(process.cwd());
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 const root = path.resolve("private-ebooks/manal-web");
 const manifest = JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8"));
 const expected = "d220b8d77a3394ea8dafbaebcb9805abeacb02ff05a315c85adfa78e45c119f4";

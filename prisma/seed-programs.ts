@@ -1,7 +1,9 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { PrismaClient } from "@prisma/client";
 import { trackRecordProjects } from "./track-record-data";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   // ── 1. Upsert Pillars ──────────────────────────────────────────

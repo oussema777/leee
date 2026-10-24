@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Load prepared reading pages into an isolated local database for review.
 // Never reads .env or writes to a remote database.
 import { PrismaClient } from "@prisma/client";
@@ -14,7 +15,7 @@ const root = path.resolve("private-ebooks/manal-web");
 const manifest = JSON.parse(
   await readFile(path.join(root, "manifest.json"), "utf8"),
 );
-const db = new PrismaClient({ datasourceUrl: url });
+const db = new PrismaClient({ adapter: createPrismaAdapter(url) });
 try {
   const book = await db.ebook.upsert({
     where: { slug: "manal-366-days" },

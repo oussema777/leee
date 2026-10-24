@@ -1,3 +1,5 @@
+// These existing behavior tests exercise enabled methods; switch policy has separate integration coverage.
+vi.mock('@/lib/payment-methods', async original => ({ ...await original<typeof import('@/lib/payment-methods')>(), getPaymentMethods: vi.fn(async () => ({ WHISH: true, BANK_AUDI: true, CASH: true })) }));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const saved = vi.hoisted(() => ({ enabled: false, qrVerified: false, termsVerified: true, accountName: "Saved account" }));
 const management = vi.hoisted(() => ({ config: null as null | { enabled: unknown } }));

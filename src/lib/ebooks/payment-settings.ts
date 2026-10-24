@@ -1,3 +1,4 @@
+import { getPaymentMethods } from '@/lib/payment-methods';
 import { getWhishConfig, getBankAudiConfig } from "@/lib/book-orders/whish-server";
 import { db } from "@/lib/db";
 
@@ -19,10 +20,11 @@ export async function ebookPaymentSettings() {
   // Explicitly authorized hosted management testing; independent of printed books.
   const managementTesting = (management?.config as { enabled?: unknown } | null)?.enabled === true;
   const testMode = managementTesting || ebookPaymentTestActive();
+  const methods = await getPaymentMethods();
   return {
     // Copies enable the saved QRs for explicitly enabled local/management tests.
     // Normal account/IBAN/amount validation and manual payment approval still apply.
-    whish: testMode ? { ...whish, enabled: true, qrVerified: true } : whish,
+    whish: { ...(testMode ? { ...whish, enabled: true, qrVerified: true } : whish), enabled: methods.WHISH && (testMode || whish.enabled) },
     bank: { ...bank, enabled: false }, // Retired manual Audi transfers cannot be re-enabled by test mode.
     testMode,
     testUntil: managementTesting ? null : testMode ? process.env.EBOOK_PAYMENT_TEST_UNTIL : null,

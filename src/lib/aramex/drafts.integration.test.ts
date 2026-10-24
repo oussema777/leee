@@ -4,12 +4,13 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/db", async () => {
   const { PrismaClient } = await import("@prisma/client");
+  const { createPrismaAdapter } = await import("../prisma-adapter.mjs");
   const url = process.env.ARAMEX_TEST_DATABASE_URL || "postgresql://postgres@127.0.0.1:55441/aramex_test";
   const parsed = new URL(url);
   if (!["localhost", "127.0.0.1"].includes(parsed.hostname) || parsed.pathname !== "/aramex_test") {
     throw Error("Aramex tests require a dedicated local aramex_test database.");
   }
-  return { db: new PrismaClient({ datasourceUrl: url }) };
+  return { db: new PrismaClient({ adapter: createPrismaAdapter(url ) }) };
 });
 vi.mock("@/lib/api-utils", () => ({
   withAdmin: async () => ({ session: { userId: "aramex-test-admin", role: "ADMIN" } }),

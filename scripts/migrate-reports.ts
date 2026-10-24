@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * One-time migration: copy the demo reports from the static data file into the
  * Report table so the (now DB-driven) reports page keeps its current content.
@@ -10,7 +12,7 @@
 import { PrismaClient } from "@prisma/client";
 import { demoReports } from "../src/components/sections/reports/reportsData";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   const existing = await prisma.report.count();

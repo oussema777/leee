@@ -1,7 +1,9 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /** Migrate timeline into the SuccessMilestone table. Idempotent: skips if rows exist. */
 import { PrismaClient } from "@prisma/client";
 import { timelineData } from "../src/components/sections/about/aboutData";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   const existing = await prisma.successMilestone.count();

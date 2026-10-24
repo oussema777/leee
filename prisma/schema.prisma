@@ -4,8 +4,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // Digital publishing is independent of physical Book Restore inventory/orders.
@@ -95,6 +93,7 @@ enum EbookOrderState {
 }
 
 model EbookOrder {
+  cardLiveAttempts CybersourceLiveAttempt[]
   cardTestAttempts CybersourceTestAttempt[]
   id String @id @default(cuid())
   reference String @unique
@@ -765,6 +764,7 @@ enum BookOrderStatus {
 }
 
 model BookOrder {
+  cardLiveAttempts    CybersourceLiveAttempt[]
   cardTestAttempts    CybersourceTestAttempt[]
   id                 String                @id @default(cuid())
   reference          String                @unique
@@ -1457,4 +1457,81 @@ model CybersourceTestAttempt {
   updatedAt DateTime @default(now())
   @@index([bookOrderId, createdAt], map: "CybersourceTestAttempt_book_created")
   @@index([ebookOrderId, createdAt], map: "CybersourceTestAttempt_ebook_created")
+}
+
+// Disabled production preparation. SQL adds environment, one-order and proof
+// constraints; no public route writes this ledger in the current release.
+model CybersourceLiveAttempt {
+  id String @id
+  sessionState String @default("NONE")
+  sessionCipher String?
+  sessionExpiresAt DateTime?
+  sessionStartedAt DateTime?
+  bookOrderId String?
+  bookOrder BookOrder? @relation(fields: [bookOrderId], references: [id], onDelete: Restrict)
+  ebookOrderId String?
+  ebookOrder EbookOrder? @relation(fields: [ebookOrderId], references: [id], onDelete: Restrict)
+  orderReference String
+  merchantId String
+  amountCents Int
+  currency String @default("USD")
+  environment String @default("PRODUCTION")
+  state String @default("READY")
+  transactionId String? @unique
+  verifiedAt DateTime?
+  reviewReason String?
+  nextCheckAt DateTime @default(now())
+  checkAttempts Int @default(0)
+  checkLeaseToken String?
+  checkLeaseUntil DateTime?
+  checkError String?
+  customerCheckAfter DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  events CardPaymentOutbox[]
+  opsNotes CardPaymentOpsNote[]
+  @@index([bookOrderId, createdAt], map: "CybersourceLiveAttempt_book_created")
+  @@index([ebookOrderId, createdAt], map: "CybersourceLiveAttempt_ebook_created")
+  @@index([state, nextCheckAt], map: "CybersourceLiveAttempt_recovery")
+}
+
+model CardPaymentOutbox {
+  id String @id
+  attemptId String
+  attempt CybersourceLiveAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  event String
+  createdAt DateTime @default(now())
+  processedAt DateTime?
+  state String @default("PENDING")
+  payload Json?
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  firstSendAt DateTime?
+  leaseToken String?
+  leaseUntil DateTime?
+  lastError String?
+  providerMessageId String?
+  @@unique([attemptId, event])
+  @@index([processedAt, createdAt], map: "CardPaymentOutbox_pending")
+  @@index([state, nextAttemptAt], map: "CardPaymentOutbox_due")
+}
+
+model CardPaymentOpsNote {
+  id String @id
+  attemptId String
+  attempt CybersourceLiveAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  actorId String
+  action String
+  note String
+  createdAt DateTime @default(now())
+  @@index([attemptId, createdAt], map: "CardPaymentOpsNote_attempt_created")
+}
+
+model CardPaymentJobStatus {
+  id String @id
+  token String
+  startedAt DateTime @default(now())
+  finishedAt DateTime?
+  state String
+  summary Json?
 }

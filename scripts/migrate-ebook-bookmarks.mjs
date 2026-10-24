@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Additive, idempotent migration. No orders or reader accounts are changed.
 import nextEnv from "@next/env";
 import { PrismaClient } from "@prisma/client";
@@ -7,7 +8,7 @@ const local = process.argv.includes("--local");
 const url = local ? process.env.EBOOK_TEST_DATABASE_URL : process.env.DATABASE_URL;
 if (!url || (local && !["localhost", "127.0.0.1"].includes(new URL(url).hostname))) throw Error("Invalid database target");
 if (!process.argv.includes("--apply")) throw Error("Pass --apply to add the bookmarks table");
-const db = new PrismaClient({ datasourceUrl: url });
+const db = new PrismaClient({ adapter: createPrismaAdapter(url) });
 try {
   const sql = await readFile("prisma/patches/20261012_ebook_bookmarks.sql", "utf8");
   await db.$transaction(async tx => {

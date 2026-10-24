@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * Seeds placeholder EXPERT / MENTOR members for the About "Our Experts & Mentors"
  * showcase. Idempotent: only seeds if there are currently zero EXPERT/MENTOR members.
@@ -7,7 +9,7 @@
  */
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 const placeholders = [
   { memberType: "EXPERT", nameEn: "Expert Placeholder One", nameAr: "خبير افتراضي ١", titleEn: "Business Development Expert", titleAr: "خبير تطوير الأعمال", order: 0 },

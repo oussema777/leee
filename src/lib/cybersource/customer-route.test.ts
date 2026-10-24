@@ -1,6 +1,9 @@
+// These existing behavior tests exercise enabled methods; switch policy has separate integration coverage.
+vi.mock('@/lib/payment-methods', async original => ({ ...await original<typeof import('@/lib/payment-methods')>(), getPaymentMethods: vi.fn(async () => ({ WHISH: true, BANK_AUDI: true, CASH: true })) }));
 import { beforeEach, expect, it, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { customerCheckout } from './customer-route';
+import { getPaymentMethods } from '@/lib/payment-methods';
 import { TransactionLookupPending } from './transaction';
 const mocks = vi.hoisted(() => ({ admin: vi.fn(), payment: vi.fn(), reader: vi.fn(), order: vi.fn(), query: vi.fn(), verify: vi.fn(), finalize: vi.fn(), start: vi.fn() }));
 vi.mock('@/lib/db', () => ({ db: { $queryRaw: mocks.query, ebookOrder: { findFirst: mocks.order } } }));
@@ -68,4 +71,10 @@ it('polls the reference search again in ten seconds without repeating a missing 
 it('does not force an untouched checkout into payment-pending mode', async () => {
   const response = await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1');
   expect(response.status).toBe(200); expect(await response.json()).not.toHaveProperty('pending');
+});
+
+it('blocks new test card sessions when the method switch is off', async () => {
+  vi.mocked(getPaymentMethods).mockResolvedValueOnce({ WHISH: false, BANK_AUDI: false, CASH: true });
+  expect((await customerCheckout(request({ action: 'start' }), 'BOOK', 'x')).status).toBe(503);
+  expect(mocks.start).not.toHaveBeenCalled();
 });

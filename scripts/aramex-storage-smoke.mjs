@@ -1,10 +1,11 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Local HTTP smoke check against the real configured database. No carrier calls.
 // A short-lived admin token stays in memory and is never logged or persisted.
 import nextEnv from '@next/env';
 import { PrismaClient } from '@prisma/client';
 import { SignJWT } from 'jose';
 nextEnv.loadEnvConfig(process.cwd(), true, { info() {}, error() {} });
-const db = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
+const db = new PrismaClient({ adapter: createPrismaAdapter(process.env.DATABASE_URL) });
 const origin = 'http://127.0.0.1:3000';
 try {
   if (!process.env.JWT_SECRET) throw Error('Explicit session secret required');

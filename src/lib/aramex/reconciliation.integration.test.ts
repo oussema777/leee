@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../prisma-adapter.mjs";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
@@ -8,7 +9,7 @@ import { submitSavedShipment } from "./submission";
 const url = process.env.ARAMEX_TEST_DATABASE_URL || "postgresql://postgres@127.0.0.1:55441/aramex_test";
 const parsed = new URL(url);
 if (!["localhost", "127.0.0.1"].includes(parsed.hostname) || parsed.pathname !== "/aramex_test") throw Error("Dedicated local database required");
-const db = new PrismaClient({ datasourceUrl: url });
+const db = new PrismaClient({ adapter: createPrismaAdapter(url ) });
 const evidence = { outcome: "CREATED" as const, evidenceSource: "ARAMEX_SUPPORT" as const,
   evidenceReference: "Support ticket TEST-123", notes: "Aramex confirmed this request and order match the tracking number.",
   confirmed: true as const, trackingNumber: "123456789", labelUrl: "" };

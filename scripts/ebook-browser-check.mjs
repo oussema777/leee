@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { chromium } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import { SignJWT } from "jose";
@@ -12,7 +13,7 @@ if (
 const origin = process.env.EBOOK_PREVIEW_URL || "http://localhost:3107";
 if (!["localhost", "127.0.0.1"].includes(new URL(origin).hostname))
   throw Error("Use a local preview server");
-const db = new PrismaClient({ datasourceUrl: database });
+const db = new PrismaClient({ adapter: createPrismaAdapter(database) });
 const browser = await chromium.launch({ headless: true });
 const admin = await browser.newContext({
   viewport: { width: 1440, height: 1000 },

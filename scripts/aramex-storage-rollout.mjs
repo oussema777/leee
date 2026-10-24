@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Explicit additive rollout; default is read-only inspection.
 import nextEnv from '@next/env';
 import { PrismaClient } from '@prisma/client';
@@ -6,10 +7,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 nextEnv.loadEnvConfig(process.cwd(), true, { info() {}, error() {} });
-const runtime = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
+const runtime = new PrismaClient({ adapter: createPrismaAdapter(process.env.DATABASE_URL) });
 const directUrl = process.env.DIRECT_DATABASE_URL;
 if (!directUrl) throw Error('Direct database configuration is required');
-const direct = new PrismaClient({ datasourceUrl: directUrl });
+const direct = new PrismaClient({ adapter: createPrismaAdapter(directUrl) });
 const tables = ['BookShipment', 'BookShipmentAttempt', 'BookShipmentReconciliation', 'AramexTrackingEvent'];
 const files = ['20261022_aramex_reconciliation.sql', '20261022_aramex_tracking.sql'];
 const pgBin = 'C:/Program Files/PostgreSQL/18/bin';

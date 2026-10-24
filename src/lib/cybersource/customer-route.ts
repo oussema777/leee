@@ -1,3 +1,4 @@
+import { getPaymentMethods } from '@/lib/payment-methods';
 import { NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
@@ -56,6 +57,7 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
       return privateJson({ attempt: result, completed: await finalizeCustomerTest(db, attempt.id) });
     }
     if (!customerCardEnabled()) return privateJson({ error: 'Card checkout is temporarily unavailable.' }, 503);
+    if (!(await getPaymentMethods()).BANK_AUDI) return privateJson({ error: 'New card payments are temporarily unavailable. You can still check an existing payment.' }, 503);
     return privateJson(await startCheckout(db, { kind, reference }, actor, input.retry));
   } catch (error) {
     if (error instanceof TransactionLookupPending) return privateJson({ pending: true, retryAfterSeconds: CUSTOMER_CHECK_SECONDS, message: 'Waiting for payment confirmation. We will check again in 10 seconds. Do not pay again.' }, 202);

@@ -14,6 +14,8 @@ export default function BankAudiPage() {
   return <div className="mx-auto max-w-3xl space-y-6">
     <Link href="/admin/book-orders" className="text-sm text-brand-blue-light">Back to book orders</Link>
     <h1 className="text-3xl font-bold text-white">Bank Audi card payments</h1>
+    <Link href="/admin/payment-methods" className="mt-3 inline-block text-sm text-blue-300 underline">Show or hide payment methods in checkout</Link>
+    <Link href="/admin/card-payments" className="inline-block rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">Review live payments and email delivery</Link>
     <section className="rounded-2xl border border-gray-700 bg-[#1e293b] p-6">
       <span className="rounded-full bg-amber-500/15 px-3 py-1 text-sm font-semibold text-amber-200">Test setup</span>
       <h2 className="mt-5 text-xl font-semibold text-white">Online checkout through Areeba / Cybersource</h2>

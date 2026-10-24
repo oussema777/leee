@@ -1,6 +1,8 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /** Seed the homepage hero carousel (Slider table). Idempotent: skips if rows exist. */
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 const slides = [
   {

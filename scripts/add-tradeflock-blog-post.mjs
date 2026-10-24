@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * Adds the "Most Impactful Women Leaders of 2026" announcement blog post.
  * Idempotent: upserts by slug, safe to re-run.
@@ -7,7 +8,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 const SLUG = "executive-director-recognized-most-impactful-women-leaders-2026";
 

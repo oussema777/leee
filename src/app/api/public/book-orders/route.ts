@@ -1,3 +1,4 @@
+import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -11,15 +12,26 @@ import { makeSnapshot } from "@/lib/book-orders/whish-config";
 import { cardSnapshot, customerTestAccess } from "@/lib/cybersource/customer-config";
 import { expireWhishPayments, getWhishConfig, tokenHash, requestHash, paymentPath, privateJson } from "@/lib/book-orders/whish-server";
 
+import { liveCustomerEnabled } from '@/lib/cybersource/live-config';
+import { createLiveBookOrder } from '@/lib/cybersource/live-book-order';
+import { boundedJson, InputTooLarge } from '@/lib/cybersource/bounded-input';
+import { limited } from '@/lib/ebooks/server';
 function orderReference() { return "LEE-BK-" + new Date().getFullYear() + "-" + crypto.randomUUID().slice(0, 8).toUpperCase(); }
 
 export async function POST(request: NextRequest) {
   if (!rateLimit("book-order:" + clientIp(request), 10, 3600000)) return privateJson({ error: "Too many order attempts. Please try again later." }, 429);
   try {
-    const parsed = bookOrderSchema.safeParse(await request.json());
+    const parsed = bookOrderSchema.safeParse(await boundedJson(request));
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Please check your order details." }, 400);
     const input = parsed.data;
     if (input.website) return NextResponse.json({ reference: orderReference() }, { status: 201 });
+    if (!methodAllowed(await getPaymentMethods(), input.paymentMethod)) return privateJson({ error: 'This payment method is currently unavailable. Refresh checkout and choose another method.' }, 409);
+    if (input.paymentMethod === 'BANK_AUDI' && liveCustomerEnabled()) {
+      if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout on the LEE website.' }, 403);
+      if (!await limited('live-book-create:' + tokenHash(clientIp(request)), 10, 3600)) return privateJson({ error: 'Too many order attempts. Please try again later.' }, 429);
+      const live = await createLiveBookOrder(db, input);
+      return privateJson({ id: live.id, reference: live.reference, paymentUrl: paymentPath(input.locale, live.reference, input.paymentAccessToken!) }, 201);
+    }
     const isCardTest = input.paymentMethod === "BANK_AUDI";
     if (isCardTest && !(await customerTestAccess(request))) return privateJson({ error: "Card testing is available only to signed-in payment administrators." }, 403);
     const manual = input.paymentMethod === "WHISH" || input.paymentMethod === "BANK_AUDI";
@@ -146,6 +158,8 @@ export async function POST(request: NextRequest) {
       ...(privatePath ? { paymentUrl: privatePath } : {}),
     }, 201);
   } catch (e) {
+    if (e instanceof InputTooLarge) return privateJson({ error: 'Request too large.' }, 413);
+    if (e instanceof SyntaxError) return privateJson({ error: 'Invalid JSON.' }, 400);
     if (e instanceof Error && e.message === "BOOK_UNAVAILABLE") return privateJson({ error: "One of the selected books is no longer available. Please choose another." }, 409);
     console.error("Book order creation failed");
     return privateJson({ error: "We could not place your order. Please try again." }, 500);

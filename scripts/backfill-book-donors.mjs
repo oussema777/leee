@@ -1,6 +1,8 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 import { PrismaClient } from "@prisma/client";
 
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 
 try {
   const submissions = await db.bookDonationSubmission.findMany({

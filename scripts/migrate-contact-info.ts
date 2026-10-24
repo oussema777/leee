@@ -1,6 +1,8 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /** Migrate site contact details into the ContactInfo key/value table. Idempotent: skips if rows exist. */
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 // Keys MUST match the admin Settings → Contact tab + src/lib/data/contact.ts.
 const contactInfo = [

@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * Replace the expert/mentor PLACEHOLDERS on /about/experts with the 5 real
  * experts collected via the "Expert Profile Submission Form" (Aug 2026 responses).
@@ -13,7 +15,7 @@
  */
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 const experts = [
   {

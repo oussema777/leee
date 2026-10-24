@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * One-time migration: copy the demo gallery images from the static data file
  * into the GalleryImage table so the (now DB-driven) gallery page keeps its
@@ -16,7 +18,7 @@
 import { PrismaClient } from "@prisma/client";
 import { galleryImages } from "../src/components/sections/gallery/galleryData";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   const existing = await prisma.galleryImage.count();

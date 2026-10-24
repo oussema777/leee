@@ -24,7 +24,7 @@ const copy = {
         condition: "Condition",
         category: "Categories",
         order: "Order this book",
-        starting: "Starting at $5 · cash payment available",
+        starting: "Starting at $5",
         impactTitle: "Every book opens two doors.",
         impactBody: "You give a rescued book a new reader while helping fund vocational training for a woman or displaced young person.",
         related: "More books you may love",
@@ -111,7 +111,7 @@ const copy = {
         condition: "الحالة",
         category: "التصنيفات",
         order: "اطلب هذا الكتاب",
-        starting: "ابتداءً من ٥$ · الدفع النقدي متاح",
+        starting: "ابتداءً من ٥$",
         impactTitle: "كل كتاب يفتح بابين.",
         impactBody: "تمنح كتابًا مستعادًا قارئًا جديدًا، وتساهم في تمويل تدريب مهني لامرأة أو شاب نازح.",
         related: "كتب أخرى قد تعجبك",
@@ -253,9 +253,14 @@ export function BookDetailExperience({ book, books, locale }: {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [reference, setReference] = useState("");
+    const [cashAvailable, setCashAvailable] = useState(false);
+    const [methodsLoaded, setMethodsLoaded] = useState(false);
+    const [methodsError, setMethodsError] = useState(false);
+    const [cardTestMode, setCardTestMode] = useState(true);
     const [whishAvailable, setWhishAvailable] = useState(false);
     const [bankAudiAvailable, setBankAudiAvailable] = useState(false);
     const [chosenPayment, setChosenPayment] = useState<"CASH" | "WHISH" | "BANK_AUDI">("CASH");
+    const availablePaymentMethods = [...(cashAvailable ? ['CASH'] : []), ...(whishAvailable ? ['WHISH'] : []), ...(bankAudiAvailable ? ['BANK_AUDI'] : [])] as ('CASH' | 'WHISH' | 'BANK_AUDI')[];
     const [paymentHref, setPaymentHref] = useState("");
     const [resumeHref, setResumeHref] = useState("");
     const paymentAttempt = useRef<{ fingerprint: string; token: string } | null>(null);
@@ -270,10 +275,19 @@ export function BookDetailExperience({ book, books, locale }: {
     useEffect(() => {
         if (!open) return;
         let cancelled = false;
-        Promise.all(["whish", "bank-audi"].map(method => fetch("/api/public/book-orders/" + method, { cache: "no-store" })
-            .then(r => r.ok ? r.json() : { available: false }).catch(() => ({ available: false }))))
-            .then(([whish, bank]) => { if (!cancelled) { setWhishAvailable(whish.available === true); setBankAudiAvailable(bank.available === true); setChosenPayment(current => current === "WHISH" && !whish.available || current === "BANK_AUDI" && !bank.available ? "CASH" : current); } });
-        return () => { cancelled = true; };
+        setMethodsError(false); setMethodsLoaded(false); setCashAvailable(false); setWhishAvailable(false); setBankAudiAvailable(false);
+        const refresh = async () => {
+            try {
+                const response = await fetch('/api/public/book-orders/methods', { cache: 'no-store' });
+                if (!response.ok) throw Error('Unavailable');
+                const data = await response.json(); if (cancelled) return;
+                const methods = data.methods;
+                setCashAvailable(methods.CASH === true); setWhishAvailable(methods.WHISH === true); setBankAudiAvailable(methods.BANK_AUDI === true); setCardTestMode(data.cardTestMode === true); setMethodsLoaded(true); setMethodsError(false);
+                setChosenPayment(current => methods[current] ? current : methods.CASH ? 'CASH' : methods.WHISH ? 'WHISH' : 'BANK_AUDI');
+            } catch { if (!cancelled) { setCashAvailable(false); setWhishAvailable(false); setBankAudiAvailable(false); setMethodsLoaded(false); setMethodsError(true); } }
+        };
+        void refresh(); const timer = window.setInterval(refresh, 15000); window.addEventListener('focus', refresh);
+        return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener('focus', refresh); };
     }, [open]);
 
     useEffect(() => {
@@ -336,7 +350,7 @@ export function BookDetailExperience({ book, books, locale }: {
     }
     async function submitOrder(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!packageKey || !purpose || !consent || submitLock.current) return;
+        if (!packageKey || !purpose || !consent || submitLock.current || !availablePaymentMethods.includes(chosenPayment)) return;
         const isLeeChoice = purpose === "DONATION" && selectionMode === "LEE_CHOICE";
         if (!isLeeChoice && selectedBooks.some((item) => !selectedEditionIds[item.id])) {
             setError(isArabic ? "اختر طبعة لكل كتاب." : "Choose an edition for every book."); return;
@@ -658,14 +672,15 @@ export function BookDetailExperience({ book, books, locale }: {
 <fieldset className="mt-6 border-t border-white/15 pt-5">
 <legend className="sr-only">{isArabic ? "طريقة الدفع" : "Payment method"}</legend>
 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/65">{isArabic ? "طريقة الدفع" : "Payment method"}</p>
-<div className="space-y-3">{(["CASH", ...(whishAvailable ? ["WHISH"] : []), "BANK_AUDI"] as ("CASH" | "WHISH" | "BANK_AUDI")[]).map(method => {
+{!availablePaymentMethods.length && <p role="status" className="rounded-xl bg-white/10 p-4 text-sm text-white">{methodsError ? (isArabic ? "تعذر تحميل طرق الدفع. أعد فتح الطلب للمحاولة من جديد." : "Could not load payment methods. Reopen checkout to try again.") : methodsLoaded ? (isArabic ? "الدفع متوقف مؤقتاً. يرجى المحاولة لاحقاً أو التواصل معنا." : "Payments are temporarily paused. Please try later or contact LEE.") : (isArabic ? "جارٍ التحقق من طرق الدفع. إذا استمر الانتظار، أعد فتح الطلب." : "Checking payment methods. If this continues, reopen checkout.")}</p>}
+<div className="space-y-3">{availablePaymentMethods.map(method => {
 const active = chosenPayment === method;
 const unavailable = method === "BANK_AUDI" && !bankAudiAvailable;
 const Icon = method === "WHISH" ? Wallet : Banknote;
 return <label key={method} aria-disabled={unavailable || undefined} className={`relative flex items-center gap-3 rounded-2xl border p-4 transition duration-200 focus-within:ring-2 focus-within:ring-brand-blue-light focus-within:ring-offset-2 focus-within:ring-offset-accent-navy ${unavailable ? "cursor-not-allowed border-white/15 bg-white/5 text-white/55" : active ? "cursor-pointer border-white bg-white text-accent-navy shadow-md" : "cursor-pointer border-white/20 bg-white/5 text-white hover:border-white/50 hover:bg-white/10"}`}>
 <input type="radio" name="paymentChoice" value={method} checked={active} disabled={unavailable} onChange={() => setChosenPayment(method)} className="sr-only" />
 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${active ? method === "WHISH" ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-700" : "bg-white/10 text-white/80"}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
-<span className="min-w-0 flex-1"><strong className="block text-sm">{method === "WHISH" ? "Whish Pay" : method === "BANK_AUDI" ? (isArabic ? "الدفع بالبطاقة عبر بنك عودة" : "Pay by card (Bank Audi)") : purpose === "SELF" ? fulfillment === "PICKUP" ? (isArabic ? "نقداً عند الاستلام" : "Cash at pickup") : (isArabic ? "الدفع عند التوصيل" : "Cash on delivery") : t.cash}</strong><span className={`mt-1 block text-xs leading-5 ${active ? "text-text-secondary" : "text-white/65"}`}>{unavailable ? (isArabic ? "غير متاح حالياً" : "Currently unavailable") : method === "WHISH" ? (isArabic ? "امسح الرمز وأرسل تفاصيل الدفع" : "Scan the QR and submit payment details") : method === "BANK_AUDI" ? (isArabic ? "بطاقة اختبار فقط · بدون أموال حقيقية أو شحن" : "Test card only · no real money or shipping") : (isArabic ? "بدون دفع إلكتروني مسبق" : "No online payment needed")}</span></span>
+<span className="min-w-0 flex-1"><strong className="block text-sm">{method === "WHISH" ? "Whish Pay" : method === "BANK_AUDI" ? (isArabic ? "الدفع بالبطاقة عبر بنك عودة" : "Pay by card (Bank Audi)") : purpose === "SELF" ? fulfillment === "PICKUP" ? (isArabic ? "نقداً عند الاستلام" : "Cash at pickup") : (isArabic ? "الدفع عند التوصيل" : "Cash on delivery") : t.cash}</strong><span className={`mt-1 block text-xs leading-5 ${active ? "text-text-secondary" : "text-white/65"}`}>{unavailable ? (isArabic ? "غير متاح حالياً" : "Currently unavailable") : method === "WHISH" ? (isArabic ? "امسح الرمز وأرسل تفاصيل الدفع" : "Scan the QR and submit payment details") : method === "BANK_AUDI" ? (cardTestMode ? (isArabic ? "بطاقة اختبار فقط · بدون أموال حقيقية أو شحن" : "Test card only · no real money or shipping") : (isArabic ? "\u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0622\u0645\u0646 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629" : "Secure card payment")) : (isArabic ? "بدون دفع إلكتروني مسبق" : "No online payment needed")}</span></span>
 <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${active ? "border-brand-blue bg-brand-blue text-white" : "border-white/40"}`}>{active && <Check className="h-3 w-3" />}</span>
 </label>;
 })}</div>
@@ -673,7 +688,7 @@ return <label key={method} aria-disabled={unavailable || undefined} className={`
 </div>
 <div className="order-last lg:order-none">
 <label className="mt-4 flex items-start gap-3 rounded-xl bg-white p-4 text-sm leading-6 text-text-secondary">
-<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/><span>{t.consent}<span aria-hidden="true" className="ms-1 font-bold text-red-600">*</span><span className="sr-only">{isArabic ? " (مطلوب)" : " (required)"}</span></span></label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : chosenPayment === "WHISH" ? (isArabic ? "تابع للدفع عبر Whish" : "Continue to Whish payment") : chosenPayment === "BANK_AUDI" ? (isArabic ? "تابع للدفع بالبطاقة" : "Continue to card payment") : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
+<input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-brand-blue"/><span>{t.consent}<span aria-hidden="true" className="ms-1 font-bold text-red-600">*</span><span className="sr-only">{isArabic ? " (مطلوب)" : " (required)"}</span></span></label>{error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={!consent || submitting || !availablePaymentMethods.includes(chosenPayment)} className="mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-5 py-3 font-bold text-white shadow-lg transition hover:bg-brand-blue-dark disabled:opacity-50">{submitting ? t.placing : chosenPayment === "WHISH" ? (isArabic ? "تابع للدفع عبر Whish" : "Continue to Whish payment") : chosenPayment === "BANK_AUDI" ? (isArabic ? "تابع للدفع بالبطاقة" : "Continue to card payment") : t.placeOrder}{!submitting && <ArrowRight className="h-4 w-4 rtl:rotate-180"/>}</button>
 <button type="button" onClick={() => setStep(activePackage.totalBooks > 1 && selectionMode === "CUSTOM" ? "books" : "purpose")} className="mt-2 w-full px-3 py-2 text-sm font-bold text-text-secondary">{t.back}</button>
 </div>
 </aside>

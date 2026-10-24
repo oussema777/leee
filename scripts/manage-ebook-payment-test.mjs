@@ -1,3 +1,4 @@
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 // Enables/disables the user-authorized ebook-only management payment test.
 // No emails, orders, payment approvals or receiving-account records are changed.
 import assert from "node:assert/strict";
@@ -5,7 +6,7 @@ import nextEnv from "@next/env";
 import { PrismaClient } from "@prisma/client";
 
 nextEnv.loadEnvConfig(process.cwd());
-const db = new PrismaClient();
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 const id = "ebook-management-testing";
 const args = process.argv.slice(2);
 if (args.some(arg => !["--enable", "--disable"].includes(arg)) || args.length > 1)

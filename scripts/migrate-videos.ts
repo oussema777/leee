@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { createPrismaAdapter } from "../src/lib/prisma-adapter.mjs";
 /**
  * One-time migration: copy the demo videos from the static data file into the
  * Video table so the (now DB-driven) videos page keeps its current content.
@@ -10,7 +12,7 @@
 import { PrismaClient } from "@prisma/client";
 import { demoVideos } from "../src/components/sections/videos/videosData";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ adapter: createPrismaAdapter() });
 
 async function main() {
   const existing = await prisma.video.count();
