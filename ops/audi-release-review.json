@@ -1,5 +1,5 @@
 {
-  "status": "REVIEW_ONLY_NOT_DEPLOYED",
+  "status": "DEPLOYED_2026_10_24",
   "baseCommit": "1cffc913dcc602925e9245020df3025f2a91c1f0",
   "node": "22.x",
   "candidates": [
@@ -137,7 +137,8 @@
     "src/lib/payment-methods.ts",
     "src/lib/prisma-adapter.mjs",
     "src/lib/prisma-adapter.test.ts",
-    "src/lib/supabase-ca.mjs"
+    "src/lib/supabase-ca.mjs",
+    "scripts/optimize-images.mjs"
   ],
   "excludeParked": [
     "src/app/admin/(dashboard)/book-orders/[id]/page.tsx",
@@ -171,5 +172,7 @@
     "Hosting and scheduler choice deferred by user",
     "Rebuild and smoke-test the clean release checkout; do not deploy this dirty worktree wholesale"
   ],
-  "certificate": "Bundled module src/lib/supabase-ca.mjs; no NODE_EXTRA_CA_CERTS path required for configured Supabase endpoints"
+  "certificate": "Bundled module src/lib/supabase-ca.mjs; no NODE_EXTRA_CA_CERTS path required for configured Supabase endpoints",
+  "deploymentId": "dpl_4nM6NqeZAKSdVzHZP6cznqtgkgoJ",
+  "applicationCommit": "9d000b3"
 }

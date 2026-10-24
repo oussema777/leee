@@ -1,5 +1,20 @@
 ## Latest status: payment-method switches and deployment review complete locally
 
+## Production deployment completed - 24 October 2026
+
+User authorized deployment. Clean release branch audi-production-20261024, application commit 9d000b3, deployed as dpl_4nM6NqeZAKSdVzHZP6cznqtgkgoJ (https://leee-6pw9iu8bm-oussema777s-projects.vercel.app) and promoted to https://www.theleeexperience.com. The six parked packing-slip files were excluded. Original development application files remain unchanged; use the release branch as the deployed source baseline.
+
+Before migration, a custom-format public-schema data/schema backup was created and its archive index checked for BookOrder and EbookOrder data. Private backup and SHA-256/migration evidence: leee-audi-release/.impeccable/audi-production-rollout-20261024/. All five reviewed SQL scripts applied atomically; four tables have RLS and runtime access checks passed. No existing orders, books, inventory or payment records were altered by this deployment.
+
+Clean Vercel build passed on Node 22 with Prisma 7.10.1. First staged build caught an existing asset script assumption that Git metadata exists; scripts/optimize-images.mjs now scans uploaded public images on Vercel when Git is absent. Both Git and no-Git checks passed; retry compiled, type-checked and deployed successfully. This fix was also copied back to leee-audi-release.
+
+Staged and live smoke checks each passed nine page/API checks: homepage, printed books, ebooks, public payment methods, ebook catalog, anonymous admin denial, authenticated method settings, card operations and admin settings page. Live browser checks confirmed Whish OFF in desktop/mobile admin and absent from printed checkout. Public methods: cash available, Whish hidden, live card unavailable; staff TEST access remains separately gated. No orders/payments submitted or settings toggled during smoke tests. Runtime error query returned no matching errors at verification.
+
+Whish OFF is the default central policy; no settings row was inserted. Both admin operations flags liveEnabled and jobsEnabled were false. Audi/Areeba production activation and scheduling remain deferred. No VPS or billing change. Rollback must retain method gating or intentionally pause checkout; earlier code ignores the central switch. Leave additive tables intact.
+
+Evidence: .impeccable/deploy-smoke-staged.json, deploy-smoke-live.json, live-payment-methods.png, live-payment-methods-mobile.png, live-checkout-whish-off.png; clean release build logs under leee-audi-deploy-20261024/.impeccable/.
+
+
 Added Admin > Payment Methods for Whish, Bank Audi cards and cash. Whish starts OFF; hidden methods are removed from new printed/ebook checkout and blocked server-side. Returning ON preserves receiving details and readiness checks. Existing orders/recovery/payment reports remain intact. Central settings reuse BookWhishSettings; no new switch migration required. No production settings changed and nothing deployed.
 
 772 tests passed with zero skips; final build and real local switch browser checks passed. Bundled Supabase CA removes the earlier runtime certificate-file requirement; both hosted endpoints passed read-only checks without NODE_EXTRA_CA_CERTS. Hosted metadata confirms all four new live-payment tables still need deployment-time migrations. Five SQL scripts rehearsed locally in dependency order. Read [the latest readiness and rollback report](audi-live-operations.md) and ops/audi-release-review.json for the 135-file candidate inventory and parked exclusions. Clean release staging/build remains part of deployment; do not publish the dirty worktree wholesale.
