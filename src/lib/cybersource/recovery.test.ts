@@ -22,6 +22,18 @@ it('does not treat setup alone or no records as a payment', async () => {
   expect(await findTestPayment(reference, async () => response([row(setupId, 'ics_pa_setup')]))).toBeNull();
   expect(await findTestPayment(reference, async () => new Response(JSON.stringify({ totalCount: 0 })))).toBeNull();
 });
+it('recovers a completed challenge without counting unexecuted enrollment payment services twice', async () => {
+  const enrollment = { ...row(setupId, 'ics_pa_enroll'), applicationInformation: { applications: [
+    { name: 'ics_auth' }, { name: 'ics_bill' }, { name: 'ics_pa_enroll', reasonCode: '475', rCode: '0' },
+  ] } };
+  expect(await findTestPayment(reference, async () => response([enrollment]))).toBeNull();
+  expect(await findTestPayment(reference, async () => response([enrollment, row(paymentId, 'ics_auth')]))).toBe(paymentId);
+  for (const extra of [{ reasonCode: '100', rCode: '1' }, { reasonCode: '203', rCode: '0' }, { status: 'PENDING' }]) {
+    const ambiguous = structuredClone(enrollment);
+    Object.assign(ambiguous.applicationInformation.applications[0], extra);
+    await expect(findTestPayment(reference, async () => response([ambiguous, row(paymentId, 'ics_auth')]))).rejects.toThrow('MULTIPLE_PAYMENT');
+  }
+});
 it('rejects ambiguous, truncated and mismatched searches', async () => {
   await expect(findTestPayment(reference, async () => response([row(paymentId, 'ics_auth'), row(setupId, 'ics_auth')]))).rejects.toThrow('MULTIPLE_PAYMENT');
   await expect(findTestPayment(reference, async () => response([row(paymentId, 'ics_auth')], 2))).rejects.toThrow('INCOMPLETE');

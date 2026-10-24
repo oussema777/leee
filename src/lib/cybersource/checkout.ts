@@ -3,7 +3,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { createTestSession } from "./session";
 import { decryptSession, encryptSession } from "./session-storage";
-import { assessTestTransaction, lookupTestTransaction, transactionIdSchema } from "./transaction";
+import { assessTestTransaction, findTestPayment, isAuthenticationFailure, lookupTestTransaction, transactionIdSchema } from "./transaction";
 import { testCredentials } from "./test-session-request";
 
 export const selectionSchema = z.object({ kind: z.enum(["BOOK", "EBOOK"]), reference: z.string().min(1).max(80).regex(/^[A-Za-z0-9-]+$/) }).strict();
@@ -93,7 +93,7 @@ export async function startCheckout(db: Db, selection: Selection, actor: string,
   // Expiry or interrupted checkout is not evidence of a failed payment.
   return { attempt: publicAttempt(attempt), session: null };
 }
-export async function checkResult(db: Db, attemptId: string, transactionId: string, lookup: typeof lookupTestTransaction = lookupTestTransaction) {
+export async function checkResult(db: Db, attemptId: string, transactionId: string, lookup: typeof lookupTestTransaction = lookupTestTransaction, find: typeof findTestPayment = findTestPayment) {
   transactionIdSchema.parse(transactionId);
   const rows = await db.$queryRaw<Attempt[]>`SELECT * FROM "CybersourceTestAttempt" WHERE "id" = ${attemptId}`;
   const attempt = rows[0];
@@ -103,6 +103,9 @@ export async function checkResult(db: Db, attemptId: string, transactionId: stri
   if (!["READY", "REVIEW_REQUIRED"].includes(attempt.state)) throw new CheckoutError("ATTEMPT_NOT_READY");
   const raw = await lookup(transactionId);
   const outcome = assessTestTransaction(raw, { transactionId, merchantId: testCredentials().merchantId, reference: attempt.id, amountCents: attempt.amountCents });
+  // A browser hint alone cannot unlock retry after failed authentication.
+  // Confirm the signed reference search contains no other payment candidate.
+  if (isAuthenticationFailure(raw) && await find(attempt.id) !== transactionId) throw new CheckoutError('TRANSACTION_CHANGED');
   return db.$transaction(async tx => {
     await lock(tx, attempt.id);
     const current = (await tx.$queryRaw<Attempt[]>`SELECT * FROM "CybersourceTestAttempt" WHERE "id" = ${attempt.id} FOR UPDATE`)[0];

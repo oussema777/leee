@@ -27,4 +27,24 @@ describe.skipIf(!url)("persistent test checkout", () => {
     expect((await db.bookOrder.findUniqueOrThrow({ where: { id: orderId } })).paymentStatus).toBe("PENDING");
     expect((await startCheckout(db, selection, "tester", true, create)).session).toBeNull(); expect(create).toHaveBeenCalledTimes(1);
   });
+  it('verifies failed 3DS before enabling exactly one concurrent retry, leaving the order unpaid', async () => {
+    const ref = reference + '-failure';
+    const order = await db.bookOrder.create({ data: { reference: ref, locale: 'en', package: 'SINGLE', purpose: 'SELF', requestedBookCount: 1, priceCents: 900, customerName: 'Test', customerPhone: '70123456', fulfillmentMethod: 'PICKUP', paymentMethod: 'BANK_AUDI' } });
+    try {
+      const selection = { kind: 'BOOK' as const, reference: ref };
+      const create = vi.fn(async () => ({ sessionJwt: 'test-only', clientLibrary: 'https://testup.cybersource.com/uc/test.js', clientLibraryIntegrity: 'sha384-YWJj', expiresAt: new Date(Date.now() + 600000).toISOString() }));
+      const first = await startCheckout(db, selection, 'tester', false, create);
+      const id = '123456789014';
+      const lookup = vi.fn(async () => ({ id, merchantId: 'test', clientReferenceInformation: { code: first.attempt.id }, orderInformation: { amountDetails: {} }, applicationInformation: { reasonCode: 476, applications: [{ name: 'ics_auth' }, { name: 'ics_bill' }, { name: 'ics_pa_validate', reasonCode: 476, rCode: 0 }] } }));
+      await expect(checkResult(db, first.attempt.id, id, lookup, async () => '123456789015')).rejects.toThrow('TRANSACTION_CHANGED');
+      expect((await startCheckout(db, selection, 'tester', true, create)).attempt.id).toBe(first.attempt.id);
+      expect((await checkResult(db, first.attempt.id, id, lookup, async () => id)).state).toBe('TEST_DECLINED');
+      const [a, b] = await Promise.all([startCheckout(db, selection, 'tester', true, create), startCheckout(db, selection, 'tester', true, create)]);
+      expect(a.attempt.id).toBe(b.attempt.id); expect(a.attempt.id).not.toBe(first.attempt.id); expect(create).toHaveBeenCalledTimes(2);
+      expect((await db.bookOrder.findUniqueOrThrow({ where: { id: order.id } })).paymentStatus).toBe('PENDING');
+    } finally {
+      await db.$executeRaw`DELETE FROM "CybersourceTestAttempt" WHERE "bookOrderId" = ${order.id}`;
+      await db.bookOrder.delete({ where: { id: order.id } });
+    }
+  });
 });

@@ -1,4 +1,5 @@
 "use client";
+import { Check } from 'lucide-react';
 import { PaymentWaitStatus } from './PaymentWaitStatus';
 import { paymentResultHint } from '@/lib/cybersource/result-hint';
 import { CUSTOMER_CHECK_SECONDS } from '@/lib/cybersource/polling';
@@ -63,9 +64,11 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
   }, [retryAt, completed, refresh]);
   async function open() {
     if (running.current) return; running.current = true; setBusy(true); setError(''); setPhase('opening');
+    let openedAttemptId: string | undefined;
     try {
       const result = await call({ action: 'start', retry: !!attempt && ['SESSION_FAILED', 'TEST_DECLINED'].includes(attempt.state) });
       if (!result.session || !result.attempt || !alive.current) return;
+      openedAttemptId = result.attempt.id;
       const session = result.session;
       const url = new URL(session.clientLibrary);
       if (url.origin !== 'https://testup.cybersource.com' || !url.pathname.startsWith('/uc/') || !/^sha(256|384|512)-[A-Za-z0-9+/]+={0,2}$/.test(session.clientLibraryIntegrity)) throw Error('Invalid secure card form.');
@@ -95,19 +98,37 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       resultHint.current = { attemptId: result.attempt.id, transactionId };
       try { sessionStorage.setItem(savedKey, JSON.stringify({ attemptId: result.attempt.id, transactionId })); } catch {}
       await call({ action: 'result', attemptId: result.attempt.id, transactionId });
-    } catch { if (alive.current) setError(ar ? 'تعذّر تأكيد الدفع. حدّث الحالة قبل المحاولة مجدداً.' : 'Payment is not confirmed yet. Refresh the status before trying again. If you closed the form, you can resume it while it is valid.'); }
+    } catch {
+      if (alive.current && openedAttemptId) {
+        // SDK rejection can mean cancelled 3DS, a decline, or lost completion.
+        // Only the server decides whether retry is safe; keep checking visibly.
+        setPhase('checking');
+        resultHint.current = { attemptId: openedAttemptId };
+        try { sessionStorage.setItem(savedKey, JSON.stringify(resultHint.current)); } catch {}
+        try { await call({ action: 'inspect', awaitingResult: true }); }
+        catch { setError(ar ? 'تعذّر التحقق من حالة الدفع. تحقق مجددًا قبل إعادة المحاولة.' : 'Could not check the payment status. Check again before trying another payment.'); }
+      } else if (alive.current) setError(ar ? 'تعذّر فتح نموذج البطاقة. حاول مجددًا.' : 'Could not open the card form. Please try again.');
+    }
     finally { dispose.current(); running.current = false; if (alive.current) { setBusy(false); setPhase(null); } }
   }
   const retryable = !hasResult && (!attempt || ['SESSION_FAILED', 'TEST_DECLINED'].includes(attempt.state) || attempt.state === 'READY' && !!attempt.expiresAt && Date.parse(attempt.expiresAt) > Date.now());
   return <section className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 sm:p-8" dir={ar ? 'rtl' : 'ltr'}>
-    <h1 className="text-2xl font-bold">{completed ? (ar ? 'اكتمل طلبك التجريبي' : 'Your test order is confirmed') : (ar ? 'الدفع بالبطاقة' : 'Pay by card')}</h1>
+    <h1 className={`text-2xl font-bold ${completed ? 'text-emerald-800' : ''}`}>{completed ? (ar ? 'اكتمل طلبك التجريبي' : 'Your test order is confirmed') : (ar ? 'الدفع بالبطاقة' : 'Pay by card')}</h1>
     <p className="mt-3 break-all text-sm text-slate-600">{reference}</p><p className="mt-2 text-xl font-semibold">USD {(amountCents / 100).toFixed(2)}</p>
     <p className="my-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{ar ? 'الدفع التجريبي: استخدم بطاقة اختبار فقط. لن يتم خصم أموال حقيقية.' : 'Test checkout: use a test card only. No real money is collected.'}</p>
     {!completed && (phase === 'opening' || phase === 'checking' || retryAt) && phase !== 'card' && <PaymentWaitStatus key={phase || 'waiting'} phase={phase} retryAt={retryAt} retrySeconds={retrySeconds} ar={ar} />}
-    {completed ? <div role="status"><p>{ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.'}</p>{readingUrl ? <a href={readingUrl} className="mt-5 inline-block rounded-xl bg-brand-blue px-6 py-3 font-bold text-white">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-slate-600">{ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.'}</p>}</div> : <>
-      {attempt?.state === 'TEST_DECLINED' && <p role="status">{ar ? 'تم رفض البطاقة. يمكنك المحاولة ببطاقة اختبار أخرى.' : 'The test card was declined. You can try another test card.'}</p>}
+    {completed ? <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm">
+      <span aria-hidden="true" className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-100"><Check size={30} strokeWidth={3} /></span>
+      <h2 className="text-2xl font-bold text-emerald-800">{ar ? 'تم الدفع التجريبي بنجاح!' : 'Test payment successful!'}</h2>
+      <p className="mt-2 leading-6 text-emerald-800">{ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.'}</p>
+      {readingUrl ? <a href={readingUrl} className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-emerald-800">{ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.'}</p>}
+    </div> : <>
+      {attempt?.state === 'TEST_DECLINED' && <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
+        <h2 className="text-lg font-bold">{ar ? 'لم تكتمل عملية الدفع' : 'Payment was not completed'}</h2>
+        <p className="mt-2">{ar ? 'رُفضت عملية الدفع أو أُلغي التحقق من البطاقة أو لم ينجح. يمكنك إعادة المحاولة بأمان باستخدام بطاقة اختبار.' : 'The payment was declined, or card authentication was cancelled or unsuccessful. You can safely try again with a test card.'}</p>
+      </div>}
       {attempt && !retryable && !retryAt && !phase && <p role="status">{ar ? 'الدفع بانتظار التأكيد. لا تدفع مجدداً؛ حدّث الحالة أو تواصل معنا.' : 'Payment is awaiting confirmation. Do not pay again; refresh the status or contact LEE.'}</p>}
-      {loaded && retryable && <button onClick={() => void open()} disabled={busy} className="mt-4 rounded-xl bg-brand-blue px-6 py-3 font-bold text-white disabled:opacity-50">{busy ? (ar ? 'جارٍ فتح الدفع…' : 'Checkout in progress…') : attempt?.state === 'READY' ? (ar ? 'متابعة الدفع' : 'Resume card checkout') : (ar ? 'متابعة إلى البطاقة' : 'Continue to card payment')}</button>}
+      {loaded && retryable && <button onClick={() => void open()} disabled={busy} className="mt-4 rounded-xl bg-brand-blue px-6 py-3 font-bold text-white disabled:opacity-50">{busy ? (ar ? 'جارٍ فتح الدفع…' : 'Checkout in progress…') : attempt?.state === 'READY' ? (ar ? 'متابعة الدفع' : 'Resume card checkout') : attempt?.state === 'TEST_DECLINED' ? (ar ? 'إعادة محاولة الدفع' : 'Try payment again') : (ar ? 'متابعة إلى البطاقة' : 'Continue to card payment')}</button>}
       <div id="customer-card-options" className="mt-5" /><div id="customer-card-screen" className="mt-3" />
     </>}
     {!completed && <button onClick={() => void refresh(true)} disabled={busy} className="mt-5 block rounded-lg border border-slate-300 px-4 py-3 text-sm disabled:opacity-50">{busy ? (ar ? 'يرجى الانتظار…' : 'Please wait…') : (ar ? 'تحقق الآن' : 'Check now')}</button>}

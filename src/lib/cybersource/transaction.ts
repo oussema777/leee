@@ -19,7 +19,30 @@ export function decimalCents(value: string) {
   return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 export type TestOutcome = "TEST_AUTHORIZED" | "TEST_CAPTURED" | "TEST_DECLINED" | "REVIEW_REQUIRED";
+// A terminal 3DS validation failure has no monetary fields because auth/capture
+// were never executed. This narrow exception can only produce a failed attempt.
+const authenticationFailure = details.extend({
+  orderInformation: z.object({ amountDetails: z.object({ totalAmount: z.string().optional(), currency: z.string().optional(), authorizedAmount: z.string().optional() }) }),
+});
+export function isAuthenticationFailure(raw: unknown) {
+  const parsed = authenticationFailure.safeParse(raw);
+  if (!parsed.success) return false;
+  const info = parsed.data.applicationInformation;
+  return String(info.reasonCode) === '476' && !info.status
+    && info.applications.filter(a => a.name === 'ics_pa_validate').length === 1
+    && info.applications.every(a => a.name === 'ics_pa_validate'
+      ? String(a.reasonCode) === '476' && String(a.rCode) === '0' && !a.status
+      : ['ics_auth', 'ics_bill'].includes(a.name) && a.reasonCode === undefined && a.rCode === undefined && a.status === undefined);
+}
 export function assessTestTransaction(raw: unknown, expected: { transactionId: string; merchantId: string; reference: string; amountCents: number }): TestOutcome {
+  if (isAuthenticationFailure(raw)) {
+    const value = authenticationFailure.parse(raw), amount = value.orderInformation.amountDetails;
+    if (value.id !== expected.transactionId || value.merchantId !== expected.merchantId || value.clientReferenceInformation.code !== expected.reference
+      || amount.currency !== undefined && amount.currency !== 'USD'
+      || amount.totalAmount !== undefined && decimalCents(amount.totalAmount) !== expected.amountCents
+      || amount.authorizedAmount !== undefined) throw Error('TRANSACTION_BINDING_MISMATCH');
+    return 'TEST_DECLINED';
+  }
   const value = details.parse(raw);
   const amount = value.orderInformation.amountDetails;
   if (value.id !== expected.transactionId || value.merchantId !== expected.merchantId || value.clientReferenceInformation.code !== expected.reference || amount.currency !== "USD" || decimalCents(amount.totalAmount) !== expected.amountCents) throw Error("TRANSACTION_BINDING_MISMATCH");
@@ -37,7 +60,8 @@ export function assessTestTransaction(raw: unknown, expected: { transactionId: s
     return capture.length === 1 ? "TEST_CAPTURED" : "TEST_AUTHORIZED";
   }
   const declineCodes = new Set(["200", "201", "202", "203", "204", "205", "207", "208", "210", "211", "231", "232", "233", "234"]);
-  if (!capture.length && String(auth[0].rCode) === "0" && declineCodes.has(String(auth[0].reasonCode))) return "TEST_DECLINED";
+  const captureNotExecuted = capture.every(a => a.reasonCode === undefined && a.rCode === undefined && a.status === undefined);
+  if (captureNotExecuted && String(auth[0].rCode) === "0" && declineCodes.has(String(auth[0].reasonCode))) return "TEST_DECLINED";
   return "REVIEW_REQUIRED";
 }
 export async function lookupTestTransaction(transactionId: string, fetcher: typeof fetch = fetch) {
@@ -77,7 +101,17 @@ export async function findTestPayment(reference: string, fetcher: typeof fetch =
   const rows = result._embedded?.transactionSummaries || [];
   if (rows.length !== result.totalCount || rows.some(row => row.clientReferenceInformation.code !== reference)) throw Error('TRANSACTION_SEARCH_INCOMPLETE');
   // 3DS setup/enrollment can be separate transactions for the same reference.
-  const payments = rows.filter(row => row.applicationInformation.applications.some(app => app.name === 'ics_auth'));
+  const payments = rows.filter(row => {
+    const apps = row.applicationInformation.applications;
+    // A challenged enrollment can list auth/bill as requested but not executed.
+    // Exclude only that explicit 475 response with empty payment results. Any
+    // actual or ambiguous authorization still participates in duplicate checks.
+    const challengeOnly = apps.some(app => app.name === 'ics_pa_enroll' && String(app.reasonCode) === '475' && String(app.rCode) === '0')
+      && apps.every(app => app.name === 'ics_pa_enroll'
+        ? String(app.reasonCode) === '475' && String(app.rCode) === '0'
+        : ['ics_auth', 'ics_bill'].includes(app.name) && app.reasonCode === undefined && app.rCode === undefined && app.status === undefined);
+    return !challengeOnly && apps.some(app => app.name === 'ics_auth');
+  });
   if (payments.length > 1) throw Error('MULTIPLE_PAYMENT_TRANSACTIONS');
   return payments[0]?.id || null;
 }
