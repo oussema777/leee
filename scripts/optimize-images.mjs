@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import { stat, writeFile, rename, unlink } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -17,6 +18,17 @@ function gitFiles(args) {
 }
 
 function deployableImages() {
+  // CLI uploads contain the deployment files but no Git metadata.
+  if (process.env.VERCEL === "1") {
+    try {
+      execFileSync("git", ["rev-parse", "--is-inside-work-tree"], { stdio: "ignore" });
+    } catch {
+      return readdirSync("public", { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile() && SUPPORTED.has(path.extname(entry.name).toLowerCase()))
+        .map((entry) => path.join(entry.parentPath, entry.name))
+        .sort();
+    }
+  }
   const files = new Set([
     ...gitFiles(["ls-files", "--", "public"]),
     ...gitFiles(["ls-files", "--others", "--exclude-standard", "--", "public"]),
