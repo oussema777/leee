@@ -1,3 +1,13 @@
+## Areeba external review link — 26 October 2026
+
+Implemented and deployed an expiring no-login sandbox review page at `/en/payment-test`. Deployment `dpl_7SFQuT3u7KHMoeTaiF4UfZXizq9F` is READY on the approved www domain; application commit `1de9b29`, retained on local branch `audi-review-20261026` in `../leee-audi-deploy-20261024`.
+
+The private fragment link is saved only in that worktree's ignored `.vercel/areeba-review-link.json`; it expires on 9 November 2026. Do not publish its token in source or logs. Its hash identifies a revocable `BookWhishSettings` TEST grant. Each click creates/resumes a fixed USD 1.00 `LEE-TEST-` order; duplicate requests reuse one order under a database lock, with a persistent 50-order grant limit. Only an authenticated private order token plus an active reviewer grant bypasses the admin check. Existing staff tests, ebooks, live payment routes and admin access retain their restrictions. No inventory reservation, notification email, shipment or production charge is created. Revoke by setting this grant's config.enabled=false; do not alter unrelated payment-method settings.
+
+Validation: 46 focused tests passed; TypeScript and production build passed; desktop/mobile browser checks passed; real hosted anonymous checkout obtained a signed TEST session and loaded the provider UI. No card was submitted during this verification. Concurrent database creation returned one order. Separate verification grant revoked and its two unpaid sandbox orders cancelled, with audit records retained. Evidence is under `.vercel/reviewer-evidence` in the deployment worktree.
+
+The original development workspace still predates the deployed payment-method switch changes. An attempted synchronization detected this difference and stopped before copying any files. Continue payment work from the deployment worktree/branch above; do not deploy the older original source over the reviewed release.
+
 ## Latest status: payment-method switches and deployment review complete locally
 
 ## Production deployment completed - 24 October 2026
