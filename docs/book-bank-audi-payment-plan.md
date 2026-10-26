@@ -1,3 +1,15 @@
+## Reviewer card-form loading failure — 26 October 2026
+
+User reported `LEE-TEST-EAF6042A713B449A990FE70A514E82F0` waiting indefinitely, then clarified they never reached card entry. Signed provider search for attempt `LEE-T-7db99dfc-316e-4b7f-ab89-c57cb2138dc4` repeatedly returned zero transactions. No payment success/decline was fabricated and the user's order was not changed.
+
+Root application bug: CustomerCardCheckout treated every error after session creation as potentially submitted, including script/SDK initialization and iframe-loading failures. Commit `3c08111` distinguishes pre-mount failures and documented MOUNT/SHOW rendering errors; it presents a loading error and permits reopening the same saved session. Unknown/tokenization/completion errors still require server reconciliation. Official error semantics: https://developer.cybersource.com/docs/cybs/en-us/unified-checkout/developer/all/rest/unified-checkout/uc-reference-test-cards/uc-handle-errors/uc-handle-errors-codes.html . The specific browser/network cause on the user's machine is not established.
+
+Commit `7ce6b48` also bounds automatic waiting for unresolved sandbox sessions older than five minutes. Manual checks can still finalize late verified payments. The unresolved marker persists across reload so pausing does not unlock a new payment attempt. Production checkout semantics remain separate.
+
+An actual anonymous reviewer 3DS success test completed with official test card ending 2503 and test OTP 1234: order `LEE-TEST-769942E8DEDF482B9A066F9A2C092E66`, captured TEST transaction `7930149151826631604009`. The website independently verified the provider response, marked only this dedicated test order PAID/VERIFIED and displayed green success automatically. No real money or shipment. Retain as audit evidence. Screenshot `.vercel/reviewer-evidence/confirmed-3ds-test.png`.
+
+Validation: 49 focused tests passed for bounded waiting; subsequent 42 tests passed including SDK load classification, customer recovery and live-route regression. Browser simulations passed blocked SDK, explicit iframe mount failure, no false confirmation polling, same-session retry to success, paused state across reload, and late manual confirmation. Final deployment verification follows in the session handoff.
+
 ## Areeba external review link — 26 October 2026
 
 Implemented and deployed an expiring no-login sandbox review page at `/en/payment-test`. Deployment `dpl_7SFQuT3u7KHMoeTaiF4UfZXizq9F` is READY on the approved www domain; application commit `1de9b29`, retained on local branch `audi-review-20261026` in `../leee-audi-deploy-20261024`.
@@ -392,3 +404,5 @@ The site has cash checkout plus a prepared, disabled manual Whish flow. Bank Aud
 - Confirm what reference or proof the bank exposes to staff, who will review payments, and how unmatched/partial/late payments and refunds will be handled.
 
 Production Next.js build passed (next build --webpack). The npm wrapper could not regenerate the unchanged Prisma client because the running Windows dev server holds its DLL; direct Next build used the existing generated client and passed compilation, TypeScript and route generation. Isolated test database stopped after validation.
+
+Final verification: deployment dpl_J7qKeQ21sFbRrDurkFgpphjvpK2Y (application 3c08111) is READY on www.theleeexperience.com. Hosted browser checks passed blocked-SDK and iframe-load recovery; final paused-state check also run. The original private review link and expiry remain unchanged.
