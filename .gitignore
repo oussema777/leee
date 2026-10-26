@@ -57,3 +57,5 @@ docs/*.docx
 /.impeccable/aramex-storage-rollout/
 /ops/aramex-gateway/__pycache__/
 /.impeccable/audi-storage-rollout/
+
+.next-review-fix/

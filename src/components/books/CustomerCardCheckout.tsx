@@ -44,13 +44,21 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
         try { const saved = resultHint.current || JSON.parse(sessionStorage.getItem(savedKey) || 'null'); if (saved) sessionStorage.setItem(savedKey, JSON.stringify({ ...saved, nextCheckAt })); } catch {}
       }
       if (result.completed || result.review || result.attempt?.state === 'TEST_DECLINED') {
-        setRetryAt(null); setHasResult(false); resultHint.current = null;
-        try { sessionStorage.removeItem(savedKey); } catch {}
+        setRetryAt(null); setHasResult(false);
+        if (result.review && !live) {
+          // Keep the unresolved marker across refresh; never reopen this payment
+          // merely because automatic checking has paused.
+          resultHint.current = { attemptId: result.attempt?.id || resultHint.current?.attemptId };
+          try { sessionStorage.setItem(savedKey, JSON.stringify(resultHint.current)); } catch {}
+        } else {
+          resultHint.current = null;
+          try { sessionStorage.removeItem(savedKey); } catch {}
+        }
       }
       if (result.completed) setCompleted(true);
     }
     return result;
-  }, [endpoint, token, savedKey]);
+  }, [endpoint, token, savedKey, live]);
   const refresh = useCallback(async (force = false) => {
     if (running.current) return; running.current = true; setBusy(true); setError(''); setPhase('checking');
     try {
@@ -136,7 +144,10 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       <p className="mt-2 leading-6 text-emerald-800">{live ? liveText.verified : (ar ? 'تم التحقق من الدفع التجريبي بنجاح.' : 'Your test payment was verified successfully.')}</p>
       {readingUrl ? <a href={readingUrl} className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-700 px-6 py-3 font-bold text-white shadow-sm transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300">{ar ? 'اقرأ كتابك' : 'Read your ebook'}</a> : <p className="mt-3 text-sm text-emerald-800">{live ? liveText.shipped : (ar ? 'هذا طلب تجريبي ولن يتم شحنه.' : 'This is a test order and will not be shipped.')}</p>}
     </div> : <>
-      {review && <div role="status" className="my-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">{liveText.review}</div>}
+      {review && <div role="status" className="my-4 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">{live ? liveText.review : <>
+        <h2 className="text-lg font-bold">{ar ? 'لم يتم تأكيد نتيجة الدفع التجريبي' : 'No test payment result confirmed'}</h2>
+        <p className="mt-2">{ar ? 'توقف التحقق التلقائي. قد لا تكون عملية الدفع قد أُرسلت إذا أُغلق نموذج البطاقة أو لم يكتمل التحقق. استخدم «تحقق الآن» للاستعلام مجدداً. هذه ليست رسالة نجاح أو رفض للدفع.' : 'Automatic checking has paused. If the card form closed or authentication was not completed, the payment may not have been submitted. Use Check now to check again. This is not a payment success or decline.'}</p>
+      </>}</div>}
       {attempt?.state === 'TEST_DECLINED' && <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-950">
         <h2 className="text-lg font-bold">{ar ? 'لم تكتمل عملية الدفع' : 'Payment was not completed'}</h2>
         <p className="mt-2">{ar ? 'رُفضت عملية الدفع أو أُلغي التحقق من البطاقة أو لم ينجح. يمكنك إعادة المحاولة بأمان باستخدام بطاقة اختبار.' : 'The payment was declined, or card authentication was cancelled or unsuccessful. You can safely try again with a test card.'}</p>

@@ -20,6 +20,7 @@ const inputSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('result'), attemptId: z.string().regex(/^LEE-T-[a-f0-9-]{36}$/), transactionId: transactionIdSchema }).strict(),
 ]);
 export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBOOK', key: string) {
+  let confirmationOverdue = false;
   try {
     if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout at https://www.theleeexperience.com.' }, 403);
     if (!rateLimit('card-customer:' + clientIp(request), 40, 60000)) return privateJson({ error: 'Please wait a moment before trying again.' }, 429);
@@ -52,10 +53,15 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
     const input = parsed.data;
     const attempts = await db.$queryRaw<Attempt[]>(Prisma.sql`SELECT * FROM "CybersourceTestAttempt" WHERE ${kind === 'BOOK' ? Prisma.sql`"bookOrderId" = ${id}` : Prisma.sql`"ebookOrderId" = ${id}`} ORDER BY "createdAt" DESC, "id" DESC LIMIT 1`);
     const attempt = attempts[0];
+    // An unresolved sandbox session is not proof a payment was submitted.
+    // Bound automatic waiting; manual checks still recover late verified results.
+    confirmationOverdue = !!attempt && Date.now() - new Date(attempt.createdAt).getTime() >= 5 * 60_000;
     if (input.action === 'inspect') {
       const recovered = attempt ? await recoverTestCheckout(db, attempt) : null;
       const completed = attempt ? await finalizeCustomerTest(db, attempt.id) : false;
-      const pending = !completed && input.awaitingResult && recovered && ['READY', 'REVIEW_REQUIRED'].includes(recovered.state);
+      const unresolved = !completed && input.awaitingResult && recovered && ['READY', 'REVIEW_REQUIRED'].includes(recovered.state);
+      if (unresolved && confirmationOverdue) return privateJson({ reference, amountCents, attempt: recovered, completed: false, review: true });
+      const pending = unresolved;
       return privateJson({ reference, amountCents, attempt: recovered, completed, ...(pending ? { pending: true, retryAfterSeconds: CUSTOMER_CHECK_SECONDS } : {}) }, pending ? 202 : 200);
     }
     if (input.action === 'result') {
@@ -67,6 +73,7 @@ export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBO
     if (!(await getPaymentMethods()).BANK_AUDI) return privateJson({ error: 'New card payments are temporarily unavailable. You can still check an existing payment.' }, 503);
     return privateJson(await startCheckout(db, { kind, reference }, actor, input.retry));
   } catch (error) {
+    if (error instanceof TransactionLookupPending && confirmationOverdue) return privateJson({ completed: false, review: true });
     if (error instanceof TransactionLookupPending) return privateJson({ pending: true, retryAfterSeconds: CUSTOMER_CHECK_SECONDS, message: 'Waiting for payment confirmation. We will check again in 10 seconds. Do not pay again.' }, 202);
     if (error instanceof EbookError) return privateJson({ error: error.message }, error.status);
     if (error instanceof SyntaxError) return privateJson({ error: 'Invalid request.' }, 400);

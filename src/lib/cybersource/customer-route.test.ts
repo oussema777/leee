@@ -17,7 +17,7 @@ vi.mock('./customer-finalize', () => ({ finalizeCustomerTest: mocks.finalize }))
 vi.mock('./checkout', async importOriginal => ({ ...await importOriginal<typeof import('./checkout')>(), startCheckout: mocks.start, checkResult: mocks.verify }));
 const snapshot = { provider: 'CYBERSOURCE', environment: 'TEST', testMode: true, amountCents: 900, currency: 'USD', supportPhone: '9613600747' };
 const id = 'LEE-T-00000000-0000-0000-0000-000000000001';
-const attempt = { id, state: 'READY', orderReference: 'LEE-TEST-1', amountCents: 900, expiresAt: new Date(Date.now() + 100000), verifiedAt: null };
+const attempt = { id, state: 'READY', orderReference: 'LEE-TEST-1', amountCents: 900, createdAt: new Date(), expiresAt: new Date(Date.now() + 100000), verifiedAt: null };
 function request(data: unknown, origin = 'https://www.theleeexperience.com') { return new NextRequest(origin + '/api/test', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(data) }); }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -91,6 +91,24 @@ it('polls the reference search again in ten seconds without repeating a missing 
 it('does not force an untouched checkout into payment-pending mode', async () => {
   const response = await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1');
   expect(response.status).toBe(200); expect(await response.json()).not.toHaveProperty('pending');
+});
+it('pauses automatic waiting for an old unresolved test without declaring failure or allowing retry', async () => {
+  mocks.query.mockResolvedValue([{ ...attempt, createdAt: new Date(Date.now() - 360000) }]);
+  const response = await customerCheckout(request({ action: 'inspect', awaitingResult: true }), 'BOOK', 'LEE-TEST-1');
+  expect(await response.json()).toMatchObject({ review: true, completed: false });
+  expect(mocks.start).not.toHaveBeenCalled();
+});
+it('still confirms a late verified payment after the automatic waiting limit', async () => {
+  mocks.query.mockResolvedValue([{ ...attempt, createdAt: new Date(Date.now() - 360000) }]);
+  mocks.finalize.mockResolvedValue(true);
+  const response = await customerCheckout(request({ action: 'inspect', awaitingResult: true }), 'BOOK', 'LEE-TEST-1');
+  expect(await response.json()).toMatchObject({ completed: true });
+});
+it('bounds waiting when transaction details remain unavailable', async () => {
+  mocks.query.mockResolvedValue([{ ...attempt, createdAt: new Date(Date.now() - 360000) }]);
+  mocks.verify.mockRejectedValue(new TransactionLookupPending());
+  const response = await customerCheckout(request({ action: 'result', attemptId: id, transactionId: '123456789012' }), 'BOOK', 'LEE-TEST-1');
+  expect(await response.json()).toMatchObject({ review: true, completed: false });
 });
 
 it('blocks new test card sessions when the method switch is off', async () => {
