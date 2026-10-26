@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { PaymentWaitStatus } from './PaymentWaitStatus';
 import { paymentResultHint } from '@/lib/cybersource/result-hint';
 import { CUSTOMER_CHECK_SECONDS } from '@/lib/cybersource/polling';
+import { isCheckoutLoadError } from '@/lib/cybersource/checkout-load-error';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Attempt = { id: string; state: string; transactionId: string | null; expiresAt: string | null };
@@ -86,6 +87,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
   async function open() {
     if (running.current) return; running.current = true; setBusy(true); setError(''); setPhase('opening');
     let openedAttemptId: string | undefined;
+    let mountStarted = false;
     try {
       const result = await call({ action: 'start', retry: !!attempt && ['SESSION_FAILED', 'TEST_DECLINED'].includes(attempt.state) });
       if (!result.session || !result.attempt || !alive.current) return;
@@ -110,6 +112,7 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       dispose.current = () => { try { checkout.destroy(); } catch {} try { client.destroy(); } catch {} };
       if (!alive.current) { dispose.current(); return; }
       setPhase('card');
+      mountStarted = true;
       const completion = await checkout.mount({ paymentSelection: '#customer-card-options', paymentScreen: '#customer-card-screen' });
       if (!alive.current) return;
       setPhase('checking');
@@ -119,8 +122,14 @@ export function CustomerCardCheckout({ endpoint, token, reference, amountCents, 
       resultHint.current = { attemptId: result.attempt.id, transactionId };
       try { sessionStorage.setItem(savedKey, JSON.stringify({ attemptId: result.attempt.id, transactionId })); } catch {}
       await call({ action: 'result', attemptId: result.attempt.id, transactionId });
-    } catch {
-      if (alive.current && openedAttemptId) {
+    } catch (error) {
+      if (alive.current && openedAttemptId && isCheckoutLoadError(error, mountStarted)) {
+        // Loading the SDK/iframe is not a payment submission. Reuse the saved
+        // session on retry rather than showing a fictitious confirmation wait.
+        setHasResult(false); setRetryAt(null); setReview(false); resultHint.current = null;
+        try { sessionStorage.removeItem(savedKey); } catch {}
+        setError(ar ? 'تعذّر تحميل نموذج البطاقة الآمن. حاول فتحه مجدداً. إذا استمرت المشكلة، افتح الرابط في متصفح آخر.' : 'The secure card form could not load. Use Resume card checkout to try opening it again. If this continues, open this link in another browser.');
+      } else if (alive.current && openedAttemptId) {
         // SDK rejection can mean cancelled 3DS, a decline, or lost completion.
         // Only the server decides whether retry is safe; keep checking visibly.
         setPhase('checking');
