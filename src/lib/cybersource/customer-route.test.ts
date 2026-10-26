@@ -5,7 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { customerCheckout } from './customer-route';
 import { getPaymentMethods } from '@/lib/payment-methods';
 import { TransactionLookupPending } from './transaction';
-const mocks = vi.hoisted(() => ({ admin: vi.fn(), payment: vi.fn(), reader: vi.fn(), order: vi.fn(), query: vi.fn(), verify: vi.fn(), finalize: vi.fn(), start: vi.fn() }));
+const mocks = vi.hoisted(() => ({ admin: vi.fn(), payment: vi.fn(), reader: vi.fn(), order: vi.fn(), query: vi.fn(), verify: vi.fn(), finalize: vi.fn(), start: vi.fn(), reviewer: vi.fn() }));
+vi.mock('./reviewer-access', () => ({ reviewerPaymentAccess: mocks.reviewer }));
 vi.mock('@/lib/db', () => ({ db: { $queryRaw: mocks.query, ebookOrder: { findFirst: mocks.order } } }));
 vi.mock('@/lib/book-orders/whish-server', () => ({ withPaymentAdmin: mocks.admin, authenticatePayment: mocks.payment, privateJson: (value: unknown, status = 200) => NextResponse.json(value, { status }) }));
 vi.mock('@/lib/ebooks/server', () => ({ requireReader: mocks.reader, EbookError: class extends Error {} }));
@@ -20,16 +21,35 @@ const attempt = { id, state: 'READY', orderReference: 'LEE-TEST-1', amountCents:
 function request(data: unknown, origin = 'https://www.theleeexperience.com') { return new NextRequest(origin + '/api/test', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(data) }); }
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.reviewer.mockResolvedValue(false);
   mocks.admin.mockResolvedValue({ session: { userId: 'admin' } });
   mocks.payment.mockResolvedValue({ orderId: 'book', snapshot, state: 'AWAITING_PAYMENT', expiresAt: new Date(Date.now() + 3600000), order: { reference: 'LEE-TEST-1', priceCents: 900, paymentMethod: 'BANK_AUDI', status: 'NEW' } });
   mocks.query.mockResolvedValue([attempt]); mocks.finalize.mockResolvedValue(false);
   mocks.reader.mockResolvedValue({ id: 'owner' }); mocks.order.mockResolvedValue(null);
   mocks.verify.mockResolvedValue({ ...attempt, state: 'TEST_CAPTURED' });
 });
-it('requires admin access before looking up an order', async () => {
+it('requires admin access for an ordinary staff test even with its private order token', async () => {
   mocks.admin.mockResolvedValue({ error: NextResponse.json({}, { status: 401 }) });
   expect((await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1')).status).toBe(401);
-  expect(mocks.payment).not.toHaveBeenCalled();
+  expect(mocks.query).not.toHaveBeenCalled();
+});
+it('allows an explicitly granted reviewer test without an admin session', async () => {
+  mocks.admin.mockResolvedValue({ error: NextResponse.json({}, { status: 401 }) });
+  mocks.reviewer.mockResolvedValue(true);
+  expect((await customerCheckout(request({ action: 'inspect' }), 'BOOK', 'LEE-TEST-1')).status).toBe(200);
+  expect(mocks.admin).not.toHaveBeenCalled();
+});
+it('requires the private order token even for reviewer tests', async () => {
+  mocks.reviewer.mockResolvedValue(true);
+  mocks.payment.mockResolvedValue(null);
+  expect((await customerCheckout(request({ action: 'start' }), 'BOOK', 'LEE-TEST-1')).status).toBe(404);
+  expect(mocks.start).not.toHaveBeenCalled();
+});
+it('does not extend reviewer access to ebooks', async () => {
+  mocks.reviewer.mockResolvedValue(true);
+  mocks.admin.mockResolvedValue({ error: NextResponse.json({}, { status: 401 }) });
+  expect((await customerCheckout(request({ action: 'inspect' }), 'EBOOK', 'ebook')).status).toBe(401);
+  expect(mocks.reader).not.toHaveBeenCalled();
 });
 it('rejects foreign origins and missing private payment links', async () => {
   expect((await customerCheckout(request({ action: 'inspect' }, 'https://attacker.test'), 'BOOK', 'LEE-TEST-1')).status).toBe(403);

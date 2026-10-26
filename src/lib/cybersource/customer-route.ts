@@ -13,6 +13,7 @@ import { transactionIdSchema, TransactionLookupPending } from './transaction';
 import { finalizeCustomerTest } from './customer-finalize';
 import { recoverTestCheckout, checkCustomerResult } from './recovery';
 import { CUSTOMER_CHECK_SECONDS } from './polling';
+import { reviewerPaymentAccess } from './reviewer-access';
 const inputSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('inspect'), awaitingResult: z.boolean().default(false) }).strict(),
   z.object({ action: z.literal('start'), retry: z.boolean().default(false) }).strict(),
@@ -21,16 +22,22 @@ const inputSchema = z.discriminatedUnion('action', [
 export async function customerCheckout(request: NextRequest, kind: 'BOOK' | 'EBOOK', key: string) {
   try {
     if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout at https://www.theleeexperience.com.' }, 403);
-    const admin = await withPaymentAdmin(request);
-    if ('error' in admin) return admin.error!;
     if (!rateLimit('card-customer:' + clientIp(request), 40, 60000)) return privateJson({ error: 'Please wait a moment before trying again.' }, 429);
     let id: string, reference: string, amountCents: number, actor: string;
     if (kind === 'BOOK') {
       const payment = await authenticatePayment(request, key);
       if (!payment || !isTestBookReference(payment.order.reference) || payment.order.paymentMethod !== 'BANK_AUDI' || !isCardSnapshot(payment.snapshot)) return privateJson({ error: 'Order not found. Use your complete checkout link.' }, 404);
+      // The private order token is always required. Only explicitly granted,
+      // unexpired reviewer tests can proceed without a payment administrator.
+      if (!await reviewerPaymentAccess(payment.snapshot)) {
+        const admin = await withPaymentAdmin(request);
+        if ('error' in admin) return admin.error!;
+      }
       id = payment.orderId; reference = payment.order.reference; amountCents = payment.order.priceCents; actor = 'customer';
       if (payment.order.status === 'CANCELLED' || payment.expiresAt.getTime() <= Date.now() && payment.state !== 'VERIFIED') return privateJson({ error: 'This order has expired. Contact LEE before placing another payment.' }, 409);
     } else {
+      const admin = await withPaymentAdmin(request);
+      if ('error' in admin) return admin.error!;
       const reader = await requireReader(request);
       const order = await db.ebookOrder.findFirst({ where: { id: key, readerId: reader.id } });
       if (!order || !isTestEbookReference(order.reference) || order.method !== 'BANK_AUDI' || !isCardSnapshot(order.snapshot)) return privateJson({ error: 'Order not found.' }, 404);
