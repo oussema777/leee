@@ -4,10 +4,20 @@ API source: https://whish-partners.pages.dev/whish-pay-9z366gc6922w/ (v2.0.0, re
 
 ## Release
 
-Deployed and promoted: dpl_AYLP6wWKddiehfaSA2feNQ4pU9ef on 2026-10-30.
+Deployed and promoted: dpl_Bi5FCzFWUb34UUx79vu7uH9NEFvF on 2026-10-30.
 Admin diagnostics: https://www.theleeexperience.com/admin/whish-pay.
 Rollback to the admin-only release: dpl_6XLLuof45Ykv7Ui6XJuYrSSowTkC.
 Source branch: whish-pay-sandbox, based on 5ca0800, isolated from unrelated main-worktree changes.
+
+## Current progress — 2026-10-30
+
+Awaiting Whish's reply. The user will bring their response back; no further deployment or production activation is pending authorization in this handoff. The short email draft is saved at ../output/Whish_Email_Draft_2026-10-30.txt. The assistant has not sent it; user sending is not confirmed.
+
+Sandbox integration commit: 9752d04. Review-button fix: 0a39a7b. Missing or malformed review codes now show recovery instructions; reviewers can paste the complete link, and hash changes are detected. Chrome testing on the live site passed malformed-link feedback, paste recovery, hash updates, whitespace normalization, actual synthetic-order creation, and mobile layout. TypeScript and the deployment build passed.
+
+The current reviewer link expires on 2026-11-13 at 15:40 UTC. Its capability is stored outside Git in .vercel/whish-review-link.json and the saved email draft. If Whish reviews after expiry, renew access before sharing another link.
+
+Resume when Whish replies: review their acceptance requirements and production credentials/process; resolve the refund auth.error and IP allowlisting requirements; confirm callback retry, polling and settlement expectations. Then implement and validate live stock reservation, shipping, notifications, refunds and reconciliation before a controlled real payment and customer rollout. Real Whish payments remain disabled.
 
 Printed-book and ebook purchases offer Whish sandbox only to signed-in payment administrators. Ordinary public visitors and the global payment-method settings are unchanged. External reviewers use an expiring capability link at /en/whish-test#<token>, with no admin access and a maximum of 20 synthetic USD 1.00 orders.
 
