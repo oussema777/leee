@@ -1,4 +1,5 @@
 import { isLiveCardSnapshot } from '@/lib/cybersource/live-config';
+import { isHostedWhish } from '@/lib/whish-pay/policy';
 import { NextRequest } from "next/server";
 import { isCardSnapshot } from "@/lib/cybersource/customer-policy";
 import { db } from "@/lib/db";
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest, { params }: Context) {
         ? snapshotActive(settings.whish, snapshot)
         : bankAudiSnapshotActive(settings.bank, snapshot);
     return json({
+      whishCheckout: isHostedWhish(order.snapshot),
       cardCheckout: order.method === "BANK_AUDI" && (isCardSnapshot(order.snapshot) || isLiveCardSnapshot(order.snapshot)), liveCard: isLiveCardSnapshot(order.snapshot),
       id: order.id,
       reference: order.reference,
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest, { params }: Context) {
       where: { id, readerId: reader.id },
     });
     if (!order) throw new EbookError("Order not found.", 404);
+    if (isHostedWhish(order.snapshot)) throw new EbookError('Hosted Whish payments are verified automatically.', 409);
     if (order.method === "BANK_AUDI") throw new EbookError("Bank Audi transfers have been retired. Contact LEE about this existing order.", 410);
     const form = await receiptForm(request);
     const parsed = paymentReportSchema.shape.transactionReference.safeParse(

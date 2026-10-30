@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isHostedWhish } from '@/lib/whish-pay/policy';
 import { db } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { paymentReportSchema, normalizedReference, canReportPayment } from "@/lib/book-orders/whish-policy";
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest, context: Context) {
     const { reference } = await context.params;
     const authenticated = await authenticatePayment(request, reference);
     if (!authenticated) return privateJson({ error: "Payment page not found." }, 404);
+    if (isHostedWhish(authenticated.snapshot)) return privateJson({ error: 'Hosted Whish payments are verified automatically.' }, 409);
     if (authenticated.order.paymentMethod === "BANK_AUDI") return privateJson({ error: "Bank Audi bank transfers have been retired. Contact LEE about this existing order." }, 410);
     const multipart = request.headers.get("content-type")?.startsWith("multipart/form-data");
     if (!multipart) return privateJson({ error: "A payment screenshot is required." }, 400);

@@ -1,4 +1,5 @@
 import { getPaymentMethods } from '@/lib/payment-methods';
+import { isHostedWhish } from '@/lib/whish-pay/policy';
 import { isLiveCardSnapshot } from '@/lib/cybersource/live-config';
 import { createHash } from "node:crypto";
 import { isCardSnapshot, isTestBookReference } from '@/lib/cybersource/customer-policy';
@@ -112,6 +113,7 @@ export async function paymentSummary(p: BookWhishPayment & { order: BookOrder })
     p.order.status !== "CANCELLED" && p.expiresAt.getTime() > Date.now() &&
     (bankAudi ? bankAudiSnapshotActive(config as Awaited<ReturnType<typeof getBankAudiConfig>>, snapshot) : snapshotActive(config as Awaited<ReturnType<typeof getWhishConfig>>, snapshot));
   return {
+    whishCheckout: isHostedWhish(p.snapshot),
     cardCheckout: bankAudi && (isCardSnapshot(p.snapshot) || isLiveCardSnapshot(p.snapshot)), liveCard: bankAudi && isLiveCardSnapshot(p.snapshot), reference: p.order.reference, method: p.order.paymentMethod, state: p.state, orderStatus: p.order.status,
     amountCents: p.order.priceCents, currency: p.order.currency,
     selectionMode: p.order.selectionMode,

@@ -25,6 +25,7 @@ export default function PaymentMethodsPage() {
   }
   return <div className="mx-auto max-w-3xl space-y-5 text-white">
     <h1 className="text-2xl font-bold sm:text-3xl">Payment methods</h1>
+    <Link href="/admin/whish-pay" className="inline-block text-sm text-blue-300 underline">Test the new Whish Pay integration (sandbox)</Link>
     <p className="text-slate-300">Control what customers can choose. Changes save immediately and apply to printed books and ebooks.</p>
     <p className="rounded-xl bg-slate-800 p-4 text-sm text-slate-300">Off hides the method and blocks new payments. Existing order history, payment verification and reports of money already sent remain available. Switching on keeps your saved receiving details.</p>
     {error && <p role="alert" className="rounded-xl bg-red-950 p-4 text-red-200">{error}</p>}

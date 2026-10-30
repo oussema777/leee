@@ -1,4 +1,6 @@
 import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
+import { whishCustomerAccess } from '@/lib/whish-pay/customer-config';
+import { whishSnapshot } from '@/lib/whish-pay/policy';
 import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
@@ -73,7 +75,8 @@ export async function POST(request: NextRequest) {
     if (!(await limited("order:" + reader.id, 20, 3600)))
       throw new EbookError("Too many orders. Please try again later.", 429);
     const { ebookId, customerName, method, locale } = input.data;
-    if (!methodAllowed(await getPaymentMethods(), method)) throw new EbookError('This payment method is currently unavailable. Refresh checkout and choose another method.', 409);
+    const isWhishTest = method === 'WHISH' && await whishCustomerAccess(request);
+    if (!isWhishTest && !methodAllowed(await getPaymentMethods(), method)) throw new EbookError('This payment method is currently unavailable. Refresh checkout and choose another method.', 409);
     if (method === 'BANK_AUDI' && liveCustomerEnabled()) {
       if (request.headers.get('origin') !== 'https://www.theleeexperience.com') throw new EbookError('Open checkout on the LEE website.', 403);
       const live = await createLiveEbookOrder(db, reader.id, input.data);
@@ -101,7 +104,7 @@ export async function POST(request: NextRequest) {
         where: {
           readerId: reader.id,
           ebookId,
-          ...(isCardTest ? { reference: { startsWith: "EB-TEST-CARD-" } } : { NOT: { reference: { startsWith: "EB-TEST-CARD-" } } }),
+          ...(isWhishTest ? { reference: { startsWith: 'EB-TEST-WHISH-' } } : isCardTest ? { reference: { startsWith: "EB-TEST-CARD-" } } : { NOT: { reference: { startsWith: "EB-TEST-" } } }),
           state: {
             in: ["AWAITING_PAYMENT", "UNDER_REVIEW", "CHANGES_REQUESTED"],
           },
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
       if (existing) return existing;
       const settings = await ebookPaymentSettings();
       const snapshot =
-        method === "WHISH"
+        isWhishTest ? whishSnapshot(ebook.priceCents) : method === "WHISH"
           ? makeSnapshot(settings.whish, ebook.priceCents)
           : cardSnapshot(ebook.priceCents);
       if (!snapshot)
@@ -126,7 +129,7 @@ export async function POST(request: NextRequest) {
           locale,
           method,
           reference:
-            (isCardTest ? "EB-TEST-CARD-" : settings.testMode ? "EB-TEST-" : "EB-") + randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase(),
+            (isWhishTest ? 'EB-TEST-WHISH-' : isCardTest ? "EB-TEST-CARD-" : settings.testMode ? "EB-TEST-" : "EB-") + randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase(),
           priceCents: ebook.priceCents,
           title:
             locale === "ar" ? ebook.titleAr || ebook.titleEn : ebook.titleEn,

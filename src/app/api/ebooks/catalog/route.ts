@@ -1,4 +1,5 @@
 import { getPaymentMethods } from '@/lib/payment-methods';
+import { whishCustomerAccess } from '@/lib/whish-pay/customer-config';
 import { liveCustomerEnabled } from '@/lib/cybersource/live-config';
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
@@ -29,13 +30,15 @@ export async function GET(request: NextRequest) {
       ebookPaymentSettings(),
     ]);
     const enabled = await getPaymentMethods();
+    const whishTestMode = await whishCustomerAccess(request);
     return json({
       ebooks,
+      whishTestMode,
       testMode: testMode && isWhishAvailable(whish),
       cardTestMode: !liveCustomerEnabled(),
       testUntil,
       methods: [
-        isWhishAvailable(whish) ? "WHISH" : null,
+        whishTestMode || isWhishAvailable(whish) ? "WHISH" : null,
         enabled.BANK_AUDI && (liveCustomerEnabled() || await customerTestAccess(request)) ? "BANK_AUDI" : null,
       ].filter(Boolean),
     });

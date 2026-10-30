@@ -1,4 +1,6 @@
 import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
+import { whishCustomerAccess } from '@/lib/whish-pay/customer-config';
+import { whishSnapshot } from '@/lib/whish-pay/policy';
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
@@ -25,7 +27,8 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Please check your order details." }, 400);
     const input = parsed.data;
     if (input.website) return NextResponse.json({ reference: orderReference() }, { status: 201 });
-    if (!methodAllowed(await getPaymentMethods(), input.paymentMethod)) return privateJson({ error: 'This payment method is currently unavailable. Refresh checkout and choose another method.' }, 409);
+    const isWhishTest = input.paymentMethod === 'WHISH' && await whishCustomerAccess(request);
+    if (!isWhishTest && !methodAllowed(await getPaymentMethods(), input.paymentMethod)) return privateJson({ error: 'This payment method is currently unavailable. Refresh checkout and choose another method.' }, 409);
     if (input.paymentMethod === 'BANK_AUDI' && liveCustomerEnabled()) {
       if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout on the LEE website.' }, 403);
       if (!await limited('live-book-create:' + tokenHash(clientIp(request)), 10, 3600)) return privateJson({ error: 'Too many order attempts. Please try again later.' }, 429);
@@ -33,6 +36,7 @@ export async function POST(request: NextRequest) {
       return privateJson({ id: live.id, reference: live.reference, paymentUrl: paymentPath(input.locale, live.reference, input.paymentAccessToken!) }, 201);
     }
     const isCardTest = input.paymentMethod === "BANK_AUDI";
+    const isSandbox = isCardTest || isWhishTest;
     if (isCardTest && !(await customerTestAccess(request))) return privateJson({ error: "Card testing is available only to signed-in payment administrators." }, 403);
     const manual = input.paymentMethod === "WHISH" || input.paymentMethod === "BANK_AUDI";
     const hash = manual ? tokenHash(input.paymentAccessToken!) : null;
@@ -51,9 +55,9 @@ export async function POST(request: NextRequest) {
     const delivery = deliveryFeeCents(packageKey, input.fulfillmentMethod);
     const total = pack.priceCents + delivery;
     const config = input.paymentMethod === "WHISH" ? await getWhishConfig() : null;
-    const snapshot = config ? makeSnapshot(config, total) : isCardTest ? cardSnapshot(total) : null;
+    const snapshot = isWhishTest ? whishSnapshot(total) : config ? makeSnapshot(config, total) : isCardTest ? cardSnapshot(total) : null;
     if (manual && !snapshot) return privateJson({ error: "This payment method is currently unavailable. Please choose cash or try again later." }, 409);
-    if (!isCardTest) await expireWhishPayments().catch(() => console.error("Book reservation cleanup unavailable"));
+    if (!isSandbox) await expireWhishPayments().catch(() => console.error("Book reservation cleanup unavailable"));
     let order;
     let selectedTitles: string[] = [];
     try {
@@ -74,7 +78,7 @@ export async function POST(request: NextRequest) {
           return edition ? `${title} — ${edition.label || (input.locale === "ar" ? "الطبعة القياسية" : "Standard edition")}${edition.publicationYear ? ` (${edition.publicationYear})` : ""}` : title;
         });
         const donorAllocationIds = new Map<string, string>();
-        if (input.selectionMode === "CUSTOM" && !isCardTest) {
+        if (input.selectionMode === "CUSTOM" && !isSandbox) {
           for (const choice of [...input.selectedEditions].sort((a, b) => a.editionId.localeCompare(b.editionId))) {
             const editionReserved = await tx.bookInventoryEdition.updateMany({ where: { id: choice.editionId, inventoryItemId: choice.bookId, active: true, stockQuantity: { gt: 0 } }, data: { stockQuantity: { decrement: 1 } } });
             if (editionReserved.count !== 1) throw Error("BOOK_UNAVAILABLE");
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
         }
         return tx.bookOrder.create({
           data: {
-            reference: isCardTest ? "LEE-TEST-" + crypto.randomUUID().replaceAll("-", "").toUpperCase() : orderReference(), locale: input.locale, package: packageKey, purpose: input.purpose,
+            reference: isSandbox ? (isWhishTest ? 'LEE-TEST-WHISH-' : 'LEE-TEST-') + crypto.randomUUID().replaceAll("-", "").toUpperCase() : orderReference(), locale: input.locale, package: packageKey, purpose: input.purpose,
             selectionMode: input.selectionMode, requestedBookCount: pack.totalBooks,
             priceCents: total, deliveryFeeCents: delivery, currency: "USD",
             customerName: input.customerName, customerPhone: input.customerPhone, customerEmail: input.customerEmail || null,
@@ -110,7 +114,7 @@ export async function POST(request: NextRequest) {
             items: input.selectedBookIds.length ? { create: input.selectedBookIds.map((inventoryItemId, i) => ({ inventoryItemId, editionId: input.selectedEditions.find((item) => item.bookId === inventoryItemId)?.editionId, donorAllocationId: donorAllocationIds.get(inventoryItemId), isFreeExtra: isFreeExtraIndex(packageKey, i) })) } : undefined,
             ...(snapshot && hash ? { whishPayment: { create: {
               accessTokenHash: hash, requestHash: fingerprint, snapshot: snapshot as unknown as Prisma.InputJsonValue,
-              expiresAt: new Date(Date.now() + (isCardTest ? 24 : config!.holdHours) * 3600000),
+              expiresAt: new Date(Date.now() + (isSandbox ? 24 : config!.holdHours) * 3600000),
               events: { create: { action: "CREATED", actor: "customer", details: { amountCents: total, currency: "USD", method: input.paymentMethod } } },
             } } } : {}),
           },
@@ -125,7 +129,7 @@ export async function POST(request: NextRequest) {
       throw e;
     }
     const privatePath = manual ? paymentPath(input.locale, order.reference, input.paymentAccessToken!) : null;
-    if (!isCardTest) await Promise.all([sendNotificationEmail({
+    if (!isSandbox) await Promise.all([sendNotificationEmail({
       subject: "New book order " + order.reference, replyTo: input.customerEmail,
       html: renderNotification("New book order", manual ? `Awaiting the purchaser's ${input.paymentMethod === "BANK_AUDI" ? "Bank Audi transfer" : "Whish payment"}. Do not mark paid until receipt is verified.` : "A new cash order is ready for review.", [
         { label: "Reference", value: order.reference }, { label: "Customer", value: input.customerName },

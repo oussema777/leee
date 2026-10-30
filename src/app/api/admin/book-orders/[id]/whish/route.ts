@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isHostedWhish } from '@/lib/whish-pay/policy';
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getWhishConfig, lockOrder, privateJson, withPaymentAdmin } from "@/lib/book-orders/whish-server";
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         include: { order: { include: { items: { include: { inventoryItem: { select: { title: true, titleAr: true } } } } } } },
       });
       if (!p) throw Error("NOT_FOUND");
+      if (isHostedWhish(p.snapshot)) throw Error('REVIEW:Hosted Whish payments must be verified with the provider.');
       if (p.order.paymentMethod === "BANK_AUDI") throw Error("REVIEW:Manual Bank Audi payments are retired. This record is historical.");
       const config = input.action === "REQUEST_CORRECTION" ? await getWhishConfig() : null;
       if (p.updatedAt.toISOString() !== input.expectedUpdatedAt) throw Error("STALE_REVIEW");

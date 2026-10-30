@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isHostedWhish } from '@/lib/whish-pay/policy';
 import { db } from "@/lib/db";
 import {
   body,
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest, { params }: Context) {
           409,
         );
       if (order.method === "BANK_AUDI") throw new EbookError("Manual Bank Audi payments are retired. This record is historical.", 410);
+      if (isHostedWhish(order.snapshot)) throw new EbookError('Hosted Whish payments must be verified with the provider.', 409);
       const problem = reviewError(
         input,
         order.state,
