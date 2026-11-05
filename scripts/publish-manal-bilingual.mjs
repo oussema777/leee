@@ -35,10 +35,21 @@ try {
     if (policies.length) throw Error('Review storage policies before publishing');
     for (let offset = 0; offset < assets.length; offset += 4) {
       await Promise.all(assets.slice(offset, offset + 4).map(async asset => {
-        const result = await client.storage.from('ebook-private').upload(asset.storagePath, asset.bytes, { contentType: 'image/webp', upsert: false });
-        if (result.error && String(result.error.statusCode) !== '409' && result.error.message !== 'The resource already exists') throw Error('Private upload failed');
-        const stored = await client.storage.from('ebook-private').download(asset.storagePath);
-        if (stored.error || !Buffer.from(await stored.data.arrayBuffer()).equals(asset.bytes)) throw Error('Uploaded page verification failed');
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const result = await client.storage.from('ebook-private').upload(asset.storagePath, asset.bytes, { contentType: 'image/webp', upsert: false });
+          if (!result.error || String(result.error.statusCode) === '409' || result.error.message === 'The resource already exists') break;
+          if (attempt === 4) throw Error(`Page ${asset.number} upload failed (${result.error.statusCode || 'storage error'})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const stored = await client.storage.from('ebook-private').download(asset.storagePath);
+          if (!stored.error) {
+            if (!Buffer.from(await stored.data.arrayBuffer()).equals(asset.bytes)) throw Error(`Page ${asset.number} content mismatch`);
+            return;
+          }
+          if (attempt === 4) throw Error(`Page ${asset.number} download failed (${stored.error.statusCode || 'storage error'})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
       }));
       if (offset % 40 === 0) console.log(`Verified ${Math.min(offset + 4, assets.length)}/385 pages`);
     }
