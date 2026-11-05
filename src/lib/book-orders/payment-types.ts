@@ -2,7 +2,7 @@ import type { WhishSnapshot } from "./whish-config";
 import type { BankAudiSnapshot } from "./bank-audi-config";
 import type { WhishState } from "./whish-policy";
 export type PaymentSummary = {
-  whishCheckout?: boolean;
+  whishCheckout?: boolean; liveWhish?: boolean;
   cardCheckout?: boolean; liveCard?: boolean; reference: string; method?: "WHISH" | "BANK_AUDI"; state: WhishState; orderStatus: string; amountCents: number; currency: string;
   bookCount: number; fulfillmentMethod: string; expiresAt: string; submittedAt: string | null;
   customerNote: string | null; submittedReference: string | null; supportPhone: string;

@@ -1,3 +1,5 @@
+import { liveWhishEnabled } from '@/lib/whish-pay/client';
+import { createLiveWhishEbookOrder } from '@/lib/whish-pay/live-ebook-order';
 import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
 import { whishCustomerAccess } from '@/lib/whish-pay/customer-config';
 import { whishSnapshot } from '@/lib/whish-pay/policy';
@@ -75,8 +77,18 @@ export async function POST(request: NextRequest) {
     if (!(await limited("order:" + reader.id, 20, 3600)))
       throw new EbookError("Too many orders. Please try again later.", 429);
     const { ebookId, customerName, method, locale } = input.data;
-    const isWhishTest = method === 'WHISH' && await whishCustomerAccess(request);
+    const isWhishLive = method === 'WHISH' && liveWhishEnabled();
+    const isWhishTest = !isWhishLive && method === 'WHISH' && await whishCustomerAccess(request);
     if (!isWhishTest && !methodAllowed(await getPaymentMethods(), method)) throw new EbookError('This payment method is currently unavailable. Refresh checkout and choose another method.', 409);
+    if (isWhishLive) {
+      try { return json({ id: (await createLiveWhishEbookOrder(db, reader.id, input.data)).id }); }
+      catch (error) {
+        const code = (error as Error).message;
+        if (['EBOOK_EXISTING_PAYMENT', 'EBOOK_ALREADY_PURCHASED'].includes(code)) throw new EbookError('You already have an order for this ebook. Open My ebooks to continue.', 409);
+        if (code === 'EBOOK_UNAVAILABLE') throw new EbookError('This ebook is unavailable.', 409);
+        throw error;
+      }
+    }
     if (method === 'BANK_AUDI' && liveCustomerEnabled()) {
       if (request.headers.get('origin') !== 'https://www.theleeexperience.com') throw new EbookError('Open checkout on the LEE website.', 403);
       const live = await createLiveEbookOrder(db, reader.id, input.data);

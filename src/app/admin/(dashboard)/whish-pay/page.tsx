@@ -45,6 +45,7 @@ export default function WhishPayPage() {
       {message && <p role="status" className="text-emerald-300">{message}</p>}
       {error && <p role="alert" className="text-red-300">{error}</p>}
     </section>
+    <Link href="/admin/whish-pay/live" className="inline-flex text-blue-300 underline">Manage live Whish payments</Link>
     <h2 className="text-xl font-semibold">Recent test payments</h2>
     <section className="space-y-3 rounded-2xl border border-gray-700 bg-slate-800 p-5">
       <h2 className="text-xl font-semibold">Test a complete purchase</h2>

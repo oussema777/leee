@@ -1,9 +1,10 @@
 'use client';
+import { WhishLiveView } from './WhishLiveView';
 import { useCallback, useEffect, useRef, useState } from 'react';
-type Result = { completed: boolean; retryAllowed: boolean; attempt: { id: string; status: string; collectUrl: string | null; errorCode: string | null; uncertain: boolean } | null };
-export function WhishHostedCheckout({ endpoint, token, reference, amountCents, locale, readingUrl }: { endpoint: string; token?: string; reference: string; amountCents: number; locale: string; readingUrl?: string }) {
+export type WhishCheckoutResult = { completed: boolean; retryAllowed: boolean; attempt: { id: string; status: string; collectUrl: string | null; errorCode: string | null; uncertain: boolean; reviewRequired?: boolean } | null };
+export function WhishHostedCheckout({ endpoint, token, reference, amountCents, locale, readingUrl, live = false }: { endpoint: string; token?: string; reference: string; amountCents: number; locale: string; readingUrl?: string; live?: boolean }) {
   const ar = locale === 'ar';
-  const [result, setResult] = useState<Result | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const [result, setResult] = useState<WhishCheckoutResult | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [autoStopped, setAutoStopped] = useState(false);
   const inFlight = useRef(false);
   const call = useCallback(async (action: 'start' | 'check' | 'retry') => {
@@ -19,7 +20,7 @@ export function WhishHostedCheckout({ endpoint, token, reference, amountCents, l
   }, [endpoint, token]);
   useEffect(() => { void call('check'); }, [call]);
   useEffect(() => {
-    if (!result?.attempt || result.completed || ['failed', 'refunded'].includes(result.attempt.status)) return;
+    if (!result?.attempt || result.completed || result.attempt.reviewRequired || ['failed', 'refunded'].includes(result.attempt.status)) return;
     const start = Date.now();
     const timer = setInterval(() => {
       if (Date.now() - start > 6 * 60000) { clearInterval(timer); setAutoStopped(true); return; }
@@ -28,7 +29,8 @@ export function WhishHostedCheckout({ endpoint, token, reference, amountCents, l
     const focus = () => { void call('check'); };
     window.addEventListener('focus', focus);
     return () => { clearInterval(timer); window.removeEventListener('focus', focus); };
-  }, [result?.attempt?.id, result?.completed, result?.attempt?.status, call]);
+  }, [result?.attempt?.id, result?.completed, result?.attempt?.status, result?.attempt?.reviewRequired, call]);
+  if (live) return <WhishLiveView result={result} busy={busy} error={error} autoStopped={autoStopped} reference={reference} amountCents={amountCents} locale={locale} readingUrl={readingUrl} call={call} />;
   const button = 'inline-flex min-h-12 items-center justify-center rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:opacity-50';
   const a = result?.attempt;
   return <section dir={ar ? 'rtl' : 'ltr'} className="mx-auto my-10 max-w-xl space-y-5 rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm">

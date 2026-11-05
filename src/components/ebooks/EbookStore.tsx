@@ -16,7 +16,7 @@ export type EbookProduct = {
   coverUrl: string; priceCents: number; language: string; versions?: { editionLanguage: string | null }[];
   activeVersion: { pageCount: number };
 };
-type Catalog = { ebooks: EbookProduct[]; methods: string[]; testMode?: boolean };
+type Catalog = { ebooks: EbookProduct[]; methods: string[]; testMode?: boolean; whishLiveMode?: boolean };
 const languageNames: Record<string, [string, string]> = { ARABIC: ["Arabic", "العربية"], ENGLISH: ["English", "الإنجليزية"], FRENCH: ["French", "الفرنسية"], OTHER: ["Other", "أخرى"] };
 
 export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
@@ -41,6 +41,9 @@ export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
     ["Pay & submit your reference", "Choose a payment method, follow the transfer instructions, then submit your transaction reference for review."],
     ["Read after approval", "Once we confirm your payment, we’ll email your reading link. Open your book anytime from My ebooks."],
   ];
+  if (catalog?.whishLiveMode) steps[1] = ar
+    ? ["أكمل الدفع بأمان", "اختر طريقة الدفع وأكمل العملية. عند الدفع عبر Whish، نتحقق من العملية تلقائياً دون الحاجة لإرسال إيصال."]
+    : ["Complete your payment", "Choose a payment method and complete checkout. Whish payments are verified automatically, with no receipt to upload."];
   return <main className={p.page} dir={ar ? "rtl" : "ltr"}>
     <div className={p.wrap}>
       <nav className={p.nav} aria-label={ar ? "روابط الكتب" : "Book navigation"}>

@@ -1,5 +1,5 @@
 import { isLiveCardSnapshot } from '@/lib/cybersource/live-config';
-import { isHostedWhish } from '@/lib/whish-pay/policy';
+import { isHostedWhish, isLiveWhish } from '@/lib/whish-pay/policy';
 import { NextRequest } from "next/server";
 import { isCardSnapshot } from "@/lib/cybersource/customer-policy";
 import { db } from "@/lib/db";
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: Context) {
         ? snapshotActive(settings.whish, snapshot)
         : bankAudiSnapshotActive(settings.bank, snapshot);
     return json({
-      whishCheckout: isHostedWhish(order.snapshot),
+      whishCheckout: isHostedWhish(order.snapshot), liveWhish: isLiveWhish(order.snapshot),
       cardCheckout: order.method === "BANK_AUDI" && (isCardSnapshot(order.snapshot) || isLiveCardSnapshot(order.snapshot)), liveCard: isLiveCardSnapshot(order.snapshot),
       id: order.id,
       reference: order.reference,

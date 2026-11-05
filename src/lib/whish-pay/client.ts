@@ -2,10 +2,21 @@ import { z } from 'zod';
 
 // This module is imported exclusively by server routes/services. Never expose its config.
 export const SANDBOX_URL = 'https://partner.api.sbx.whish.money/itel-service/api';
+export const PRODUCTION_URL = 'https://api.whish.money/itel-service/api';
 export class WhishError extends Error {
   constructor(public code: string, public uncertain = false) { super(code); }
 }
-export type WhishConfig = { channel: string; secret: string; websiteUrl: string; origin: string };
+export type WhishConfig = { channel: string; secret: string; websiteUrl: string; origin: string; environment?: 'SANDBOX' | 'PRODUCTION' };
+export function liveConfig(env: Record<string, string | undefined> = process.env): WhishConfig {
+  const channel = env.WHISH_PAY_LIVE_CHANNEL, secret = env.WHISH_PAY_LIVE_SECRET;
+  const websiteUrl = env.WHISH_PAY_LIVE_WEBSITE_URL, origin = env.WHISH_PAY_LIVE_PUBLIC_ORIGIN;
+  if (!channel || !secret || websiteUrl !== 'theleeexperience.com' || origin !== 'https://www.theleeexperience.com') throw new WhishError('LIVE_CONFIGURATION_REQUIRED');
+  return { channel, secret, websiteUrl, origin, environment: 'PRODUCTION' };
+}
+export function liveWhishEnabled(env: Record<string, string | undefined> = process.env) {
+  if (env.WHISH_PAY_LIVE_ENABLED !== 'true') return false;
+  try { liveConfig(env); return true; } catch { return false; }
+}
 export function sandboxConfig(env: Record<string, string | undefined> = process.env): WhishConfig {
   if (env.WHISH_PAY_SANDBOX_ENABLED !== 'true') throw new WhishError('SANDBOX_DISABLED');
   const { WHISH_PAY_CHANNEL: channel, WHISH_PAY_SECRET: secret, WHISH_PAY_WEBSITE_URL: websiteUrl, WHISH_PAY_PUBLIC_ORIGIN: origin } = env;
@@ -37,7 +48,7 @@ export function whishClient(config: WhishConfig, transport: typeof fetch = fetch
   async function call(path: string, body?: unknown): Promise<unknown> {
     let response: Response;
     try {
-      response = await transport(SANDBOX_URL + path, {
+      response = await transport((config.environment === 'PRODUCTION' ? PRODUCTION_URL : SANDBOX_URL) + path, {
         method: body === undefined ? 'GET' : 'POST', cache: 'no-store', redirect: 'error',
         signal: AbortSignal.timeout(15000), headers: {
           channel: config.channel, secret: config.secret, websiteUrl: config.websiteUrl,
@@ -71,6 +82,10 @@ export function whishClient(config: WhishConfig, transport: typeof fetch = fetch
       const result = z.object({ collectStatus: collectStatusSchema }).safeParse(data);
       if (!result.success) throw new WhishError('INVALID_STATUS', true);
       return result.data.collectStatus;
+    },
+    async refund(externalId: string, refundReason: string) {
+      const body = z.object({ externalId: z.string().min(1).max(100), currency: z.literal('USD'), refundReason: z.string().trim().min(1).max(500) }).parse({ externalId, currency: 'USD', refundReason });
+      await call('/payment/whish/refund', body);
     },
   };
 }

@@ -1,3 +1,5 @@
+import { liveWhishEnabled } from '@/lib/whish-pay/client';
+import { createLiveWhishBookOrder } from '@/lib/whish-pay/live-book-order';
 import { getPaymentMethods, methodAllowed } from '@/lib/payment-methods';
 import { whishCustomerAccess } from '@/lib/whish-pay/customer-config';
 import { whishSnapshot } from '@/lib/whish-pay/policy';
@@ -27,8 +29,15 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return privateJson({ error: parsed.error.issues[0]?.message || "Please check your order details." }, 400);
     const input = parsed.data;
     if (input.website) return NextResponse.json({ reference: orderReference() }, { status: 201 });
-    const isWhishTest = input.paymentMethod === 'WHISH' && await whishCustomerAccess(request);
+    const isWhishLive = input.paymentMethod === 'WHISH' && liveWhishEnabled();
+    const isWhishTest = !isWhishLive && input.paymentMethod === 'WHISH' && await whishCustomerAccess(request);
     if (!isWhishTest && !methodAllowed(await getPaymentMethods(), input.paymentMethod)) return privateJson({ error: 'This payment method is currently unavailable. Refresh checkout and choose another method.' }, 409);
+    if (isWhishLive) {
+      if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout on the LEE website.' }, 403);
+      if (!await limited('whish-live-create:' + tokenHash(clientIp(request)), 10, 3600)) return privateJson({ error: 'Too many orders. Try again later.' }, 429);
+      const live = await createLiveWhishBookOrder(db, input);
+      return privateJson({ id: live.id, reference: live.reference, paymentUrl: paymentPath(input.locale, live.reference, input.paymentAccessToken!) }, 201);
+    }
     if (input.paymentMethod === 'BANK_AUDI' && liveCustomerEnabled()) {
       if (request.headers.get('origin') !== 'https://www.theleeexperience.com') return privateJson({ error: 'Open checkout on the LEE website.' }, 403);
       if (!await limited('live-book-create:' + tokenHash(clientIp(request)), 10, 3600)) return privateJson({ error: 'Too many order attempts. Please try again later.' }, 429);

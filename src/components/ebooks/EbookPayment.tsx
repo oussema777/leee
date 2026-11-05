@@ -11,7 +11,7 @@ import { EbookClientError, ebookFetch, money, stateLabel } from "./client";
 import s from "./ebooks.module.css";
 import p from "./purchase.module.css";
 type Order = {
-  cardCheckout?: boolean; liveCard?: boolean; whishCheckout?: boolean;
+  cardCheckout?: boolean; liveCard?: boolean; whishCheckout?: boolean; liveWhish?: boolean;
   testOrder?: boolean;
   testMode?: boolean;
   title: string;
@@ -78,7 +78,7 @@ export function EbookPayment({ locale, id }: { locale: string; id: string }) {
       setBusy(false);
     }
   }
-  if (order?.whishCheckout) return <main className={s.shell}><WhishHostedCheckout endpoint={`/api/ebooks/orders/${id}/whish-pay`} reference={order.reference} amountCents={order.priceCents} locale={locale} readingUrl={`/${locale}/ebooks/read/${order.ebookId}`} /></main>;
+  if (order?.whishCheckout) return <main className={s.shell}><WhishHostedCheckout live={order.liveWhish} endpoint={`/api/ebooks/orders/${id}/${order.liveWhish ? "whish-live" : "whish-pay"}`} reference={order.reference} amountCents={order.priceCents} locale={locale} readingUrl={`/${locale}/ebooks/read/${order.ebookId}`} /></main>;
   if (order?.cardCheckout) return <main className={s.shell}><CustomerCardCheckout live={order.liveCard} endpoint={`/api/ebooks/orders/${id}/${order.liveCard ? "live-card" : "card"}`} reference={order.reference} amountCents={order.priceCents} locale={locale} readingUrl={`/${locale}/ebooks/read/${order.ebookId}`} /></main>;
   return (
     <main className={s.shell} dir={ar ? "rtl" : "ltr"}>

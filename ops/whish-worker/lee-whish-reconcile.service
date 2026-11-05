@@ -1,0 +1,15 @@
+[Unit]
+Description=LEE Whish payment reconciliation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/lee-whish-worker.env
+ExecStart=/usr/bin/python3 /opt/lee-whish/reconcile.py
+TimeoutStartSec=270
+DynamicUser=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes

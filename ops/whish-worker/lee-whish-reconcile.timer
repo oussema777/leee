@@ -1,0 +1,11 @@
+[Unit]
+Description=Check LEE Whish payments every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=15s
+Unit=lee-whish-reconcile.service
+
+[Install]
+WantedBy=timers.target
