@@ -1,0 +1,18 @@
+To: m.hassoun@theleeexperience.com
+Subject: Manal ebook — Whish checkout ready for your live test
+
+Hi Manal,
+
+Whish checkout is now live on the LEE website. The remaining check is one real purchase using your Whish account.
+
+This is a real $9.99 payment, not a sandbox simulation. Automatic refunds are not enabled yet, so please proceed only if you are comfortable making this live test purchase.
+
+1. Open https://www.theleeexperience.com/en/ebooks/manal-366-days
+2. Choose "Order ebook" and verify your email using the sign-in code. Use an email that does not already own the ebook; if it says you already own it, use another email.
+3. Select Whish, continue to the payment page, and complete the $9.99 payment in Whish.
+4. Return to the LEE order page. Confirm that it shows "Payment confirmed", that you can open both the Arabic and English editions, and that you receive the reading confirmation email. Email delivery can take a few minutes.
+
+Please send the order reference and whether those three checks worked back to the team. If anything looks wrong, stop and send a screenshot of the error; please do not pay a second time or share your sign-in code.
+
+Thank you,
+LEE website team
