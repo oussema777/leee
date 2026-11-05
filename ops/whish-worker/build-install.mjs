@@ -23,9 +23,20 @@ for target in /opt/lee-whish /etc/lee-whish-worker.env /etc/systemd/system/lee-w
 done
 umask 077
 python3 <<'LEE_WHISH_FILES'
-import base64, json, os
+import base64, json, urllib.request
 from pathlib import Path
 files = json.loads(base64.b64decode('${payload}'))
+credential = next(content for name, content, mode in files if name == '/etc/lee-whish-worker.env').strip().split('=', 1)[1]
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+request = urllib.request.Request('https://www.theleeexperience.com/api/cron/whish-pay?probe=1', headers={'Authorization': 'Bearer ' + credential})
+try:
+    with urllib.request.build_opener(NoRedirect()).open(request, timeout=30) as response:
+        probe = json.load(response)
+    assert probe.get('provider', {}).get('authenticated') is True
+except Exception:
+    raise SystemExit('Production Whish preflight failed. Nothing installed; ask for the deployment check.')
 Path('/opt/lee-whish').mkdir(mode=0o755)
 for name, content, mode in files:
     p = Path(name)
