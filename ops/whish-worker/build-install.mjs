@@ -38,6 +38,8 @@ try:
 except Exception:
     raise SystemExit('Production Whish preflight failed. Nothing installed; ask for the deployment check.')
 Path('/opt/lee-whish').mkdir(mode=0o755)
+# Explicit chmod is required because the installer uses umask 077.
+Path('/opt/lee-whish').chmod(0o755)
 for name, content, mode in files:
     p = Path(name)
     with p.open('x', encoding='utf-8', newline='\\n') as f:
