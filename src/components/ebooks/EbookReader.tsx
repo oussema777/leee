@@ -10,10 +10,14 @@ import { ReaderPages, type ReaderSheet } from "./reader-pages";
 import { ReaderFlipBook } from "./ReaderFlipBook";
 
 type Mark = { page: number; label: string };
-type Info = { reader?: { email: string }; titleEn: string; titleAr: string; author?: string; direction: string; pageCount: number; versionId: string; lastPage: number; bookmarks: Mark[]; preview?: boolean };
+type Info = { editionLanguage: string; languages: string[]; reader?: { email: string }; titleEn: string; titleAr: string; author?: string; direction: string; pageCount: number; versionId: string; lastPage: number; bookmarks: Mark[]; preview?: boolean };
 type Sheet = { page: number; url: string };
 type Panel = "bookmarks" | "pages" | "settings" | null;
 export function EbookReader({ locale, id }: { locale: string; id: string }) {
+  const [language, setLanguage] = useState("");
+  return <ReaderEdition key={`${id}:${language}`} locale={locale} id={id} language={language} onLanguage={setLanguage} />;
+}
+function ReaderEdition({ locale, id, language, onLanguage }: { locale: string; id: string; language: string; onLanguage: (value: string) => void }) {
   const ar = locale === "ar", t = (en: string, arabic: string) => ar ? arabic : en;
   const [auth, setAuth] = useState<boolean | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
@@ -42,7 +46,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
   const load = useCallback(async () => {
     setError(""); setLoading(true);
     try {
-      const data = await ebookFetch<Info>(`/api/ebooks/read/${id}`);
+      const data = await ebookFetch<Info>(`/api/ebooks/read/${id}?language=${encodeURIComponent(language)}`);
       setAuth(true); setInfo(data); setMarks(data.bookmarks || []);
       setPage(data.lastPage); setJump(String(data.lastPage));
     } catch (e) {
@@ -50,7 +54,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
       else setError((e as Error).message);
       setLoading(false);
     }
-  }, [id]);
+  }, [id, language]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     if (!dockOpen || flipping) return;
@@ -110,17 +114,17 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
     const buffer = new ReaderPages(id, () => setReady(buffer.snapshot()), error => {
       setSheets([]); setError(error.message);
       if (error.status === 401) { setAuth(false); setInfo(null); }
-    });
+    }, language);
     cache.current = buffer;
     return () => { buffer.clear(); cache.current = null; };
-  }, [id, info?.versionId]);
+  }, [id, language, info?.versionId]);
   useEffect(() => {
     if (!info || auth !== true) return;
     let active = true;
     const check = async () => {
       if (document.hidden) return;
       try {
-        const current = await ebookFetch<Info>(`/api/ebooks/read/${id}`);
+        const current = await ebookFetch<Info>(`/api/ebooks/read/${id}?language=${encodeURIComponent(language)}`);
         if (active && current.versionId !== info.versionId) { cache.current?.clear(); setSheets([]); setInfo(current); setPage(current.lastPage); }
       } catch (e) {
         if (active && e instanceof EbookClientError && [401, 403].includes(e.status)) {
@@ -132,7 +136,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
     const timer = setInterval(() => void check(), 20000);
     document.addEventListener("visibilitychange", check);
     return () => { active = false; clearInterval(timer); document.removeEventListener("visibilitychange", check); };
-  }, [id, info, auth]);
+  }, [id, language, info, auth]);
   useEffect(() => {
     if (!info || auth !== true) return;
     let active = true;
@@ -151,7 +155,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
         // Serialize writes: a slow save must not overwrite a later page.
         saveQueue.current = saveQueue.current.catch(() => {}).then(async () => {
           if (!active) return;
-          try { await ebookFetch(`/api/ebooks/read/${id}`, { page: start, versionId: info.versionId }, "PUT"); if (active) setSaved(true); }
+          try { await ebookFetch(`/api/ebooks/read/${id}?language=${encodeURIComponent(language)}`, { page: start, versionId: info.versionId }, "PUT"); if (active) setSaved(true); }
           catch { if (active) setSaved(false); }
         });
       } catch (e) {
@@ -162,7 +166,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
       }
     })();
     return () => { active = false; };
-  }, [id, info, auth, start, end, retry]);
+  }, [id, language, info, auth, start, end, retry]);
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
       if (event.key === "Escape") { setPanel(null); setFocused(false); return; }
@@ -186,7 +190,7 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
     if (!info || markBusy) return;
     setMarkBusy(true); setNotice("");
     try {
-      await ebookFetch(`/api/ebooks/read/${id}`, { action, page: number, label: name, versionId: info.versionId }, "PATCH");
+      await ebookFetch(`/api/ebooks/read/${id}?language=${encodeURIComponent(language)}`, { action, page: number, label: name, versionId: info.versionId }, "PATCH");
       setMarks(old => [...old.filter(m => m.page !== number), ...(action === "save" ? [{ page: number, label: name.trim() }] : [])].sort((a, b) => a.page - b.page));
       setNotice(action === "save" ? t("Bookmark saved to your account", "تم حفظ العلامة في حسابك") : t("Bookmark removed", "تم حذف العلامة"));
     } catch (e) { setNotice((e as Error).message); }
@@ -207,6 +211,9 @@ export function EbookReader({ locale, id }: { locale: string; id: string }) {
       <Link className={s.library} href={`/${locale}/ebooks/library`} title={t("My library", "مكتبتي")}><BookOpen size={21} /><span>{t("My library", "مكتبتي")}</span></Link>
       <div className={s.title}><span>{t("THE LEE READING ROOM", "مساحة القراءة • LEE")}</span><h1>{title}</h1></div>
       <div className={s.actions}>
+        {(info?.languages?.length || 0) > 1 && <select className={s.editionSelect} aria-label={t("Book language", "لغة الكتاب")} value={info?.editionLanguage} onChange={e => onLanguage(e.target.value)}>
+          {info?.languages.map(value => <option key={value} value={value}>{value === "ar" ? "العربية" : value === "en" ? "English" : "Français"}</option>)}
+        </select>}
         <button aria-label={t("Bookmarks", "العلامات المرجعية")} title={t("Bookmarks", "العلامات المرجعية")} onClick={e => openPanel("bookmarks", e.currentTarget)} disabled={!info}><Bookmark size={20} />{marks.length > 0 && <sup>{marks.length}</sup>}</button>
         <button aria-label={t("Reading settings", "إعدادات القراءة")} title={t("Reading settings", "إعدادات القراءة")} onClick={e => openPanel("settings", e.currentTarget)}><Settings2 size={20} /></button>
         <button className={s.desktop} aria-label={t(fullscreen ? "Exit fullscreen" : "Fullscreen", fullscreen ? "إنهاء ملء الشاشة" : "ملء الشاشة")} title={t("Fullscreen", "ملء الشاشة")} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={20} /> : <Maximize size={20} />}</button>

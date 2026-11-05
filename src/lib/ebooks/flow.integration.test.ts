@@ -323,6 +323,29 @@ describe.skipIf(!process.env.EBOOK_TEST_DATABASE_URL)(
       ).toBe(403);
       expect((await action(id, "RESTORE")).status).toBe(400);
     });
+    it("includes released translations in one paid purchase and revokes both on refund", async () => {
+      await db.ebook.update({ where: { id: ebookId }, data: { priceCents: 999 } });
+      const english = await db.ebookVersion.create({ data: { ebookId, label: "English", editionLanguage: "en", pageCount: 2, ready: true, pages: { create: [{ number: 1, storagePath: "english.webp" }] } } });
+      await db.ebookVersion.create({ data: { ebookId, label: "Draft French", editionLanguage: "fr", pageCount: 2 } });
+      const url = `/api/ebooks/read/${ebookId}?language=en`;
+      const id = await newOrder();
+      expect((await db.ebookOrder.findUniqueOrThrow({ where: { id } })).priceCents).toBe(999);
+      expect((await read(request(url), context(ebookId))).status).toBe(403);
+      await submit(id);
+      expect((await action(id, "VERIFY", { ...verification(), receivedAmountCents: 999 })).status).toBe(200);
+      const englishInfo = await (await read(request(url), context(ebookId))).json();
+      expect(englishInfo).toMatchObject({ direction: "ltr", editionLanguage: "en", versionId: english.id });
+      expect(englishInfo.languages.sort()).toEqual(["ar", "en"]);
+      expect((await read(request(`${url}&page=1`), context(ebookId))).status).toBe(200);
+      expect((await read(request(`/api/ebooks/read/${ebookId}?language=fr`), context(ebookId))).status).toBe(403);
+      expect((await read(request(`/api/ebooks/read/${ebookId}?language=invalid`), context(ebookId))).status).toBe(404);
+      expect((await bookmark(request(url, "PATCH", { action: "save", page: 1, versionId: english.id, label: "English bookmark" }), context(ebookId))).status).toBe(200);
+      const arabic = await (await read(request(`/api/ebooks/read/${ebookId}?language=ar`), context(ebookId))).json();
+      expect(arabic).toMatchObject({ direction: "rtl", editionLanguage: "ar", bookmarks: [] });
+      expect((await progress(request(url, "PUT", { page: 1, versionId: arabic.versionId }), context(ebookId))).status).toBe(409);
+      expect((await action(id, "REFUND", { checkedWallet: true })).status).toBe(200);
+      for (const language of ["ar", "en"]) expect((await read(request(`/api/ebooks/read/${ebookId}?language=${language}&page=1`), context(ebookId))).status).toBe(403);
+    });
     it("persists version-scoped bookmarks and rejects invalid or unauthorized changes", async () => {
       const id = await newOrder();
       await submit(id);

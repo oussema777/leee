@@ -138,3 +138,5 @@
 @media (prefers-reduced-motion: reduce) { .reader *, .reader *::after { animation: none !important; transition: none !important; } }
 @media print { .reader { display: none !important; } }
 @media (max-height: 600px) { .header { min-height: 56px; padding-block: 4px; } .context { display: none; } .stage { padding-block: 0; } .viewport { padding-block: 8px; } .toolbar { min-height: 46px; } .footer { padding-bottom: 8px; } }
+
+.editionSelect { max-width: 105px; min-height: 36px; border: 1px solid #777; border-radius: 8px; padding: 4px 8px; background: #20242a; color: #fff; font: inherit; font-size: 13px; }

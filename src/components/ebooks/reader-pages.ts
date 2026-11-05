@@ -8,7 +8,7 @@ export class ReaderPages {
   private pending = new Map<number, Promise<ReaderSheet>>();
   private controller = new AbortController();
   private generation = 0;
-  constructor(private id: string, private changed: () => void, private denied: (e: EbookClientError) => void) {}
+  constructor(private id: string, private changed: () => void, private denied: (e: EbookClientError) => void, private language = "") {}
   snapshot() { return new Map(this.pages); }
   async get(page: number): Promise<ReaderSheet> {
     const cached = this.pages.get(page);
@@ -24,7 +24,7 @@ export class ReaderPages {
       try {
         const avif = await supportsReaderAvif();
         if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-        const response = await fetch(`/api/ebooks/read/${this.id}?page=${page}`, { cache: "no-store", signal, headers: { Accept: avif ? "image/avif,image/webp" : "image/webp" } });
+        const response = await fetch(`/api/ebooks/read/${this.id}?page=${page}&language=${encodeURIComponent(this.language)}`, { cache: "no-store", signal, headers: { Accept: avif ? "image/avif,image/webp" : "image/webp" } });
         if (!response.ok) {
           const data = await response.json();
           throw new EbookClientError(data.error || "Unable to load page", response.status);

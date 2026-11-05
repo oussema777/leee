@@ -19,8 +19,10 @@ async function accessFor(request: NextRequest, id: string, chargeRead = false) {
   const token = request.cookies.get(READER_COOKIE)?.value;
   if (!token || !/^[a-f0-9]{64}$/.test(token)) throw new EbookError("Sign in with your purchase email to continue.", 401);
   type Row = { readerId: string; email: string; accessId: string | null; active: boolean; lastPage: number; progressVersionId: string | null;
-    orderId: string; state: string; reference: string; snapshot: unknown; titleEn: string; titleAr: string; author: string; direction: string;
+    orderId: string; state: string; reference: string; snapshot: unknown; titleEn: string; titleAr: string; author: string; direction: string; editionLanguage: string; languages: string[];
     versionId: string; pageCount: number; ready: boolean; previewDetails: unknown; storagePath: string | null; readAllowed: boolean; bookmarks: { page: number; label: string }[] };
+  const language = request.nextUrl.searchParams.get("language") || "";
+  if (language && !["ar", "en", "fr"].includes(language)) throw new EbookError("Edition not found.", 404);
   const page = Number(request.nextUrl.searchParams.get("page") || 0);
   // Prisma's nested includes execute multiple remote queries. Join the session,
   // entitlement, edition and page in one parameterized query instead.
@@ -40,7 +42,10 @@ async function accessFor(request: NextRequest, id: string, chargeRead = false) {
     SELECT s."readerId", r."email", a."id" AS "accessId", a."active", a."lastPage", a."progressVersionId",
       EXISTS(SELECT 1 FROM read_limit) AS "readAllowed",
       o."id" AS "orderId", o."state", o."reference", o."snapshot",
-      b."titleEn", b."titleAr", b."author", b."direction", v."id" AS "versionId", v."pageCount", v."ready", p."storagePath",
+      b."titleEn", b."titleAr", b."author", CASE WHEN v."editionLanguage" = 'en' OR v."editionLanguage" = 'fr' THEN 'ltr' WHEN v."editionLanguage" = 'ar' THEN 'rtl' ELSE b."direction" END AS "direction",
+      COALESCE(v."editionLanguage", CASE b."language" WHEN 'ARABIC' THEN 'ar' WHEN 'ENGLISH' THEN 'en' WHEN 'FRENCH' THEN 'fr' ELSE '' END) AS "editionLanguage",
+      ARRAY(SELECT DISTINCT COALESCE(ev."editionLanguage", CASE b."language" WHEN 'ARABIC' THEN 'ar' WHEN 'ENGLISH' THEN 'en' WHEN 'FRENCH' THEN 'fr' ELSE '' END) FROM "EbookVersion" ev WHERE ev."ebookId" = b."id" AND ev."ready" AND (ev."id" = b."activeVersionId" OR ev."editionLanguage" IS NOT NULL)) AS "languages",
+      v."id" AS "versionId", v."pageCount", v."ready", p."storagePath",
       (SELECT e."details" FROM "EbookOrderEvent" e WHERE e."orderId" = o."id" AND e."action" = 'LOCAL_READER_PREVIEW' ORDER BY e."createdAt" DESC LIMIT 1) AS "previewDetails",
       COALESCE((SELECT jsonb_agg(jsonb_build_object('page', m."page", 'label', m."label") ORDER BY m."page") FROM "EbookBookmark" m WHERE m."accessId" = a."id" AND m."versionId" = v."id"), '[]'::jsonb) AS "bookmarks"
     FROM session s
@@ -48,7 +53,11 @@ async function accessFor(request: NextRequest, id: string, chargeRead = false) {
     LEFT JOIN "EbookAccess" a ON a."readerId" = s."readerId" AND a."ebookId" = ${id}
     LEFT JOIN "EbookOrder" o ON o."id" = a."orderId"
     LEFT JOIN "Ebook" b ON b."id" = a."ebookId"
-    LEFT JOIN "EbookVersion" v ON v."id" = b."activeVersionId"
+    LEFT JOIN "EbookVersion" v ON v."ebookId" = b."id" AND (
+      (${language} = '' AND v."id" = b."activeVersionId") OR
+      (${language} <> '' AND (v."editionLanguage" = ${language} OR
+        (v."id" = b."activeVersionId" AND v."editionLanguage" IS NULL AND ${language} = CASE b."language" WHEN 'ARABIC' THEN 'ar' WHEN 'ENGLISH' THEN 'en' WHEN 'FRENCH' THEN 'fr' ELSE '' END)))
+    )
     LEFT JOIN "EbookPage" p ON p."versionId" = v."id" AND p."number" = ${Number.isFinite(page) ? page : 0}
     `;
   const row = rows[0];
@@ -63,12 +72,12 @@ async function accessFor(request: NextRequest, id: string, chargeRead = false) {
       403,
     );
   if (chargeRead && !row.readAllowed) throw new EbookError("Please slow down and try again shortly.", 429);
-  return { reader: { id: row.readerId, email: row.email }, access, version, storagePath: row.storagePath, bookmarks: row.bookmarks };
+  return { editionLanguage: row.editionLanguage, languages: row.languages, reader: { id: row.readerId, email: row.email }, access, version, storagePath: row.storagePath, bookmarks: row.bookmarks };
 }
 export async function GET(request: NextRequest, { params }: Context) {
   return endpoint(request, async () => {
     const { id } = await params;
-    const { reader, access, version, storagePath, bookmarks } = await accessFor(request, id, request.nextUrl.searchParams.has("page"));
+    const { reader, access, version, storagePath, bookmarks, editionLanguage, languages } = await accessFor(request, id, request.nextUrl.searchParams.has("page"));
     const page = request.nextUrl.searchParams.get("page");
     if (page !== null) {
       if (!validPage(Number(page), version.pageCount))
@@ -97,6 +106,8 @@ export async function GET(request: NextRequest, { params }: Context) {
       author: access.ebook.author,
       preview: !canRead(access),
       bookmarks,
+      editionLanguage,
+      languages,
       pageCount: version.pageCount,
       versionId: version.id,
       lastPage:

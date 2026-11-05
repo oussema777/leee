@@ -13,7 +13,7 @@ import s from "./ebooks.module.css";
 export type EbookProduct = {
   id: string; slug: string; titleEn: string; titleAr: string;
   descriptionEn: string; descriptionAr: string; author: string;
-  coverUrl: string; priceCents: number; language: string;
+  coverUrl: string; priceCents: number; language: string; versions?: { editionLanguage: string | null }[];
   activeVersion: { pageCount: number };
 };
 type Catalog = { ebooks: EbookProduct[]; methods: string[]; testMode?: boolean };
@@ -63,7 +63,7 @@ export function EbookStore({ locale, slug }: { locale: string; slug: string }) {
               <p className={p.author}>{ar ? "بقلم" : "by"} {book.author}</p>
               <p className={p.description}>{ar ? book.descriptionAr || book.descriptionEn : book.descriptionEn}</p>
               <div className={p.specs}>
-                <span><Languages size={16} aria-hidden="true" />{languageNames[book.language]?.[ar ? 1 : 0] || book.language}</span>
+                <span><Languages size={16} aria-hidden="true" />{book.versions?.some(v => v.editionLanguage === "en") && book.language === "ARABIC" ? (ar ? "العربية والإنجليزية · النسختان مشمولتان" : "Arabic + English · both included") : languageNames[book.language]?.[ar ? 1 : 0] || book.language}</span>
                 <span><FileText size={16} aria-hidden="true" />{book.activeVersion.pageCount} {ar ? "صفحة" : "pages"}</span>
                 <span><BookOpen size={16} aria-hidden="true" />{ar ? "قراءة على الموقع" : "Online reading"}</span>
               </div>

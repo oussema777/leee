@@ -10,6 +10,12 @@ beforeEach(() => {
   vi.spyOn(URL, "revokeObjectURL").mockImplementation(revoke);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); fetcher.mockReset(); revoke.mockClear(); });
+it("requests pages from the selected language edition", async () => {
+  const pages = new ReaderPages("book", () => {}, () => {}, "en");
+  await pages.get(1);
+  expect(fetcher.mock.calls[0][0]).toBe("/api/ebooks/read/book?page=1&language=en");
+  pages.clear();
+});
 it("reuses decoded nearby pages and in-flight requests", async () => {
   const pages = new ReaderPages("book", () => {}, () => {});
   const [first, second] = await Promise.all([pages.get(1), pages.get(1)]);

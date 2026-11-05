@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
           titleAr: true,
           author: true,
           language: true,
+          versions: { where: { ready: true, editionLanguage: { not: null } }, select: { editionLanguage: true } },
           descriptionEn: true,
           descriptionAr: true,
           coverUrl: true,

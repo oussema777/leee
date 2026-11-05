@@ -36,11 +36,14 @@ model EbookVersion {
   ebook Ebook @relation("Versions", fields: [ebookId], references: [id], onDelete: Restrict)
   activeFor Ebook? @relation("ActiveVersion")
   label String
+  // Non-null only for a released translation included in the same purchase.
+  editionLanguage String?
   pageCount Int
   ready Boolean @default(false)
   pages EbookPage[]
   createdAt DateTime @default(now())
   @@index([ebookId])
+  @@unique([ebookId, editionLanguage])
 }
 
 model EbookPage {
