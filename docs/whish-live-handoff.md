@@ -3,7 +3,11 @@
 ## Current checkpoint
 
 - Worktree: sibling `leee-whish-live`; branch `whish-live-20261105`, based on bilingual release commit `5da0990`.
-- All Whish production changes are local and uncommitted. User instructed **do not push**. Nothing deployed or enabled.
+- User subsequently authorized completing deployment/activation on 5 November. Runtime commit `4771d3f` was deployed and promoted as `dpl_35UazuU3h2Vno6E3sduK4L7E95Sz` (`leee-cbqdm435p-oussema777s-projects.vercel.app`). No Git push was needed.
+- Live credentials and `WHISH_PAY_LIVE_ENABLED=true` are configured in Vercel. The global WHISH method remains false until the five-minute worker is installed. Customer sandbox entry is disabled; refunds remain disabled.
+- Production main-domain probe successfully authenticated with Whish. Anonymous admin access returns 401; malformed callbacks return 400. English desktop and Arabic mobile product checks passed at $9.99 with no overflow or page errors.
+- SSH key authentication to the user-approved Eventra VPS (72.61.160.199) failed. User has a connected root PuTTY session. Private installer was generated and copied to the local clipboard; awaiting its execution/result. Installer path: `private-ebooks/whish-rollout/install-worker-in-putty.txt`. It contains CRON_SECRET and must never enter Git or shared logs.
+- Worker source follow-up commit `f0b60f1` adds a production authentication preflight before installing files. This operational change does not require a website redeployment.
 - Both supplied provider screenshots were reviewed. Live credentials successfully authenticated against the production balance endpoint (read-only, HTTP 200). No payment, refund or email was sent.
 - Credentials exist only in ignored `.env.whish-live.local`. Do not copy their values into documentation, Git, output or screenshots.
 - Previous reader language-picker improvements remain unpushed in `leee-manal-bilingual-release` and the original checkout; they are not included in this branch.
@@ -26,7 +30,7 @@ Checkout text supports Arabic and English and explains automatic Whish verificat
 - Worker syntax/configuration checks passed. Secret scan and diff whitespace checks passed.
 - Real-money end-to-end behavior and production refund permissions remain unverified.
 
-## Deployment prerequisites — not executed
+## Original rollout plan (see checkpoint above for completed steps)
 
 1. Review the local changes and combine any desired unpushed language-picker changes deliberately. Respect the user's no-push instruction until changed.
 2. Set production environment variables securely: `WHISH_PAY_LIVE_CHANNEL`, `WHISH_PAY_LIVE_SECRET`, `WHISH_PAY_LIVE_WEBSITE_URL`, `WHISH_PAY_LIVE_PUBLIC_ORIGIN`. The issued website value is `theleeexperience.com`; canonical public origin is `https://www.theleeexperience.com`.
