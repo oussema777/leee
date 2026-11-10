@@ -33,6 +33,7 @@ it('signs production search and details independently and returns bound capture'
     expect(String(url)).toMatch(/^https:\/\/api.cybersource.com\/tss\/v2\//);
     expect(init).toMatchObject({ redirect: 'error', credentials: 'omit', cache: 'no-store' });
     const h = init!.headers as Record<string, string>;
+    expect(h.Accept).toBe(init!.body ? 'application/json' : 'application/hal+json');
     const digest = init!.body ? 'SHA-256=' + createHash('sha256').update(String(init!.body)).digest('base64') : undefined;
     if (digest) expect(h.digest).toBe(digest);
     const signed = `host: api.cybersource.com\ndate: ${h.date}\n(request-target): ${init!.method!.toLowerCase()} ${new URL(String(url)).pathname}\n` + (digest ? `digest: ${digest}\n` : '') + 'v-c-merchant-id: live-fixture';

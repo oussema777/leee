@@ -9,6 +9,7 @@
 
 # next.js
 /.next/
+/.next-account-mobile/
 /.next-ebook-*/
 /.next-donation-*/
 /out/
@@ -48,6 +49,7 @@ track record with links Manal oussama.xlsx
 ~$*
 
 # internal planning docs / binaries (not for deploy)
+/.impeccable/
 /DESIGN.json
 /DESIGN.md
 /private-ebooks/
@@ -56,6 +58,7 @@ docs/*.docx
 /.impeccable/aramex-transport-db/
 /.impeccable/aramex-storage-rollout/
 /ops/aramex-gateway/__pycache__/
+/ops/card-worker/__pycache__/
 /.impeccable/audi-storage-rollout/
 
 .next-review-fix/

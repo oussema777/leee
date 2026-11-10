@@ -42,7 +42,7 @@ export function createLiveCaptureLookup(env: Env = process.env, fetcher: typeof 
       const signed = `host: ${host}\ndate: ${date}\n(request-target): ${method} ${path}\n` + (digest ? `digest: ${digest}\n` : '') + `v-c-merchant-id: ${c.merchantId}`;
       const signature = createHmac('sha256', c.bytes).update(signed).digest('base64');
       return fetcher(`https://${host}${path}`, { method: method.toUpperCase(), body, signal: boundedSignal, redirect: 'error', credentials: 'omit', cache: 'no-store', headers: {
-        host, date, 'v-c-merchant-id': c.merchantId, Accept: 'application/hal+json', ...(digest ? { digest, 'Content-Type': 'application/json' } : {}),
+        host, date, 'v-c-merchant-id': c.merchantId, Accept: body === undefined ? 'application/hal+json' : 'application/json', ...(digest ? { digest, 'Content-Type': 'application/json' } : {}),
         signature: `keyid="${c.keyId}", algorithm="HmacSHA256", headers="${names}", signature="${signature}"`,
       } });
     }

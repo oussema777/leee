@@ -1,0 +1,11 @@
+[Unit]
+Description=Check LEE card payments every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=5s
+Unit=lee-card-reconcile.service
+
+[Install]
+WantedBy=timers.target
