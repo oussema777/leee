@@ -1,6 +1,13 @@
 import { z } from "zod";
+import { BOOK_PACKAGES, DELIVERY_FEE_CENTS } from "./config";
 
-export const WHISH_AMOUNTS = [500, 900, 2500, 5000, 8000] as const;
+export const WHISH_AMOUNTS = [
+  BOOK_PACKAGES.SINGLE.priceCents,
+  BOOK_PACKAGES.SINGLE.priceCents + DELIVERY_FEE_CENTS,
+  BOOK_PACKAGES.FIVE.priceCents,
+  BOOK_PACKAGES.TEN_PLUS_ONE.priceCents,
+  BOOK_PACKAGES.TWENTY_PLUS_TWO.priceCents,
+] as const;
 
 export const whishConfigSchema = z.object({
   enabled: z.boolean(),

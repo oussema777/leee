@@ -64,7 +64,7 @@ describe("Whish order creation", () => {
     expect((await POST(request({ paymentMethod: "BANK_AUDI" }))).status).toBe(201);
     const data = mocks.db.bookOrder.create.mock.calls[0][0].data;
     expect(data.reference).toMatch(/^LEE-TEST-/);
-    expect(data.whishPayment.create.snapshot).toMatchObject({ environment: "TEST", amountCents: 500 });
+    expect(data.whishPayment.create.snapshot).toMatchObject({ environment: "TEST", amountCents: 900 });
     expect(mocks.db.bookInventoryItem.updateMany).not.toHaveBeenCalled();
     expect(mocks.db.bookInventoryEdition.updateMany).not.toHaveBeenCalled();
     expect(mocks.db.bookInventoryDonorAllocation.updateMany).not.toHaveBeenCalled();
@@ -83,10 +83,10 @@ describe("Whish order creation", () => {
   it("uses the server-calculated pickup amount, stores hashes, and sends the private link only to the purchaser", async () => {
     const response = await POST(request({ priceCents: 1, paymentStatus: "PAID", recipientEmail: "recipient@example.test" }));
     expect(response.status).toBe(201);
-    expect(saved.snapshot.amountCents).toBe(500);
+    expect(saved.snapshot.amountCents).toBe(900);
     expect(saved.accessTokenHash).not.toBe(input.paymentAccessToken);
     const data = mocks.db.bookOrder.create.mock.calls[0][0].data;
-    expect(data.priceCents).toBe(500); expect(data).not.toHaveProperty("paymentStatus");
+    expect(data.priceCents).toBe(900); expect(data).not.toHaveProperty("paymentStatus");
     expect(data.items.create[0]).toMatchObject({ inventoryItemId: "book-1", editionId: "edition-1", donorAllocationId: "allocation-1" });
     expect(mocks.db.bookInventoryEdition.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ id: "edition-1", inventoryItemId: "book-1" }) }));
     const body = await response.json();
@@ -113,7 +113,7 @@ describe("Whish order creation", () => {
   });
   it("uses the permanent QR with the exact order total and rejects unverified setup", async () => {
     expect((await POST(request({ fulfillmentMethod: "DELIVERY", governorate: "BEIRUT", area: "Hamra", detailedAddress: "Test Street, building 4" }))).status).toBe(201);
-    expect(saved.snapshot.amountCents).toBe(900); expect(saved.snapshot.imageUrl).toBe("https://assets.example.test/whish.webp");
+    expect(saved.snapshot.amountCents).toBe(1300); expect(saved.snapshot.imageUrl).toBe("https://assets.example.test/whish.webp");
     saved = null; mocks.db.bookWhishSettings.findUnique.mockResolvedValueOnce({ config: emptyWhishConfig() });
     expect((await POST(request())).status).toBe(409);
     expect(mocks.db.bookOrder.create).toHaveBeenCalledTimes(1);

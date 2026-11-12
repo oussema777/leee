@@ -1,8 +1,10 @@
+export const BOOK_UNIT_PRICE_CENTS = 900;
+
 export const BOOK_PACKAGES = {
-  SINGLE: { priceCents: 500, paidBooks: 1, freeBooks: 0, totalBooks: 1 },
-  FIVE: { priceCents: 2_500, paidBooks: 5, freeBooks: 0, totalBooks: 5 },
-  TEN_PLUS_ONE: { priceCents: 5_000, paidBooks: 10, freeBooks: 1, totalBooks: 11 },
-  TWENTY_PLUS_TWO: { priceCents: 8_000, paidBooks: 20, freeBooks: 2, totalBooks: 22 },
+  SINGLE: { priceCents: BOOK_UNIT_PRICE_CENTS, paidBooks: 1, freeBooks: 0, totalBooks: 1 },
+  FIVE: { priceCents: 5 * BOOK_UNIT_PRICE_CENTS, paidBooks: 5, freeBooks: 0, totalBooks: 5 },
+  TEN_PLUS_ONE: { priceCents: 10 * BOOK_UNIT_PRICE_CENTS, paidBooks: 10, freeBooks: 1, totalBooks: 11 },
+  TWENTY_PLUS_TWO: { priceCents: 20 * BOOK_UNIT_PRICE_CENTS, paidBooks: 20, freeBooks: 2, totalBooks: 22 },
 } as const;
 
 export type BookPackageKey = keyof typeof BOOK_PACKAGES;

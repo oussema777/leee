@@ -16,10 +16,10 @@ describe("Whish checkout readiness and exact totals", () => {
     expect(makeSnapshot(emptyWhishConfig(), 500)).toBeNull();
   });
   it.each([
-    ["SINGLE", "PICKUP", 500], ["SINGLE", "DELIVERY", 900], ["SINGLE", "LEE_DISTRIBUTION", 500],
-    ["FIVE", "PICKUP", 2500], ["FIVE", "DELIVERY", 2500], ["FIVE", "LEE_DISTRIBUTION", 2500],
-    ["TEN_PLUS_ONE", "PICKUP", 5000], ["TEN_PLUS_ONE", "DELIVERY", 5000], ["TEN_PLUS_ONE", "LEE_DISTRIBUTION", 5000],
-    ["TWENTY_PLUS_TWO", "PICKUP", 8000], ["TWENTY_PLUS_TWO", "DELIVERY", 8000], ["TWENTY_PLUS_TWO", "LEE_DISTRIBUTION", 8000],
+    ["SINGLE", "PICKUP", 900], ["SINGLE", "DELIVERY", 1300], ["SINGLE", "LEE_DISTRIBUTION", 900],
+    ["FIVE", "PICKUP", 4500], ["FIVE", "DELIVERY", 4500], ["FIVE", "LEE_DISTRIBUTION", 4500],
+    ["TEN_PLUS_ONE", "PICKUP", 9000], ["TEN_PLUS_ONE", "DELIVERY", 9000], ["TEN_PLUS_ONE", "LEE_DISTRIBUTION", 9000],
+    ["TWENTY_PLUS_TWO", "PICKUP", 18000], ["TWENTY_PLUS_TWO", "DELIVERY", 18000], ["TWENTY_PLUS_TWO", "LEE_DISTRIBUTION", 18000],
   ])("selects the exact QR for %s / %s", (key, method, expected) => {
     const pack = key as BookPackageKey;
     const amount = BOOK_PACKAGES[pack].priceCents + deliveryFeeCents(pack, method as string);

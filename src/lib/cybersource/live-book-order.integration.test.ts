@@ -57,7 +57,7 @@ describe.skipIf(!url)('live printed order creation - isolated DB', () => {
   it('double-click creates one intent and reserves all three quantities once', async () => {
     const data = input();
     const [a, b] = await Promise.all([createLiveBookOrder(db, data, env), createLiveBookOrder(db, data, env)]);
-    expect(a).toEqual(b); expect(a.amountCents).toBe(500); expect(a.attemptId).toMatch(/^LEE-L-/);
+    expect(a).toEqual(b); expect(a.amountCents).toBe(900); expect(a.attemptId).toMatch(/^LEE-L-/);
     expect(await quantities()).toEqual([0, 0, 0]);
     expect(await capture(a.attemptId)).toEqual({ state: 'APPLIED' });
     expect(await quantities()).toEqual([0, 0, 0]);
@@ -81,7 +81,7 @@ describe.skipIf(!url)('live printed order creation - isolated DB', () => {
   });
   it('rejects changed replay and computes delivery price on the server', async () => {
     const data = { ...input(), fulfillmentMethod: 'DELIVERY', governorate: 'BEIRUT', area: 'Test', detailedAddress: 'Local fixture', amountCents: 1 };
-    const order = await createLiveBookOrder(db, data, env); expect(order.amountCents).toBe(900);
+    const order = await createLiveBookOrder(db, data, env); expect(order.amountCents).toBe(1300);
     await expect(createLiveBookOrder(db, { ...data, customerName: 'Changed' }, env)).rejects.toThrow('REPLAY_MISMATCH');
     expect(await quantities()).toEqual([0, 0, 0]);
   });

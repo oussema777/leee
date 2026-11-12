@@ -10,6 +10,7 @@ import { adminGet, adminPost, adminPut } from "@/lib/admin-api";
 import { BOOK_CONDITIONS, BOOK_CURRENCIES, BOOK_INVENTORY_STATUSES, BOOK_LANGUAGES } from "@/lib/book-inventory/validation";
 import { getBookCategories } from "@/lib/book-inventory/categories";
 import { addDonorAllocation, rebalanceDonorAllocations, setEditionStockTotal } from "@/lib/book-inventory/stock";
+import { BOOK_UNIT_PRICE_CENTS } from "@/lib/book-orders/config";
 import BookCategoryPicker from "./BookCategoryPicker";
 
 interface BookFormData {
@@ -26,7 +27,7 @@ type NewDonor = { type: "INDIVIDUAL" | "ORGANISATION"; displayName: string; cont
 const emptyDonor: NewDonor = { type: "INDIVIDUAL", displayName: "", contactName: "", phone: "", email: "", logoUrl: "", logoApproved: false, publicRecognition: false, active: true, adminNotes: "" };
 
 type BookFormInitial = Omit<Partial<BookFormData>, "publicationYear" | "editions" | "donorAllocations"> & { category?: string; customCategory?: string | null; priceCents?: number; publicationYear?: number | null; donor?: DonorOption | null; donorAllocations?: { id: string; stockQuantity: number; donor: DonorOption }[]; editions?: { id: string; label: string | null; publicationYear: number | null; stockQuantity: number; coverImageUrl: string | null }[] };
-const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", editions: [{ label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }], donorAllocations: [], categories: [], language: "ARABIC", condition: "GOOD", price: "5", currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "", donorId: "" };
+const empty: BookFormData = { sku: "", title: "", titleAr: "", author: "", authorAr: "", descriptionEn: "", descriptionAr: "", isbn: "", publisher: "", publicationYear: "", editions: [{ label: "", publicationYear: "", stockQuantity: 1, coverImageUrl: "" }], donorAllocations: [], categories: [], language: "ARABIC", condition: "GOOD", price: String(BOOK_UNIT_PRICE_CENTS / 100), currency: "USD", stockQuantity: 1, shelfLocation: "", coverImageUrl: "", status: "AVAILABLE", isPublished: false, internalNotes: "", donorId: "" };
 const humanize = (value: string) => value.toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 const options = (values: readonly string[]) => values.map((value) => ({ value, label: humanize(value) }));
 function toForm(initial?: BookFormInitial) {
@@ -37,7 +38,7 @@ function toForm(initial?: BookFormInitial) {
   const editions = initial.editions?.map((edition) => ({ ...edition, label: edition.label || "", publicationYear: edition.publicationYear == null ? "" : String(edition.publicationYear), coverImageUrl: edition.coverImageUrl || "" })) || empty.editions;
   const totalCopies = editions.reduce((total, edition) => total + edition.stockQuantity, 0);
   const donorAllocations = rebalanceDonorAllocations(loadedDonorAllocations, totalCopies);
-  return { ...empty, ...populatedFields, donorId: "", donorAllocations, categories: getBookCategories(initial), price: initial.priceCents == null ? "0" : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions } as BookFormData;
+  return { ...empty, ...populatedFields, donorId: "", donorAllocations, categories: getBookCategories(initial), price: initial.priceCents == null ? empty.price : String(initial.priceCents / 100), publicationYear: initial.publicationYear == null ? "" : String(initial.publicationYear), editions } as BookFormData;
 }
 
 export default function BookInventoryForm({ initial }: { initial?: BookFormInitial }) {
