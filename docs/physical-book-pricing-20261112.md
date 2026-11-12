@@ -11,3 +11,9 @@ Run `node scripts/update-physical-book-prices.mjs --env <environment-file>` to i
 Initial audit: 258 physical inventory records at USD 5 (257 published, one unpublished); one published ebook, `manal-366-days`, at 999 cents. Public catalogue, book detail and Phoenix pages read inventory dynamically.
 
 Validation includes the existing book/payment/ebook suites plus 26 focused checks through both live order creators: package and delivery totals, server rejection of caller-supplied prices, free-extra counts, and preservation of historical $5 orders. Database integration suites require their dedicated local PostgreSQL instances and must never use production credentials.
+
+## Rollout completed
+
+The user confirmed retaining bundles and bonus books. At 2026-11-12 11:17 UTC, the inventory transaction updated all 258 records and verified protected prices were unchanged. The recovery snapshot is `.price-change-backups/physical-books-2026-11-12T11-17-10.449Z.json` in the release worktree.
+
+Staged production deployment `dpl_Ef8RSC8Z6RUpBSPUHJGFjXgDSrYZ` passed the Vercel build and was promoted to the live domains. Validation: 331 existing tests and 26 new price tests passed, TypeScript passed, and English desktop/Arabic mobile browser checks passed locally and on production without submitting orders. Live catalogue checks confirmed $9 on all 12 displayed physical-book cards in each language; the full database audit confirmed all 258 at 900 cents. Manal remains at 999 cents.
