@@ -10,13 +10,18 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const [index, locale] of ['en', 'ar'].entries()) {
     const page = await browser.newPage({ viewport: { width: index ? 390 : 1440, height: 1000 } });
+    page.on('pageerror', error => console.error('Browser error:', error.message));
     let writes = 0;
     await page.route('**/api/**', async route => {
       if (route.request().method() !== 'GET') { writes++; return route.abort(); }
       return route.continue();
     });
     await page.goto(`${origin}/${locale}/books/${slug}`, { waitUntil: 'domcontentloaded', timeout: 180000 });
-    await page.getByRole('button', { name: label('order', index), exact: true }).click({ timeout: 60000 });
+    const orderButton = page.getByRole('button', { name: label('order', index), exact: true });
+    await orderButton.waitFor({ timeout: 60000 });
+    await page.waitForFunction(text => [...document.querySelectorAll('button')].some(button =>
+      button.textContent.trim() === text && Object.keys(button).some(key => key.startsWith('__reactProps'))), label('order', index), { timeout: 60000 });
+    await orderButton.click();
     const dialog = page.getByRole('dialog');
     const packages = await dialog.innerText();
     for (const price of ['$9', '$45', '$90', '$180']) assert(packages.includes(price), `Missing ${price} in ${locale}`);
